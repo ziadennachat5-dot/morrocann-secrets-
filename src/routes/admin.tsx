@@ -6,13 +6,23 @@ import type { Json, Tables, TablesInsert } from "@/integrations/supabase/types";
 import type { Lang } from "@/lib/i18n";
 import { dict } from "@/lib/translations";
 import { readTranslation, translationPaths } from "@/lib/copy-utils";
+import { CatalogManager } from "@/components/admin/CatalogManager";
 
 type Booking = Tables<"bookings">;
 type Availability = Tables<"availability">;
 type Inquiry = Tables<"inquiries">;
 type SiteSetting = Tables<"site_settings">;
 type Review = Tables<"reviews">;
-type AdminTab = "overview" | "bookings" | "calendar" | "content" | "inquiries" | "subscribers";
+type AdminTab =
+  | "overview"
+  | "bookings"
+  | "calendar"
+  | "experiences"
+  | "families"
+  | "reviews"
+  | "content"
+  | "inquiries"
+  | "subscribers";
 type LocalizedFields = { en: string; fr: string; ar: string };
 
 const inputClass =
@@ -21,6 +31,9 @@ const tabs: { id: AdminTab; label: string }[] = [
   { id: "overview", label: "Dashboard" },
   { id: "bookings", label: "Bookings" },
   { id: "calendar", label: "Availability" },
+  { id: "experiences", label: "Experiences" },
+  { id: "families", label: "Host families" },
+  { id: "reviews", label: "Reviews" },
   { id: "content", label: "Site content & settings" },
   { id: "inquiries", label: "Inquiries" },
   { id: "subscribers", label: "Newsletter subscribers" },
@@ -43,6 +56,7 @@ function AdminPage() {
   const [tab, setTab] = useState<AdminTab>("overview");
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [experiences, setExperiences] = useState<Tables<"experiences">[]>([]);
+  const [families, setFamilies] = useState<Tables<"host_families">[]>([]);
   const [availability, setAvailability] = useState<Availability[]>([]);
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
   const [settings, setSettings] = useState<SiteSetting[]>([]);
@@ -82,6 +96,10 @@ function AdminPage() {
   const [settingPublic, setSettingPublic] = useState(true);
   const [copyPath, setCopyPath] = useState("");
   const [copyValues, setCopyValues] = useState({ en: "", fr: "", ar: "" });
+  const sharedCurrencyValue = settings.find(
+    (item) => item.setting_key === "booking.currency",
+  )?.value;
+  const sharedCurrency = typeof sharedCurrencyValue === "string" ? sharedCurrencyValue : "";
 
   const refresh = useCallback(async () => {
     setBusy(true);
@@ -89,6 +107,7 @@ function AdminPage() {
     const [
       bookingResult,
       experienceResult,
+      familyResult,
       availabilityResult,
       inquiryResult,
       settingsResult,
@@ -99,6 +118,7 @@ function AdminPage() {
     ] = await Promise.all([
       supabase.from("bookings").select("*").order("date", { ascending: true }),
       supabase.from("experiences").select("*").order("id"),
+      supabase.from("host_families").select("*").order("id"),
       supabase.from("availability").select("*").order("date", { ascending: true }),
       supabase.from("inquiries").select("*").order("created_at", { ascending: false }),
       supabase.from("site_settings").select("*").order("setting_key"),
@@ -110,6 +130,7 @@ function AdminPage() {
     const failure =
       bookingResult.error ||
       experienceResult.error ||
+      familyResult.error ||
       availabilityResult.error ||
       inquiryResult.error ||
       settingsResult.error ||
@@ -124,6 +145,7 @@ function AdminPage() {
     }
     setBookings(bookingResult.data ?? []);
     setExperiences(experienceResult.data ?? []);
+    setFamilies(familyResult.data ?? []);
     setAvailability(availabilityResult.data ?? []);
     setInquiries(inquiryResult.data ?? []);
     setSettings(settingsResult.data ?? []);
@@ -394,6 +416,17 @@ function AdminPage() {
     else await refresh();
   }
 
+  async function saveCatalogCurrency(currency: string) {
+    const { error: saveError } = await supabase.from("site_settings").upsert({
+      setting_key: "booking.currency",
+      value: currency,
+      is_public: true,
+      updated_at: new Date().toISOString(),
+    });
+    if (saveError) setError(`Could not save booking currency: ${saveError.message}`);
+    else await refresh();
+  }
+
   async function saveCopyOverride(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!copyPath || !copyPaths.includes(copyPath)) {
@@ -500,15 +533,6 @@ function AdminPage() {
       })
       .eq("slug", post.slug);
     if (updateError) setError(`Could not update article: ${updateError.message}`);
-    else await refresh();
-  }
-
-  async function toggleReview(review: Review) {
-    const { error: updateError } = await supabase
-      .from("reviews")
-      .update({ approved: !review.approved })
-      .eq("id", review.id);
-    if (updateError) setError(`Could not update review approval: ${updateError.message}`);
     else await refresh();
   }
 
@@ -912,6 +936,19 @@ function AdminPage() {
         </section>
       )}
 
+      {(tab === "experiences" || tab === "families" || tab === "reviews") && (
+        <CatalogManager
+          section={tab}
+          experiences={experiences}
+          families={families}
+          reviews={reviews}
+          currency={sharedCurrency}
+          onSaveCurrency={saveCatalogCurrency}
+          onRefresh={refresh}
+          onError={setError}
+        />
+      )}
+
       {tab === "content" && (
         <section className="mt-6 grid gap-8 xl:grid-cols-2">
           <div>
@@ -1148,35 +1185,6 @@ function AdminPage() {
                 )}
               </div>
             </form>
-            <h3 className="mt-8 text-xl font-semibold">Guest review moderation</h3>
-            {reviews.length === 0 ? (
-              <p className="mt-3 text-sm text-muted-foreground">
-                No guest reviews have been submitted.
-              </p>
-            ) : (
-              <ul className="mt-3 space-y-2">
-                {reviews.map((review) => (
-                  <li key={review.id} className="rounded border p-3">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="font-medium">
-                          {review.author} · {review.rating}/5
-                        </p>
-                        <p className="mt-1 whitespace-pre-wrap text-sm">
-                          {localizedJson(review.quote, review.language)}
-                        </p>
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          {review.origin || "Origin not provided"} · {review.language.toUpperCase()}
-                        </p>
-                      </div>
-                      <Button size="sm" variant="outline" onClick={() => void toggleReview(review)}>
-                        {review.approved ? "Unapprove" : "Approve"}
-                      </Button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
           </div>
           <div>
             <h2 className="text-2xl font-semibold">Admin-managed settings</h2>
