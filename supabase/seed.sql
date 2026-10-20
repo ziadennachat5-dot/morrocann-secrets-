@@ -14,7 +14,7 @@ VALUES
   65.00,
   15.00,
   10,
-  '/assets/hero.jpg',
+  '/images/large-riad-dinner-gathering-800.jpg',
   '[
     {"en": "Mint tea ceremony", "fr": "Cérémonie du thé", "ar": "طقس الأتاي"},
     {"en": "4-course dinner", "fr": "Dîner 4 plats", "ar": "عشاء من 4 أطباق"},
@@ -30,7 +30,7 @@ VALUES
   89.00,
   20.00,
   8,
-  '/assets/cooking.jpg',
+  '/images/couple-sharing-riad-dinner-800.jpg',
   '[
     {"en": "Spice market walk", "fr": "Balade au souk aux épices", "ar": "جولة في سوق التوابل"},
     {"en": "Hands-on cooking class", "fr": "Cours de cuisine pratique", "ar": "درس طبخ تطبيقي"},
@@ -46,7 +46,7 @@ VALUES
   49.00,
   10.00,
   12,
-  '/assets/family.jpg',
+  '/images/moroccan-dishes-on-shared-table-800.jpg',
   '[
     {"en": "Seven-vegetable couscous", "fr": "Couscous aux sept légumes", "ar": "كسكس بسبع خضار"},
     {"en": "Lben & dessert", "fr": "Lben & dessert", "ar": "اللبن والحلوى"}

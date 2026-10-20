@@ -2,11 +2,12 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useI18n } from "@/lib/i18n";
 import { experiences } from "@/lib/content";
 import { pageHead } from "@/lib/seo";
+import { BRAND_NAME } from "@/lib/brand";
 import { SectionHead, StarDivider } from "@/components/site/Brand";
 import { ExperienceRow } from "@/components/site/Cards";
 
 export const Route = createFileRoute("/experiences")({
-  head: () => pageHead("/experiences", "Experiences — Moroccan Secrets", "Family dinners, cooking workshops and Friday couscous in Marrakesh riads. Prices, durations and what's included."),
+  head: () => pageHead("/experiences", `Experiences — ${BRAND_NAME}`, "Family dinners, cooking workshops and Friday couscous in Marrakesh riads. Prices, durations and what's included."),
   component: ExperiencesPage,
 });
 

@@ -1,4 +1,4 @@
-# Moroccan Secrets
+# Moroccan Secrets Riad
 
 Dine with a Moroccan family in Marrakesh. Authentic home-cooked dinners, cooking workshops, and cultural connections in private riads.
 
@@ -58,6 +58,13 @@ npm run build
 ```bash
 npm test
 ```
+
+## Site Photography
+
+- Responsive, metadata-stripped JPEG and WebP renditions live in `public/images/`.
+- Their dimensions, crop positions, and English, French, and Arabic alt text are maintained in `src/lib/photos.ts`.
+- Root-level source photos stay ignored and are not copied into the deployed public assets. Do not use `RIAD.png` as a photo; it belongs in `public/brand/` as the logo.
+- Generate renditions only up to each source image's actual width; do not upscale small photos to fill a larger breakpoint.
 
 ## Environment Variables
 

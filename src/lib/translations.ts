@@ -1,3 +1,5 @@
+import { BRAND_NAME } from "./brand";
+
 const en = {
   nav: { home: "Home", experiences: "Experiences", families: "Our Families", about: "Our Story", contact: "Contact", book: "Book" },
   hero: {
@@ -26,6 +28,17 @@ const en = {
     duration: "Duration", perPerson: "per person", maxGuests: "Max guests", included: "Included", book: "Book",
   },
   fam: { eyebrow: "Our families", title: "The people behind the table", subtitle: "Each host family is personally met and chosen for their warmth, their cooking, and their stories." },
+  gallery: {
+    eyebrow: "Shared moments",
+    title: "Around the table",
+    subtitle: "Meals and gatherings photographed in Marrakesh riads.",
+    openPhoto: "View photo",
+    close: "Close photo",
+    previous: "Previous",
+    next: "Next",
+    photo: "Photo",
+    navigationHint: "Use the left and right arrow keys to browse photos. Press Escape to close.",
+  },
   booking: {
     eyebrow: "Booking", title: "Reserve your evening", subtitle: "Send us your request and we'll confirm availability within 24 hours.",
     name: "Full name", email: "Email", phone: "Phone / WhatsApp", experience: "Experience", date: "Date", guests: "Number of guests",
@@ -38,7 +51,7 @@ const en = {
   },
   about: {
     eyebrow: "Our story", title: "Born from one long dinner",
-    p1: "Moroccan Secrets began at a grandmother's table in the medina, when a single invitation for tea turned into a four-hour dinner with strangers who left as friends.",
+    p1: `${BRAND_NAME} began at a grandmother's table in the medina, when a single invitation for tea turned into a four-hour dinner with strangers who left as friends.`,
     p2: "We believe the truest way to know a place is to eat in its homes. So we partner with families who love to cook and share — and make sure every dirham of the hosting fee goes fairly to them.",
     p3: "We keep groups small, evenings unhurried, and recipes honest.",
     values: [ { t: "Fair to hosts", d: "Families set their menus and receive the majority of every booking." }, { t: "Small groups", d: "Never more than ten guests around one table." }, { t: "Truly local", d: "Real homes in the medina — never a restaurant stage." } ],
@@ -79,6 +92,17 @@ const fr: Dict = {
     duration: "Durée", perPerson: "par personne", maxGuests: "Invités max", included: "Inclus", book: "Réserver",
   },
   fam: { eyebrow: "Nos familles", title: "Les visages derrière la table", subtitle: "Chaque famille est rencontrée et choisie pour sa chaleur, sa cuisine et ses histoires." },
+  gallery: {
+    eyebrow: "Moments partagés",
+    title: "Autour de la table",
+    subtitle: "Repas et rencontres photographiés dans des riads de Marrakech.",
+    openPhoto: "Voir la photo",
+    close: "Fermer la photo",
+    previous: "Précédente",
+    next: "Suivante",
+    photo: "Photo",
+    navigationHint: "Utilisez les flèches gauche et droite pour parcourir les photos. Échap pour fermer.",
+  },
   booking: {
     eyebrow: "Réservation", title: "Réservez votre soirée", subtitle: "Envoyez votre demande, nous confirmons la disponibilité sous 24 heures.",
     name: "Nom complet", email: "E-mail", phone: "Téléphone / WhatsApp", experience: "Expérience", date: "Date", guests: "Nombre d'invités",
@@ -91,7 +115,7 @@ const fr: Dict = {
   },
   about: {
     eyebrow: "Notre histoire", title: "Né d'un long dîner",
-    p1: "Moroccan Secrets est né à la table d'une grand-mère de la médina, quand une simple invitation pour le thé est devenue un dîner de quatre heures avec des inconnus repartis amis.",
+    p1: `${BRAND_NAME} est né à la table d'une grand-mère de la médina, quand une simple invitation pour le thé est devenue un dîner de quatre heures avec des inconnus repartis amis.`,
     p2: "Nous croyons que la meilleure façon de connaître un lieu est de manger dans ses maisons. Nous travaillons avec des familles qui aiment cuisiner et partager — et veillons à ce qu'elles soient rémunérées équitablement.",
     p3: "Petits groupes, soirées sans hâte, recettes sincères.",
     values: [ { t: "Juste pour les hôtes", d: "Les familles créent leurs menus et reçoivent l'essentiel de chaque réservation." }, { t: "Petits groupes", d: "Jamais plus de dix invités autour d'une table." }, { t: "Vraiment local", d: "De vraies maisons dans la médina — jamais une scène de restaurant." } ],
@@ -131,6 +155,17 @@ const ar: Dict = {
     duration: "المدة", perPerson: "للشخص", maxGuests: "أقصى عدد", included: "يشمل", book: "احجز",
   },
   fam: { eyebrow: "عائلاتنا", title: "الوجوه خلف المائدة", subtitle: "نلتقي بكل عائلة شخصياً ونختارها لدفئها وطبخها وحكاياتها." },
+  gallery: {
+    eyebrow: "لحظات مشتركة",
+    title: "حول المائدة",
+    subtitle: "وجبات ولقاءات مصورة في رياضات مراكش.",
+    openPhoto: "عرض الصورة",
+    close: "إغلاق الصورة",
+    previous: "السابقة",
+    next: "التالية",
+    photo: "الصورة",
+    navigationHint: "استخدم السهمين الأيمن والأيسر للتنقل بين الصور. اضغط على Escape للإغلاق.",
+  },
   booking: {
     eyebrow: "الحجز", title: "احجز أمسيتك", subtitle: "أرسل طلبك وسنؤكد التوفر خلال 24 ساعة.",
     name: "الاسم الكامل", email: "البريد الإلكتروني", phone: "الهاتف / واتساب", experience: "التجربة", date: "التاريخ", guests: "عدد الضيوف",
@@ -143,7 +178,7 @@ const ar: Dict = {
   },
   about: {
     eyebrow: "قصتنا", title: "وُلدت من عشاء طويل",
-    p1: "بدأت Moroccan Secrets على مائدة جدّة في المدينة القديمة، حين تحولت دعوة بسيطة لشرب الأتاي إلى عشاء دام أربع ساعات مع غرباء غادروا أصدقاء.",
+    p1: `بدأت ${BRAND_NAME} على مائدة جدّة في المدينة القديمة، حين تحولت دعوة بسيطة لشرب الأتاي إلى عشاء دام أربع ساعات مع غرباء غادروا أصدقاء.`,
     p2: "نؤمن أن أصدق طريقة لمعرفة مكان هي أن تأكل في بيوته. لذلك نتعاون مع عائلات تحب الطبخ والمشاركة، ونحرص على أن تنال أجرها بإنصاف.",
     p3: "مجموعات صغيرة، أمسيات هادئة، ووصفات صادقة.",
     values: [ { t: "منصفون للمضيفين", d: "تضع العائلات قوائمها وتحصل على الجزء الأكبر من كل حجز." }, { t: "مجموعات صغيرة", d: "لا يتجاوز الضيوف عشرة حول المائدة." }, { t: "محلي حقاً", d: "بيوت حقيقية في المدينة — لا مسرح مطاعم." } ],

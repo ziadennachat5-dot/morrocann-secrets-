@@ -5,15 +5,17 @@ import { families, menu, reviews, faqs, CONTACT } from "@/lib/content";
 import { pageHead } from "@/lib/seo";
 import { SectionHead, StarDivider, PlaceholderTag } from "@/components/site/Brand";
 import { FamilyCard } from "@/components/site/Cards";
+import { Photo } from "@/components/site/Photo";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import hero from "@/assets/hero.jpg";
-import cooking from "@/assets/cooking.jpg";
+import { BRAND_NAME, TAGLINE, BRAND_DESCRIPTION } from "@/lib/brand";
+import { photos } from "@/lib/photos";
 
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": ["TouristAttraction", "LocalBusiness"],
-  name: "Moroccan Secrets",
-  description: "Home dining and cooking experiences with local Moroccan families in a Marrakesh riad.",
+  name: BRAND_NAME,
+  description: BRAND_DESCRIPTION,
   address: { "@type": "PostalAddress", addressLocality: "Marrakesh", addressCountry: "MA" },
   touristType: ["Food lovers", "Families", "Cultural travellers"],
   availableLanguage: ["English", "French", "Arabic"],
@@ -21,9 +23,15 @@ const jsonLd = {
   priceRange: "€€",
 };
 
+const stepPhotos = [
+  photos["women-in-embroidered-kaftans"],
+  photos["couple-sharing-tagine"],
+  photos["large-riad-dinner-gathering"],
+];
+
 export const Route = createFileRoute("/")({
   head: () => ({
-    ...pageHead("/", "Moroccan Secrets — Dine with a family in Marrakesh", "Sit at a Moroccan family's table: mint tea, cooking together and a slow home-cooked dinner in a Marrakesh riad."),
+    ...pageHead("/", `${BRAND_NAME} — ${TAGLINE}`, BRAND_DESCRIPTION),
     scripts: [{ type: "application/ld+json", children: JSON.stringify(jsonLd) }],
   }),
   component: Home,
@@ -35,7 +43,7 @@ function Home() {
     <>
       {/* Hero */}
       <section className="relative isolate overflow-hidden bg-ink text-ink-foreground">
-        <img src={hero} alt="Candlelit riad courtyard with a tagine and mint tea" width={1600} height={1008} className="absolute inset-0 -z-10 h-full w-full object-cover opacity-55" />
+        <img src={hero} alt="Candlelit riad courtyard with a tagine and mint tea" width={1600} height={1008} fetchPriority="high" className="absolute inset-0 -z-10 h-full w-full object-cover opacity-55" />
         <div className="absolute inset-0 -z-10 bg-gradient-to-t from-ink via-ink/40 to-transparent" />
         <div className="mx-auto flex min-h-[86vh] max-w-7xl flex-col justify-end px-5 pb-16 pt-32 sm:pb-24">
           <p className="eyebrow !text-gold">{t.hero.eyebrow}</p>
@@ -52,20 +60,30 @@ function Home() {
       <section className="mx-auto max-w-7xl px-5 py-24">
         <SectionHead eyebrow={t.how.eyebrow} title={t.how.title} center />
         <ol className="mt-16 grid gap-12 md:grid-cols-3 md:gap-8">
-          {t.how.steps.map((s, i) => (
-            <li key={i} className="relative border-t-2 border-primary pt-6">
-              <span className="font-display text-7xl leading-none text-gold">0{i + 1}</span>
-              <h3 className="mt-3 text-3xl">{s.t}</h3>
-              <p className="mt-2 text-muted-foreground">{s.d}</p>
-            </li>
-          ))}
+          {t.how.steps.map((s, i) => {
+            const photo = stepPhotos[i];
+            if (!photo) throw new Error(`Missing photo for how-it-works step ${i + 1}`);
+
+            return (
+              <li key={i} className="relative border-t-2 border-primary pt-6">
+                <Photo
+                  photo={photo}
+                  sizes="(min-width: 768px) 30vw, 100vw"
+                  className="mb-5 aspect-[4/3] w-full rounded-xl object-cover"
+                />
+                <span className="font-display text-7xl leading-none text-gold">0{i + 1}</span>
+                <h3 className="mt-3 text-3xl">{s.t}</h3>
+                <p className="mt-2 text-muted-foreground">{s.d}</p>
+              </li>
+            );
+          })}
         </ol>
       </section>
 
       {/* Menu — split with image */}
       <section className="bg-sand">
         <div className="mx-auto grid max-w-7xl items-center gap-12 px-5 py-24 lg:grid-cols-[1fr_1.1fr]">
-          <img src={cooking} alt="Hosts and guests hand-rolling couscous" loading="lazy" width={1200} height={912} className="arch aspect-[4/5] w-full object-cover" />
+          <Photo photo={photos["family-sharing-tagine"]} sizes="(min-width: 1024px) 50vw, 100vw" className="arch aspect-[4/5] w-full object-cover" />
           <div>
             <SectionHead eyebrow={t.menu.eyebrow} title={t.menu.title} />
             <ul className="mt-10 divide-y divide-gold/40 border-y border-gold/40">

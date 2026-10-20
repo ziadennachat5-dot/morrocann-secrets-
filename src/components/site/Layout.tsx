@@ -3,7 +3,8 @@ import { useState, type ReactNode } from "react";
 import { Menu, X, MessageCircle, Mail, Instagram } from "lucide-react";
 import { useI18n, LANGS } from "@/lib/i18n";
 import { CONTACT } from "@/lib/content";
-import { Logo, StarDivider } from "./Brand";
+import { BRAND_NAME } from "@/lib/brand";
+import { HeaderLogo, FooterLogo, StarDivider } from "./Brand";
 
 const navItems = [
   { to: "/", key: "home" },
@@ -38,9 +39,8 @@ function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-border/70 bg-background/90 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-3">
-        <Link to="/" className="flex items-center gap-2.5" onClick={() => setOpen(false)}>
-          <Logo />
-          <span className="font-display text-2xl font-semibold leading-none text-primary">Moroccan Secrets</span>
+        <Link to="/" className="flex items-center" onClick={() => setOpen(false)} aria-label={BRAND_NAME}>
+          <HeaderLogo />
         </Link>
         <nav aria-label="Main" className="hidden items-center gap-7 lg:flex">
           {navItems.map((n) => (
@@ -80,7 +80,9 @@ function Footer() {
       <div className="zellige-bg">
         <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 md:grid-cols-3">
           <div>
-            <div className="flex items-center gap-3"><Logo className="h-14 w-14" /><span className="font-display text-3xl">Moroccan Secrets</span></div>
+            <div className="flex items-center">
+              <FooterLogo />
+            </div>
             <p className="mt-4 max-w-xs text-ink-foreground/75">{t.footer.tagline}</p>
           </div>
           <ul className="space-y-2">
@@ -96,7 +98,7 @@ function Footer() {
           </ul>
         </div>
         <StarDivider />
-        <p className="py-6 text-center text-xs text-ink-foreground/60">© {new Date().getFullYear()} Moroccan Secrets. {t.footer.rights}</p>
+        <p className="py-6 text-center text-xs text-ink-foreground/60">© {new Date().getFullYear()} {BRAND_NAME}. {t.footer.rights}</p>
       </div>
     </footer>
   );

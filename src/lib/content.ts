@@ -1,9 +1,7 @@
 // PLACEHOLDER CONTENT — every item below (names, prices, contacts, photos) is
 // sample data to be replaced with the real details.
 import type { L10n } from "./i18n";
-import family from "@/assets/family.jpg";
-import cooking from "@/assets/cooking.jpg";
-import hero from "@/assets/hero.jpg";
+import { photos, type PhotoId } from "./photos";
 
 export const CONTACT = {
   whatsapp: "212600000000", // PLACEHOLDER number
@@ -12,7 +10,7 @@ export const CONTACT = {
 };
 
 export type Experience = {
-  id: string; title: L10n; duration: L10n; price: number; maxGuests: number; included: L10n[]; blurb: L10n; image: string;
+  id: string; title: L10n; duration: L10n; price: number; maxGuests: number; included: L10n[]; blurb: L10n; photo: (typeof photos)[PhotoId];
 };
 
 export const experiences: Experience[] = [
@@ -20,7 +18,7 @@ export const experiences: Experience[] = [
     id: "family-dinner",
     title: { en: "Family Dinner Evening", fr: "Soirée dîner en famille", ar: "أمسية عشاء عائلي" },
     blurb: { en: "Our signature: mint tea, a home-cooked feast and the courtyard at dusk.", fr: "Notre signature : thé, festin maison et patio au crépuscule.", ar: "تجربتنا المميزة: أتاي ووليمة منزلية وصحن الرياض عند الغروب." },
-    duration: { en: "3 hours", fr: "3 heures", ar: "3 ساعات" }, price: 65, maxGuests: 10, image: hero,
+    duration: { en: "3 hours", fr: "3 heures", ar: "3 ساعات" }, price: 65, maxGuests: 10, photo: photos["large-riad-dinner-gathering"],
     included: [
       { en: "Mint tea ceremony", fr: "Cérémonie du thé", ar: "طقس الأتاي" },
       { en: "4-course dinner", fr: "Dîner 4 plats", ar: "عشاء من 4 أطباق" },
@@ -31,7 +29,7 @@ export const experiences: Experience[] = [
     id: "cook-and-dine",
     title: { en: "Cook & Dine Workshop", fr: "Atelier cuisiner & dîner", ar: "ورشة الطبخ والعشاء" },
     blurb: { en: "Hands in the dough: cook three dishes with your host, then eat them together.", fr: "Les mains dans la pâte : trois plats avec votre hôte, puis à table.", ar: "اطبخ ثلاثة أطباق مع مضيفك ثم تناولها معاً." },
-    duration: { en: "4.5 hours", fr: "4 h 30", ar: "4 ساعات ونصف" }, price: 89, maxGuests: 8, image: cooking,
+    duration: { en: "4.5 hours", fr: "4 h 30", ar: "4 ساعات ونصف" }, price: 89, maxGuests: 8, photo: photos["couple-sharing-riad-dinner"],
     included: [
       { en: "Spice market walk", fr: "Balade au souk aux épices", ar: "جولة في سوق التوابل" },
       { en: "Hands-on cooking class", fr: "Cours de cuisine pratique", ar: "درس طبخ تطبيقي" },
@@ -42,7 +40,7 @@ export const experiences: Experience[] = [
     id: "friday-couscous",
     title: { en: "Friday Couscous Lunch", fr: "Couscous du vendredi", ar: "غداء كسكس الجمعة" },
     blurb: { en: "Join the most sacred meal of the Moroccan week, the way families share it.", fr: "Le repas le plus important de la semaine, partagé en famille.", ar: "شارك أهم وجبة في الأسبوع المغربي كما تتقاسمها العائلات." },
-    duration: { en: "2.5 hours", fr: "2 h 30", ar: "ساعتان ونصف" }, price: 49, maxGuests: 12, image: family,
+    duration: { en: "2.5 hours", fr: "2 h 30", ar: "ساعتان ونصف" }, price: 49, maxGuests: 12, photo: photos["moroccan-dishes-on-shared-table"],
     included: [
       { en: "Seven-vegetable couscous", fr: "Couscous aux sept légumes", ar: "كسكس بسبع خضار" },
       { en: "Lben & dessert", fr: "Lben & dessert", ar: "اللبن والحلوى" },
@@ -50,11 +48,11 @@ export const experiences: Experience[] = [
   },
 ];
 
-export type Family = { id: string; name: L10n; area: L10n; languages: L10n; dish: L10n; story: L10n; image: string };
+export type Family = { id: string; name: L10n; area: L10n; languages: L10n; dish: L10n; story: L10n };
 
 export const families: Family[] = [
   {
-    id: "amrani", image: family,
+    id: "amrani",
     name: { en: "The Amrani Family", fr: "La famille Amrani", ar: "عائلة العمراني" },
     area: { en: "Riad Zitoun", fr: "Riad Zitoun", ar: "رياض الزيتون" },
     languages: { en: "Arabic, French, English", fr: "Arabe, français, anglais", ar: "العربية، الفرنسية، الإنجليزية" },
@@ -62,7 +60,7 @@ export const families: Family[] = [
     story: { en: "Youssef and Khadija have hosted friends in this riad for twenty years; their daughter Lina now leads the tea.", fr: "Youssef et Khadija reçoivent dans ce riad depuis vingt ans ; leur fille Lina sert désormais le thé.", ar: "يستقبل يوسف وخديجة الضيوف في هذا الرياض منذ عشرين عاماً، وابنتهما لينا تقدّم الأتاي الآن." },
   },
   {
-    id: "benali", image: cooking,
+    id: "benali",
     name: { en: "Lalla Fatima & daughters", fr: "Lalla Fatima & ses filles", ar: "لالة فاطمة وبناتها" },
     area: { en: "Mouassine", fr: "Mouassine", ar: "المواسين" },
     languages: { en: "Arabic, French", fr: "Arabe, français", ar: "العربية، الفرنسية" },
@@ -70,7 +68,7 @@ export const families: Family[] = [
     story: { en: "Three generations, one kitchen. Lalla Fatima learned couscous at six and still rolls it every Friday.", fr: "Trois générations, une cuisine. Lalla Fatima roule le couscous depuis ses six ans.", ar: "ثلاثة أجيال في مطبخ واحد. تعلمت لالة فاطمة فتل الكسكس في السادسة وما زالت تفتله كل جمعة." },
   },
   {
-    id: "idrissi", image: hero,
+    id: "idrissi",
     name: { en: "The Idrissi Brothers", fr: "Les frères Idrissi", ar: "الإخوة الإدريسي" },
     area: { en: "Kasbah", fr: "Kasbah", ar: "القصبة" },
     languages: { en: "Arabic, English, Spanish", fr: "Arabe, anglais, espagnol", ar: "العربية، الإنجليزية، الإسبانية" },

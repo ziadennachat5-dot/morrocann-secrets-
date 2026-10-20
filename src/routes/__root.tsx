@@ -11,6 +11,7 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
+import { BRAND_NAME, TAGLINE, BRAND_DESCRIPTION } from "@/lib/brand";
 import { I18nProvider } from "@/lib/i18n";
 import { SiteLayout } from "@/components/site/Layout";
 
@@ -48,9 +49,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Moroccan Secrets — Dine with a Moroccan family in Marrakesh" },
-      { name: "description", content: "Cook and eat in the home of a local family in a Marrakesh riad." },
-      { property: "og:site_name", content: "Moroccan Secrets" },
+      { title: `${BRAND_NAME} — ${TAGLINE}` },
+      { name: "description", content: BRAND_DESCRIPTION },
+      { property: "og:site_name", content: BRAND_NAME },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@moroccansecrets" },
