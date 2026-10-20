@@ -7,9 +7,13 @@ export function HeaderLogo({ className = "" }: { className?: string }) {
     <div className={`flex items-center ${className}`}>
       {/* Small screens: M mark only */}
       <picture className="sm:hidden">
-        <source srcSet="/brand/logo-mark.png" type="image/png" />
+        <source
+          srcSet="/brand/logo-mark-88.webp 1x, /brand/logo-mark-176.webp 2x"
+          type="image/webp"
+        />
         <img
-          src="/brand/logo-mark.png"
+          src="/brand/logo-mark-88.png"
+          srcSet="/brand/logo-mark-88.png 1x, /brand/logo-mark-176.png 2x"
           alt={BRAND_NAME}
           width={44}
           height={44}
@@ -19,13 +23,16 @@ export function HeaderLogo({ className = "" }: { className?: string }) {
 
       {/* Desktop / tablet screens: full logo with wordmark & RIAD */}
       <picture className="hidden sm:block">
-        <source srcSet="/brand/logo-full.webp 1x, /brand/logo-full@2x.webp 2x" type="image/webp" />
-        <source srcSet="/brand/logo-full.png 1x, /brand/logo-full@2x.png 2x" type="image/png" />
+        <source
+          srcSet="/brand/logo-full-120.webp 1x, /brand/logo-full-240.webp 2x"
+          type="image/webp"
+        />
         <img
-          src="/brand/logo-full.png"
+          src="/brand/logo-full-120.png"
+          srcSet="/brand/logo-full-120.png 1x, /brand/logo-full-240.png 2x"
           alt={BRAND_NAME}
-          width={105}
-          height={66}
+          width={120}
+          height={75}
           className="h-14 w-auto object-contain"
         />
       </picture>
@@ -38,15 +45,12 @@ export function FooterLogo({ className = "" }: { className?: string }) {
   return (
     <picture className={className}>
       <source
-        srcSet="/brand/logo-full-light.webp 1x, /brand/logo-full-light.webp 2x"
+        srcSet="/brand/logo-full-light-180.webp 1x, /brand/logo-full-light-320.webp 2x"
         type="image/webp"
       />
-      <source
-        srcSet="/brand/logo-full-light.png 1x, /brand/logo-full-light@2x.png 2x"
-        type="image/png"
-      />
       <img
-        src="/brand/logo-full-light.png"
+        src="/brand/logo-full-light-180.png"
+        srcSet="/brand/logo-full-light-180.png 1x, /brand/logo-full-light-320.png 2x"
         alt={BRAND_NAME}
         width={180}
         height={113}
@@ -59,13 +63,20 @@ export function FooterLogo({ className = "" }: { className?: string }) {
 /** Standalone M mark */
 export function LogoMark({ className = "h-11 w-11" }: { className?: string }) {
   return (
-    <img
-      src="/brand/logo-mark.png"
-      alt={BRAND_NAME}
-      width={44}
-      height={44}
-      className={`${className} object-contain`}
-    />
+    <picture>
+      <source
+        srcSet="/brand/logo-mark-88.webp 1x, /brand/logo-mark-176.webp 2x"
+        type="image/webp"
+      />
+      <img
+        src="/brand/logo-mark-88.png"
+        srcSet="/brand/logo-mark-88.png 1x, /brand/logo-mark-176.png 2x"
+        alt={BRAND_NAME}
+        width={44}
+        height={44}
+        className={`${className} object-contain`}
+      />
+    </picture>
   );
 }
 

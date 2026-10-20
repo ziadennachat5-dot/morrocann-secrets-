@@ -49,7 +49,13 @@ function LangSwitch() {
           aria-pressed={lang === l}
           className={`rounded-full px-2.5 py-1 uppercase transition-colors ${lang === l ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-muted"}`}
         >
-          {l === "ar" ? "ع" : l}
+          {l === "ar" ? (
+            <span lang="ar" style={{ fontFamily: "system-ui, sans-serif" }}>
+              ع
+            </span>
+          ) : (
+            l
+          )}
         </button>
       ))}
     </div>

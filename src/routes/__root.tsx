@@ -10,6 +10,9 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
+import cormorantGaramond600 from "@fontsource/cormorant-garamond/files/cormorant-garamond-latin-600-normal.woff2?url";
+import figtree400 from "@fontsource/figtree/files/figtree-latin-400-normal.woff2?url";
+import figtree600 from "@fontsource/figtree/files/figtree-latin-600-normal.woff2?url";
 import appCss from "../styles.css?url";
 import { BRAND_NAME, TAGLINE, BRAND_DESCRIPTION } from "@/lib/brand";
 import { I18nProvider } from "@/lib/i18n";
@@ -88,17 +91,32 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "theme-color", content: "#8B1A1A" },
     ],
     links: [
+      {
+        rel: "preload",
+        href: cormorantGaramond600,
+        as: "font",
+        type: "font/woff2",
+        crossOrigin: "anonymous",
+      },
+      {
+        rel: "preload",
+        href: figtree400,
+        as: "font",
+        type: "font/woff2",
+        crossOrigin: "anonymous",
+      },
+      {
+        rel: "preload",
+        href: figtree600,
+        as: "font",
+        type: "font/woff2",
+        crossOrigin: "anonymous",
+      },
       { rel: "stylesheet", href: appCss },
       { rel: "icon", href: "/favicon.ico", sizes: "any" },
       { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32x32.png" },
       { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
       { rel: "manifest", href: "/site.webmanifest" },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Figtree:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@500;700&family=Noto+Sans+Arabic:wght@400;600&display=swap",
-      },
     ],
   }),
   shellComponent: RootShell,

@@ -22,6 +22,19 @@ export const Route = createFileRoute("/")({
     const metadata = pageHead("/", `${BRAND_NAME} — ${TAGLINE}`, BRAND_DESCRIPTION);
     return {
       ...metadata,
+      links: [
+        ...(metadata.links ?? []),
+        {
+          rel: "preload",
+          href: "/images/hero-1200.webp",
+          imageSrcSet:
+            "/images/hero-480.webp 480w, /images/hero-800.webp 800w, /images/hero-1200.webp 1200w",
+          imageSizes: "100vw",
+          as: "image",
+          type: "image/webp",
+          fetchPriority: "high",
+        },
+      ],
       scripts: [
         ...(metadata.scripts ?? []),
         {
@@ -40,14 +53,22 @@ function Home() {
     <>
       {/* Hero */}
       <section className="relative isolate overflow-hidden bg-ink text-ink-foreground">
-        <img
-          src={hero}
-          alt="Candlelit riad courtyard with a tagine and mint tea"
-          width={1600}
-          height={1008}
-          fetchPriority="high"
-          className="absolute inset-0 -z-10 h-full w-full object-cover opacity-55"
-        />
+        <picture className="absolute inset-0 -z-10 block">
+          <source
+            type="image/webp"
+            srcSet="/images/hero-480.webp 480w, /images/hero-800.webp 800w, /images/hero-1200.webp 1200w"
+            sizes="100vw"
+          />
+          <img
+            src={hero}
+            alt="Candlelit riad courtyard with a tagine and mint tea"
+            width={1600}
+            height={1008}
+            sizes="100vw"
+            fetchPriority="high"
+            className="h-full w-full object-cover opacity-55"
+          />
+        </picture>
         <div className="absolute inset-0 -z-10 bg-gradient-to-t from-ink via-ink/40 to-transparent" />
         <div className="mx-auto flex min-h-[86vh] max-w-7xl flex-col justify-end px-5 pb-16 pt-32 sm:pb-24">
           <p className="eyebrow !text-gold">{t.hero.eyebrow}</p>
