@@ -1,6 +1,7 @@
 import { BRAND_NAME } from "./brand";
 
 const en = {
+  copyLoadError: "Published page text could not be loaded.",
   nav: {
     home: "Home",
     experiences: "Experiences",
@@ -282,6 +283,7 @@ const en = {
 export type Dict = typeof en;
 
 const fr: Dict = {
+  copyLoadError: "Impossible de charger le texte publié du site.",
   nav: {
     home: "Accueil",
     experiences: "Expériences",
@@ -568,6 +570,7 @@ const fr: Dict = {
 };
 
 const ar: Dict = {
+  copyLoadError: "تعذر تحميل النص المنشور للموقع.",
   nav: {
     home: "الرئيسية",
     experiences: "التجارب",

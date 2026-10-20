@@ -50,15 +50,30 @@ function configuredCurrency(): string | null {
 
 export const getPublishedExperiences = createServerFn({ method: "GET" }).handler(async () => {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const result = await supabaseAdmin
-    .from("experiences")
-    .select("id,title,blurb,duration,price,max_guests,image_url,image_alt,included")
-    .eq("is_published", true)
-    .order("id");
+  const [result, currencyResult] = await Promise.all([
+    supabaseAdmin
+      .from("experiences")
+      .select("id,title,blurb,duration,price,max_guests,image_url,image_alt,included")
+      .eq("is_published", true)
+      .order("id"),
+    supabaseAdmin
+      .from("site_settings")
+      .select("value")
+      .eq("setting_key", "booking.currency")
+      .eq("is_public", true)
+      .maybeSingle(),
+  ]);
   if (result.error) throw new Error("Unable to load published experiences.");
+  if (currencyResult.error) throw new Error("Unable to load booking currency.");
+  const configuredSettingCurrency =
+    typeof currencyResult.data?.value === "string" ? currencyResult.data.value : null;
+  const currency =
+    configuredSettingCurrency && /^[A-Z]{3}$/.test(configuredSettingCurrency)
+      ? configuredSettingCurrency
+      : configuredCurrency();
   return {
     experiences: z.array(experienceSchema).parse(result.data),
-    currency: configuredCurrency(),
+    currency,
   };
 });
 

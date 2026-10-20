@@ -76,6 +76,19 @@ Trust information (included items, practical details, family-home explanation, a
 
 Inquiry forms for private events, gift voucher requests, and partners are stored in the admin-only `inquiries` inbox. They fail closed unless `PUBLIC_FORM_RATE_LIMIT_SECRET` (at least 32 characters) and Cloudflare's `cf-connecting-ip` header are available. Blog guides are inserted as unpublished drafts, and public FAQ/article routes read only published database rows.
 
+## Admin Console
+
+After applying all Supabase migrations, create administrator accounts in Supabase Auth and add their user IDs to `public.admin_users` using a trusted SQL session (never from the browser). For example, after creating the account in Auth:
+
+```sql
+INSERT INTO public.admin_users (id, email, role)
+SELECT id, email, 'superadmin'
+FROM auth.users
+WHERE email = 'your-admin-email@example.com';
+```
+
+Sign in at `/admin` with that Auth account. The console checks `public.is_admin()` and performs reads and writes through the authenticated Supabase client under the existing RLS rules; it does not expose the service-role key. It supports booking operations and CSV export, internal notes and communication logs, availability date management, public inquiries, translated site text, trust/contact/booking settings, FAQ content, and blog drafts/publishing. Booking currency and cancellation-policy settings in `site_settings` take precedence over the documented environment fallbacks.
+
 ## Environment Variables
 
 See `.env.example` for all configurable environment variables, including:

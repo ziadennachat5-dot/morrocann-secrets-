@@ -1,5 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { dict, type Dict } from "./translations";
+import { getPublicCopyOverrides } from "./copy.functions";
+import { applyCopyOverrides, type CopyOverride } from "./copy-utils";
 
 export type Lang = "en" | "fr" | "ar";
 export const LANGS: Lang[] = ["en", "fr", "ar"];
@@ -10,6 +12,8 @@ const I18nContext = createContext<Ctx | null>(null);
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>("en");
+  const [copyOverrides, setCopyOverrides] = useState<CopyOverride[]>([]);
+  const [copyLoadError, setCopyLoadError] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem("ms-lang") as Lang | null;
@@ -21,13 +25,35 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
   }, [lang]);
 
+  useEffect(() => {
+    getPublicCopyOverrides()
+      .then(setCopyOverrides)
+      .catch((error: unknown) => {
+        console.error("Unable to load published page text:", error);
+        setCopyLoadError(true);
+      });
+  }, []);
+
   const setLang = (l: Lang) => {
     setLangState(l);
     localStorage.setItem("ms-lang", l);
   };
+  const localizedDict = applyCopyOverrides(dict[lang], lang, copyOverrides);
 
   return (
-    <I18nContext.Provider value={{ lang, setLang, t: dict[lang], l: (v) => v[lang] }}>
+    <I18nContext.Provider
+      value={{
+        lang,
+        setLang,
+        t: localizedDict,
+        l: (v) => v[lang],
+      }}
+    >
+      {copyLoadError && (
+        <p role="alert" className="bg-destructive px-4 py-2 text-center text-sm text-white">
+          {localizedDict.copyLoadError}
+        </p>
+      )}
       {children}
     </I18nContext.Provider>
   );

@@ -5,6 +5,11 @@ import { bookingRequestSchema } from "./booking-schema";
 import { filterAvailableBookingSlots } from "./booking-availability";
 
 const currencySchema = z.string().regex(/^[A-Z]{3}$/);
+const cancellationPolicySchema = z.object({
+  en: z.string().trim().min(1),
+  fr: z.string().trim().min(1),
+  ar: z.string().trim().min(1),
+});
 const experienceSchema = z.object({
   id: z.string(),
   title: z.record(z.string(), z.string()),
@@ -28,7 +33,7 @@ function localizedSetting(prefix: string): Record<"en" | "fr" | "ar", string> | 
 export const getBookingOptions = createServerFn({ method: "GET" }).handler(async () => {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const today = new Date().toISOString().slice(0, 10);
-  const [experienceResult, availabilityResult] = await Promise.all([
+  const [experienceResult, availabilityResult, settingsResult] = await Promise.all([
     supabaseAdmin
       .from("experiences")
       .select("id,title,blurb,duration,price,deposit_amount,max_guests,is_published")
@@ -40,10 +45,16 @@ export const getBookingOptions = createServerFn({ method: "GET" }).handler(async
       .gte("date", today)
       .eq("status", "available")
       .order("date"),
+    supabaseAdmin
+      .from("site_settings")
+      .select("setting_key,value")
+      .in("setting_key", ["booking.currency", "booking.cancellation_policy"])
+      .eq("is_public", true),
   ]);
 
   if (experienceResult.error) throw new Error("Unable to load published experiences.");
   if (availabilityResult.error) throw new Error("Unable to load availability.");
+  if (settingsResult.error) throw new Error("Unable to load booking settings.");
 
   const experiences = z.array(experienceSchema).parse(experienceResult.data);
   const publishedIds = new Set(experiences.map((experience) => experience.id));
@@ -64,14 +75,26 @@ export const getBookingOptions = createServerFn({ method: "GET" }).handler(async
     false,
   );
 
-  const currencyResult = currencySchema.safeParse(process.env["BOOKING_CURRENCY"]);
+  const settings = new Map(
+    (settingsResult.data ?? []).map((setting) => [setting.setting_key, setting.value]),
+  );
+  const currencyResult = currencySchema.safeParse(
+    settings.has("booking.currency")
+      ? settings.get("booking.currency")
+      : process.env["BOOKING_CURRENCY"],
+  );
+  const policyResult = cancellationPolicySchema.safeParse(
+    settings.get("booking.cancellation_policy"),
+  );
   const whatsapp = process.env["OWNER_WHATSAPP_NUMBER"]?.replace(/\D/g, "") ?? "";
 
   return {
     experiences,
     availability,
     currency: currencyResult.success ? currencyResult.data : null,
-    cancellationPolicy: localizedSetting("CANCELLATION_POLICY"),
+    cancellationPolicy: policyResult.success
+      ? policyResult.data
+      : localizedSetting("CANCELLATION_POLICY"),
     whatsapp: whatsapp.length >= 8 && whatsapp !== "212600000000" ? whatsapp : null,
   };
 });

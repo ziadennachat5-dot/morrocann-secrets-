@@ -414,6 +414,60 @@ export type Database = {
         };
         Relationships: [];
       };
+      booking_internal_notes: {
+        Row: {
+          id: string;
+          booking_id: string;
+          admin_user_id: string;
+          note: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          booking_id: string;
+          admin_user_id?: string;
+          note: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          booking_id?: string;
+          admin_user_id?: string;
+          note?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      booking_messages: {
+        Row: {
+          id: string;
+          booking_id: string;
+          admin_user_id: string;
+          channel: "email" | "whatsapp" | "phone" | "other";
+          direction: "inbound" | "outbound";
+          message: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          booking_id: string;
+          admin_user_id?: string;
+          channel: "email" | "whatsapp" | "phone" | "other";
+          direction: "inbound" | "outbound";
+          message: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          booking_id?: string;
+          admin_user_id?: string;
+          channel?: "email" | "whatsapp" | "phone" | "other";
+          direction?: "inbound" | "outbound";
+          message?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -421,6 +475,10 @@ export type Database = {
     Functions: {
       is_admin: {
         Args: Record<PropertyKey, never>;
+        Returns: boolean;
+      };
+      admin_set_booking_status: {
+        Args: { p_booking_id: string; p_status: string };
         Returns: boolean;
       };
       book_experience_atomic: {
