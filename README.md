@@ -72,6 +72,8 @@ The booking flow displays only published Supabase experiences and explicit futur
 
 Configure `BOOKING_CURRENCY`, `BOOKING_RATE_LIMIT_SECRET`, and `CANCELLATION_POLICY_EN`, `CANCELLATION_POLICY_FR`, and `CANCELLATION_POLICY_AR` in the deployment environment. The server rate limit uses Cloudflare's connecting-IP header and a database counter; booking requests fail closed if its secret or client IP is missing. Apply the Supabase migration before enabling the flow.
 
+Trust information (included items, practical details, family-home explanation, and safety/hygiene text) is stored as multilingual records in `site_settings`. Public sections remain hidden until all EN/FR/AR text is saved and marked public. Approved reviews are loaded from the `reviews` table; unapproved and incomplete multilingual reviews are not shown. Optional review profile links use `TRIPADVISOR_REVIEWS_URL` and `GOOGLE_BUSINESS_REVIEWS_URL`, and must be HTTPS.
+
 ## Environment Variables
 
 See `.env.example` for all configurable environment variables, including:
@@ -82,6 +84,8 @@ See `.env.example` for all configurable environment variables, including:
 - `SUPABASE_SERVICE_ROLE_KEY`: Server-side administrative key
 - `CRON_SECRET`: Secret token for scheduled server tasks
 - `OWNER_WHATSAPP_NUMBER`: Direct WhatsApp contact for reservations
+- `TRIPADVISOR_REVIEWS_URL`: Optional HTTPS link to the business review profile
+- `GOOGLE_BUSINESS_REVIEWS_URL`: Optional HTTPS link to the Google Business review profile
 
 ## License
 

@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
 import { Menu, X, MessageCircle, Mail, Instagram } from "lucide-react";
 import { useI18n, LANGS } from "@/lib/i18n";
@@ -17,7 +17,11 @@ const navItems = [
 function LangSwitch() {
   const { lang, setLang, t } = useI18n();
   return (
-    <div role="group" aria-label={t.language} className="flex rounded-full border border-border p-0.5 text-xs font-semibold">
+    <div
+      role="group"
+      aria-label={t.language}
+      className="flex rounded-full border border-border p-0.5 text-xs font-semibold"
+    >
       {LANGS.map((l) => (
         <button
           key={l}
@@ -39,34 +43,68 @@ function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-border/70 bg-background/90 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-3">
-        <Link to="/" className="flex items-center" onClick={() => setOpen(false)} aria-label={BRAND_NAME}>
+        <Link
+          to="/"
+          className="flex items-center"
+          onClick={() => setOpen(false)}
+          aria-label={BRAND_NAME}
+        >
           <HeaderLogo />
         </Link>
         <nav aria-label="Main" className="hidden items-center gap-7 lg:flex">
           {navItems.map((n) => (
-            <Link key={n.to} to={n.to} className="text-sm font-medium text-foreground/80 hover:text-primary" activeProps={{ className: "text-primary" }} activeOptions={{ exact: true }}>
+            <Link
+              key={n.to}
+              to={n.to}
+              className="text-sm font-medium text-foreground/80 hover:text-primary"
+              activeProps={{ className: "text-primary" }}
+              activeOptions={{ exact: true }}
+            >
               {t.nav[n.key]}
             </Link>
           ))}
         </nav>
         <div className="flex items-center gap-3">
           <LangSwitch />
-          <Link to="/booking" className="btn btn-primary hidden !py-2.5 sm:inline-flex">{t.nav.book}</Link>
-          <button type="button" className="rounded-md p-2 lg:hidden" aria-label="Menu" aria-expanded={open} onClick={() => setOpen(!open)}>
+          <Link to="/booking" className="btn btn-primary hidden !py-2.5 sm:inline-flex">
+            {t.nav.book}
+          </Link>
+          <button
+            type="button"
+            className="rounded-md p-2 lg:hidden"
+            aria-label="Menu"
+            aria-expanded={open}
+            onClick={() => setOpen(!open)}
+          >
             {open ? <X /> : <Menu />}
           </button>
         </div>
       </div>
       {open && (
-        <nav aria-label="Mobile" className="border-t border-border bg-background px-5 py-4 lg:hidden">
+        <nav
+          aria-label="Mobile"
+          className="border-t border-border bg-background px-5 py-4 lg:hidden"
+        >
           <ul className="flex flex-col gap-1">
             {navItems.map((n) => (
               <li key={n.to}>
-                <Link to={n.to} onClick={() => setOpen(false)} className="block rounded-md px-2 py-3 font-display text-2xl text-foreground hover:bg-muted">{t.nav[n.key]}</Link>
+                <Link
+                  to={n.to}
+                  onClick={() => setOpen(false)}
+                  className="block rounded-md px-2 py-3 font-display text-2xl text-foreground hover:bg-muted"
+                >
+                  {t.nav[n.key]}
+                </Link>
               </li>
             ))}
           </ul>
-          <Link to="/booking" onClick={() => setOpen(false)} className="btn btn-primary mt-4 w-full">{t.nav.book}</Link>
+          <Link
+            to="/booking"
+            onClick={() => setOpen(false)}
+            className="btn btn-primary mt-4 w-full"
+          >
+            {t.nav.book}
+          </Link>
         </nav>
       )}
     </header>
@@ -87,18 +125,52 @@ function Footer() {
           </div>
           <ul className="space-y-2">
             {navItems.map((n) => (
-              <li key={n.to}><Link to={n.to} className="hover:text-gold">{t.nav[n.key]}</Link></li>
+              <li key={n.to}>
+                <Link to={n.to} className="hover:text-gold">
+                  {t.nav[n.key]}
+                </Link>
+              </li>
             ))}
-            <li><Link to="/booking" className="hover:text-gold">{t.nav.book}</Link></li>
+            <li>
+              <Link to="/booking" className="hover:text-gold">
+                {t.nav.book}
+              </Link>
+            </li>
           </ul>
           <ul className="space-y-3">
-            <li><a className="inline-flex items-center gap-2 hover:text-gold" href={`https://wa.me/${CONTACT.whatsapp}`}><MessageCircle className="h-4 w-4" />WhatsApp</a></li>
-            <li><a className="inline-flex items-center gap-2 hover:text-gold" href={`mailto:${CONTACT.email}`}><Mail className="h-4 w-4" />{CONTACT.email}</a></li>
-            <li><a className="inline-flex items-center gap-2 hover:text-gold" href={CONTACT.instagram}><Instagram className="h-4 w-4" />Instagram</a></li>
+            <li>
+              <a
+                className="inline-flex items-center gap-2 hover:text-gold"
+                href={`https://wa.me/${CONTACT.whatsapp}`}
+              >
+                <MessageCircle className="h-4 w-4" />
+                WhatsApp
+              </a>
+            </li>
+            <li>
+              <a
+                className="inline-flex items-center gap-2 hover:text-gold"
+                href={`mailto:${CONTACT.email}`}
+              >
+                <Mail className="h-4 w-4" />
+                {CONTACT.email}
+              </a>
+            </li>
+            <li>
+              <a
+                className="inline-flex items-center gap-2 hover:text-gold"
+                href={CONTACT.instagram}
+              >
+                <Instagram className="h-4 w-4" />
+                Instagram
+              </a>
+            </li>
           </ul>
         </div>
         <StarDivider />
-        <p className="py-6 text-center text-xs text-ink-foreground/60">© {new Date().getFullYear()} {BRAND_NAME}. {t.footer.rights}</p>
+        <p className="py-6 text-center text-xs text-ink-foreground/60">
+          © {new Date().getFullYear()} {BRAND_NAME}. {t.footer.rights}
+        </p>
       </div>
     </footer>
   );
@@ -112,21 +184,43 @@ function WhatsAppFab() {
       target="_blank"
       rel="noopener noreferrer"
       aria-label={t.whatsappLabel}
-      className="fixed bottom-5 end-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-whatsapp text-primary-foreground shadow-xl transition-transform hover:scale-105"
+      className="fixed bottom-20 end-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-whatsapp text-primary-foreground shadow-xl transition-transform hover:scale-105 sm:bottom-5"
     >
       <MessageCircle className="h-7 w-7" />
     </a>
   );
 }
 
+function MobileBookingBar() {
+  const { t } = useI18n();
+  const pathname = useLocation({ select: (location) => location.pathname });
+  if (pathname === "/booking") return null;
+
+  return (
+    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 p-3 shadow-lg backdrop-blur sm:hidden">
+      <Link to="/booking" className="btn btn-primary w-full">
+        {t.nav.book}
+      </Link>
+    </div>
+  );
+}
+
 export function SiteLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col">
-      <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:start-4 focus:top-4 focus:z-50 focus:bg-background focus:p-2">Skip to content</a>
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:absolute focus:start-4 focus:top-4 focus:z-50 focus:bg-background focus:p-2"
+      >
+        Skip to content
+      </a>
       <Header />
-      <main id="main" className="flex-1">{children}</main>
+      <main id="main" className="flex-1">
+        {children}
+      </main>
       <Footer />
       <WhatsAppFab />
+      <MobileBookingBar />
     </div>
   );
 }

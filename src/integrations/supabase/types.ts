@@ -267,6 +267,27 @@ export type Database = {
           },
         ];
       };
+      site_settings: {
+        Row: {
+          setting_key: string;
+          value: Json;
+          is_public: boolean;
+          updated_at: string;
+        };
+        Insert: {
+          setting_key: string;
+          value?: Json;
+          is_public?: boolean;
+          updated_at?: string;
+        };
+        Update: {
+          setting_key?: string;
+          value?: Json;
+          is_public?: boolean;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
