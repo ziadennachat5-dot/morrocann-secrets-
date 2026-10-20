@@ -43,7 +43,7 @@ export const getTrustContent = createServerFn({ method: "GET" }).handler(async (
       .eq("is_public", true),
     supabaseAdmin
       .from("reviews")
-      .select("id,experience_id,author,origin,quote,rating,created_at")
+      .select("id,experience_id,author,origin,quote,rating,language,created_at")
       .eq("approved", true)
       .order("created_at", { ascending: false }),
   ]);
@@ -74,11 +74,16 @@ export const getTrustContent = createServerFn({ method: "GET" }).handler(async (
         origin: z.string().trim().max(100),
         quote: quoteSchema,
         rating: z.number().int().min(1).max(5),
+        language: z.enum(["en", "fr", "ar"]),
         created_at: z.string(),
       }),
     )
     .parse(reviewsResult.data)
-    .filter((review) => ["en", "fr", "ar"].every((lang) => review.quote[lang]?.trim()));
+    .filter(
+      (review) =>
+        ["en", "fr", "ar"].every((lang) => review.quote[lang]?.trim()) ||
+        Boolean(review.quote[review.language]?.trim()),
+    );
 
   return {
     included: localizedLists.get("trust.included") ?? null,

@@ -21,8 +21,10 @@ import { Route as GiftRouteImport } from './routes/gift'
 import { Route as PartnersRouteImport } from './routes/partners'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PrivateEventsRouteImport } from './routes/private-events'
+import { Route as ReviewRouteImport } from './routes/review'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
+import { Route as ApiCronEmailsRouteImport } from './routes/api/cron/emails'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -84,6 +86,11 @@ const PrivateEventsRoute = PrivateEventsRouteImport.update({
   path: '/private-events',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReviewRoute = ReviewRouteImport.update({
+  id: '/review',
+  path: '/review',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
@@ -93,6 +100,11 @@ const BlogSlugRoute = BlogSlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
   getParentRoute: () => BlogRoute,
+} as any)
+const ApiCronEmailsRoute = ApiCronEmailsRouteImport.update({
+  id: '/api/cron/emails',
+  path: '/api/cron/emails',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -108,8 +120,10 @@ export interface FileRoutesByFullPath {
   '/partners': typeof PartnersRoute
   '/privacy': typeof PrivacyRoute
   '/private-events': typeof PrivateEventsRoute
+  '/review': typeof ReviewRoute
   '/terms': typeof TermsRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/api/cron/emails': typeof ApiCronEmailsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -124,8 +138,10 @@ export interface FileRoutesByTo {
   '/partners': typeof PartnersRoute
   '/privacy': typeof PrivacyRoute
   '/private-events': typeof PrivateEventsRoute
+  '/review': typeof ReviewRoute
   '/terms': typeof TermsRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/api/cron/emails': typeof ApiCronEmailsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -141,8 +157,10 @@ export interface FileRoutesById {
   '/partners': typeof PartnersRoute
   '/privacy': typeof PrivacyRoute
   '/private-events': typeof PrivateEventsRoute
+  '/review': typeof ReviewRoute
   '/terms': typeof TermsRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/api/cron/emails': typeof ApiCronEmailsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -159,8 +177,10 @@ export interface FileRouteTypes {
     | '/partners'
     | '/privacy'
     | '/private-events'
+    | '/review'
     | '/terms'
     | '/blog/$slug'
+    | '/api/cron/emails'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -175,8 +195,10 @@ export interface FileRouteTypes {
     | '/partners'
     | '/privacy'
     | '/private-events'
+    | '/review'
     | '/terms'
     | '/blog/$slug'
+    | '/api/cron/emails'
   id:
     | '__root__'
     | '/'
@@ -191,8 +213,10 @@ export interface FileRouteTypes {
     | '/partners'
     | '/privacy'
     | '/private-events'
+    | '/review'
     | '/terms'
     | '/blog/$slug'
+    | '/api/cron/emails'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -208,7 +232,9 @@ export interface RootRouteChildren {
   PartnersRoute: typeof PartnersRoute
   PrivacyRoute: typeof PrivacyRoute
   PrivateEventsRoute: typeof PrivateEventsRoute
+  ReviewRoute: typeof ReviewRoute
   TermsRoute: typeof TermsRoute
+  ApiCronEmailsRoute: typeof ApiCronEmailsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -297,6 +323,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrivateEventsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/review': {
+      id: '/review'
+      path: '/review'
+      fullPath: '/review'
+      preLoaderRoute: typeof ReviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/terms': {
       id: '/terms'
       path: '/terms'
@@ -310,6 +343,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/blog/$slug'
       preLoaderRoute: typeof BlogSlugRouteImport
       parentRoute: typeof BlogRoute
+    }
+    '/api/cron/emails': {
+      id: '/api/cron/emails'
+      path: '/api/cron/emails'
+      fullPath: '/api/cron/emails'
+      preLoaderRoute: typeof ApiCronEmailsRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -337,7 +377,9 @@ const rootRouteChildren: RootRouteChildren = {
   PartnersRoute: PartnersRoute,
   PrivacyRoute: PrivacyRoute,
   PrivateEventsRoute: PrivateEventsRoute,
+  ReviewRoute: ReviewRoute,
   TermsRoute: TermsRoute,
+  ApiCronEmailsRoute: ApiCronEmailsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

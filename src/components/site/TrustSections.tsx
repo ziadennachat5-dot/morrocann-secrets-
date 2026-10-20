@@ -48,7 +48,10 @@ export function TrustSections() {
   });
   const whyFamilyHome = localized(content.whyFamilyHome, lang);
   const safetyHygiene = localized(content.safetyHygiene, lang);
-  const reviews = content.reviews.filter((review) => review.quote[lang]?.trim());
+  const reviews = content.reviews.filter((review) => {
+    const hasTranslations = ["en", "fr", "ar"].every((locale) => review.quote[locale]?.trim());
+    return review.quote[lang]?.trim() && (hasTranslations || review.language === lang);
+  });
   const hasIncluded = included.length > 0 || notIncluded.length > 0;
   const hasExternalReviewLinks =
     content.reviewLinks.tripAdvisor !== null || content.reviewLinks.googleBusiness !== null;

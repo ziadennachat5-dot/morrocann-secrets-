@@ -89,6 +89,10 @@ WHERE email = 'your-admin-email@example.com';
 
 Sign in at `/admin` with that Auth account. The console checks `public.is_admin()` and performs reads and writes through the authenticated Supabase client under the existing RLS rules; it does not expose the service-role key. It supports booking operations and CSV export, internal notes and communication logs, availability date management, public inquiries, translated site text, trust/contact/booking settings, FAQ content, and blog drafts/publishing. Booking currency and cancellation-policy settings in `site_settings` take precedence over the documented environment fallbacks.
 
+## Booking Email Delivery
+
+Apply the booking email outbox migration. Booking receipts, status changes, 48-hour reminders, and post-visit review requests are queued transactionally and processed by `POST /api/cron/emails` with `Authorization: Bearer $CRON_SECRET`. Schedule that endpoint with a trusted cron service; do not expose the secret in client code. When `RESEND_API_KEY` is empty, the worker records a log-only delivery state and logs a masked recipient and subject without storing/rendering message content in logs. To send reviews with signed booking-only links, configure `REVIEW_TOKEN_SECRET` with at least 32 random characters. Guest reviews are stored unapproved and only appear after admin approval; each booking can submit at most one review.
+
 ## Environment Variables
 
 See `.env.example` for all configurable environment variables, including:
@@ -103,6 +107,7 @@ See `.env.example` for all configurable environment variables, including:
 - `INSTAGRAM_URL`: Optional HTTPS Instagram profile link (hidden when empty)
 - `TRIPADVISOR_REVIEWS_URL`: Optional HTTPS link to the business review profile
 - `GOOGLE_BUSINESS_REVIEWS_URL`: Optional HTTPS link to the Google Business review profile
+- `REVIEW_TOKEN_SECRET`: Required for signed guest review links; at least 32 random characters
 
 ## License
 

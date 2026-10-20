@@ -65,6 +65,7 @@ describe("trust content sections", () => {
           origin: "",
           quote: { en: "A real review.", fr: "Un vrai avis.", ar: "تقييم حقيقي." },
           rating: 5,
+          language: "en",
           created_at: "2026-10-20T12:00:00.000Z",
         },
       ],

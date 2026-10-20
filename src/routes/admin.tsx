@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import type { Json, Tables, TablesInsert } from "@/integrations/supabase/types";
+import type { Lang } from "@/lib/i18n";
 import { dict } from "@/lib/translations";
 import { readTranslation, translationPaths } from "@/lib/copy-utils";
 
@@ -10,6 +11,7 @@ type Booking = Tables<"bookings">;
 type Availability = Tables<"availability">;
 type Inquiry = Tables<"inquiries">;
 type SiteSetting = Tables<"site_settings">;
+type Review = Tables<"reviews">;
 type AdminTab = "overview" | "bookings" | "calendar" | "content" | "inquiries";
 type LocalizedFields = { en: string; fr: string; ar: string };
 
@@ -42,6 +44,7 @@ function AdminPage() {
   const [settings, setSettings] = useState<SiteSetting[]>([]);
   const [faqs, setFaqs] = useState<Tables<"faqs">[]>([]);
   const [posts, setPosts] = useState<Tables<"posts">[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [faqId, setFaqId] = useState("");
   const [faqCategory, setFaqCategory] = useState<LocalizedFields>({ en: "", fr: "", ar: "" });
   const [faqQuestion, setFaqQuestion] = useState<LocalizedFields>({ en: "", fr: "", ar: "" });
@@ -86,6 +89,7 @@ function AdminPage() {
       settingsResult,
       faqResult,
       postResult,
+      reviewResult,
     ] = await Promise.all([
       supabase.from("bookings").select("*").order("date", { ascending: true }),
       supabase.from("experiences").select("*").order("id"),
@@ -94,6 +98,7 @@ function AdminPage() {
       supabase.from("site_settings").select("*").order("setting_key"),
       supabase.from("faqs").select("*").order("sort_order"),
       supabase.from("posts").select("*").order("created_at", { ascending: false }),
+      supabase.from("reviews").select("*").order("created_at", { ascending: false }),
     ]);
     const failure =
       bookingResult.error ||
@@ -102,7 +107,8 @@ function AdminPage() {
       inquiryResult.error ||
       settingsResult.error ||
       faqResult.error ||
-      postResult.error;
+      postResult.error ||
+      reviewResult.error;
     if (failure) {
       setError(`Could not load admin data: ${failure.message}`);
       setBusy(false);
@@ -115,6 +121,7 @@ function AdminPage() {
     setSettings(settingsResult.data ?? []);
     setFaqs(faqResult.data ?? []);
     setPosts(postResult.data ?? []);
+    setReviews(reviewResult.data ?? []);
     setSelectedBookingId((current) => current || bookingResult.data?.[0]?.id || "");
     setBusy(false);
   }, []);
@@ -484,6 +491,15 @@ function AdminPage() {
       })
       .eq("slug", post.slug);
     if (updateError) setError(`Could not update article: ${updateError.message}`);
+    else await refresh();
+  }
+
+  async function toggleReview(review: Review) {
+    const { error: updateError } = await supabase
+      .from("reviews")
+      .update({ approved: !review.approved })
+      .eq("id", review.id);
+    if (updateError) setError(`Could not update review approval: ${updateError.message}`);
     else await refresh();
   }
 
@@ -1123,6 +1139,35 @@ function AdminPage() {
                 )}
               </div>
             </form>
+            <h3 className="mt-8 text-xl font-semibold">Guest review moderation</h3>
+            {reviews.length === 0 ? (
+              <p className="mt-3 text-sm text-muted-foreground">
+                No guest reviews have been submitted.
+              </p>
+            ) : (
+              <ul className="mt-3 space-y-2">
+                {reviews.map((review) => (
+                  <li key={review.id} className="rounded border p-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-medium">
+                          {review.author} · {review.rating}/5
+                        </p>
+                        <p className="mt-1 whitespace-pre-wrap text-sm">
+                          {localizedJson(review.quote, review.language)}
+                        </p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {review.origin || "Origin not provided"} · {review.language.toUpperCase()}
+                        </p>
+                      </div>
+                      <Button size="sm" variant="outline" onClick={() => void toggleReview(review)}>
+                        {review.approved ? "Unapprove" : "Approve"}
+                      </Button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
           <div>
             <h2 className="text-2xl font-semibold">Admin-managed settings</h2>
@@ -1327,9 +1372,11 @@ function BookingTable({
   );
 }
 
-function localizedJson(value: unknown): string {
+function localizedJson(value: unknown, language: Lang = "en"): string {
   if (typeof value !== "object" || value === null || Array.isArray(value)) return "";
   const values = value as Record<string, unknown>;
+  const selected = values[language];
+  if (typeof selected === "string" && selected) return selected;
   return typeof values["en"] === "string" ? values["en"] : "";
 }
 

@@ -355,32 +355,38 @@ export type Database = {
       reviews: {
         Row: {
           id: string;
+          booking_id: string | null;
           experience_id: string | null;
           author: string;
           origin: string;
           quote: Json;
           rating: number;
           approved: boolean;
+          language: "en" | "fr" | "ar";
           created_at: string;
         };
         Insert: {
           id?: string;
+          booking_id?: string | null;
           experience_id?: string | null;
           author: string;
           origin: string;
           quote: Json;
           rating?: number;
           approved?: boolean;
+          language?: "en" | "fr" | "ar";
           created_at?: string;
         };
         Update: {
           id?: string;
+          booking_id?: string | null;
           experience_id?: string | null;
           author?: string;
           origin?: string;
           quote?: Json;
           rating?: number;
           approved?: boolean;
+          language?: "en" | "fr" | "ar";
           created_at?: string;
         };
         Relationships: [
@@ -389,6 +395,13 @@ export type Database = {
             columns: ["experience_id"];
             isOneToOne: false;
             referencedRelation: "experiences";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "reviews_booking_id_fkey";
+            columns: ["booking_id"];
+            isOneToOne: true;
+            referencedRelation: "bookings";
             referencedColumns: ["id"];
           },
         ];
@@ -468,6 +481,60 @@ export type Database = {
         };
         Relationships: [];
       };
+      booking_email_jobs: {
+        Row: {
+          id: string;
+          booking_id: string;
+          kind:
+            | "booking_received"
+            | "booking_confirmed"
+            | "booking_reminder"
+            | "booking_cancelled"
+            | "review_request";
+          scheduled_at: string;
+          status: "pending" | "processing" | "sent" | "logged" | "failed";
+          attempts: number;
+          last_error: string | null;
+          sent_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          booking_id: string;
+          kind:
+            | "booking_received"
+            | "booking_confirmed"
+            | "booking_reminder"
+            | "booking_cancelled"
+            | "review_request";
+          scheduled_at?: string;
+          status?: "pending" | "processing" | "sent" | "logged" | "failed";
+          attempts?: number;
+          last_error?: string | null;
+          sent_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          booking_id?: string;
+          kind?:
+            | "booking_received"
+            | "booking_confirmed"
+            | "booking_reminder"
+            | "booking_cancelled"
+            | "review_request";
+          scheduled_at?: string;
+          status?: "pending" | "processing" | "sent" | "logged" | "failed";
+          attempts?: number;
+          last_error?: string | null;
+          sent_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -480,6 +547,10 @@ export type Database = {
       admin_set_booking_status: {
         Args: { p_booking_id: string; p_status: string };
         Returns: boolean;
+      };
+      claim_booking_email_jobs: {
+        Args: { p_batch_size?: number };
+        Returns: Database["public"]["Tables"]["booking_email_jobs"]["Row"][];
       };
       book_experience_atomic: {
         Args: {
