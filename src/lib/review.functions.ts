@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
+import { getClientIp } from "./client-ip";
 import { verifySignedReviewToken } from "./review-token";
 
 const reviewSubmissionSchema = z.object({
@@ -29,7 +30,7 @@ export const submitGuestReview = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     if (data.honeypot) throw new Error("Unable to accept this review.");
     const request = getRequest();
-    const clientIp = request.headers.get("cf-connecting-ip");
+    const clientIp = getClientIp(request);
     const rateLimitSecret = process.env["PUBLIC_FORM_RATE_LIMIT_SECRET"];
     if (!clientIp || !rateLimitSecret || rateLimitSecret.length < 32) {
       throw new Error("Guest review submissions are temporarily unavailable.");

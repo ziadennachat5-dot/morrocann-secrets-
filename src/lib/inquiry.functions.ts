@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
+import { getClientIp } from "./client-ip";
 import { inquirySchema } from "./inquiry-schema";
 
 export const submitInquiry = createServerFn({ method: "POST" })
@@ -7,7 +8,7 @@ export const submitInquiry = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     if (data.honeypot) throw new Error("Unable to process this inquiry.");
 
-    const clientIp = getRequest().headers.get("cf-connecting-ip");
+    const clientIp = getClientIp(getRequest());
     const rateLimitSecret = process.env["PUBLIC_FORM_RATE_LIMIT_SECRET"];
     if (!clientIp || !rateLimitSecret || rateLimitSecret.length < 32) {
       throw new Error("Public inquiries are temporarily unavailable.");

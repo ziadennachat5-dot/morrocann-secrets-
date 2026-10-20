@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
+import { getClientIp } from "./client-ip";
 import { bookingRequestSchema } from "./booking-schema";
 import { filterAvailableBookingSlots } from "./booking-availability";
 
@@ -108,7 +109,7 @@ export const submitBooking = createServerFn({ method: "POST" })
     }
 
     const request = getRequest();
-    const clientIp = request.headers.get("cf-connecting-ip");
+    const clientIp = getClientIp(request);
     const rateLimitSecret = process.env["BOOKING_RATE_LIMIT_SECRET"];
     if (!clientIp || !rateLimitSecret) {
       throw new Error("Booking requests are temporarily unavailable.");

@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
+import { getClientIp } from "./client-ip";
 import type { Lang } from "./i18n";
 
 const subscriptionSchema = z.object({
@@ -113,7 +114,7 @@ export const requestNewsletterSubscription = createServerFn({ method: "POST" })
   .validator(subscriptionSchema)
   .handler(async ({ data }) => {
     if (data.honeypot) throw new Error("Unable to process newsletter request.");
-    const ip = getRequest().headers.get("cf-connecting-ip");
+    const ip = getClientIp(getRequest());
     const rateLimitSecret = process.env["PUBLIC_FORM_RATE_LIMIT_SECRET"];
     if (!ip || !rateLimitSecret || rateLimitSecret.length < 32) {
       throw new Error("Newsletter subscriptions are temporarily unavailable.");
@@ -169,7 +170,7 @@ export const requestNewsletterSubscription = createServerFn({ method: "POST" })
 export const confirmNewsletterSubscription = createServerFn({ method: "POST" })
   .validator(confirmationSchema)
   .handler(async ({ data }) => {
-    const ip = getRequest().headers.get("cf-connecting-ip");
+    const ip = getClientIp(getRequest());
     const rateLimitSecret = process.env["PUBLIC_FORM_RATE_LIMIT_SECRET"];
     if (!ip || !rateLimitSecret || rateLimitSecret.length < 32) {
       throw new Error("Newsletter confirmations are temporarily unavailable.");
