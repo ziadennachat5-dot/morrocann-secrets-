@@ -19,14 +19,8 @@ export function HeaderLogo({ className = "" }: { className?: string }) {
 
       {/* Desktop / tablet screens: full logo with wordmark & RIAD */}
       <picture className="hidden sm:block">
-        <source
-          srcSet="/brand/logo-full.webp 1x, /brand/logo-full@2x.webp 2x"
-          type="image/webp"
-        />
-        <source
-          srcSet="/brand/logo-full.png 1x, /brand/logo-full@2x.png 2x"
-          type="image/png"
-        />
+        <source srcSet="/brand/logo-full.webp 1x, /brand/logo-full@2x.webp 2x" type="image/webp" />
+        <source srcSet="/brand/logo-full.png 1x, /brand/logo-full@2x.png 2x" type="image/png" />
         <img
           src="/brand/logo-full.png"
           alt={BRAND_NAME}
@@ -96,11 +90,25 @@ export function PlaceholderTag() {
   return <span className="placeholder-tag">{t.placeholder}</span>;
 }
 
-export function SectionHead({ eyebrow, title, sub, center = false, id }: { eyebrow: string; title: string; sub?: string; center?: boolean; id?: string }) {
+export function SectionHead({
+  eyebrow,
+  title,
+  sub,
+  center = false,
+  id,
+}: {
+  eyebrow: string;
+  title: string;
+  sub?: string;
+  center?: boolean;
+  id?: string;
+}) {
   return (
     <div className={center ? "mx-auto max-w-2xl text-center" : "max-w-2xl"}>
       <p className="eyebrow">{eyebrow}</p>
-      <h2 id={id} className="mt-3 text-4xl text-foreground sm:text-5xl">{title}</h2>
+      <h2 id={id} className="mt-3 text-4xl text-foreground sm:text-5xl">
+        {title}
+      </h2>
       {sub && <p className="mt-4 text-lg text-muted-foreground">{sub}</p>}
     </div>
   );
