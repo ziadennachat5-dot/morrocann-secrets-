@@ -10,18 +10,37 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BlogRouteImport } from './routes/blog'
 import { Route as BookingRouteImport } from './routes/booking'
+import { Route as CancellationPolicyRouteImport } from './routes/cancellation-policy'
 import { Route as ExperiencesRouteImport } from './routes/experiences'
 import { Route as FamiliesRouteImport } from './routes/families'
+import { Route as FaqRouteImport } from './routes/faq'
+import { Route as GiftRouteImport } from './routes/gift'
+import { Route as PartnersRouteImport } from './routes/partners'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as PrivateEventsRouteImport } from './routes/private-events'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BlogRoute = BlogRouteImport.update({
+  id: '/blog',
+  path: '/blog',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BookingRoute = BookingRouteImport.update({
   id: '/booking',
   path: '/booking',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CancellationPolicyRoute = CancellationPolicyRouteImport.update({
+  id: '/cancellation-policy',
+  path: '/cancellation-policy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ExperiencesRoute = ExperiencesRouteImport.update({
@@ -34,39 +53,149 @@ const FamiliesRoute = FamiliesRouteImport.update({
   path: '/families',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FaqRoute = FaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GiftRoute = GiftRouteImport.update({
+  id: '/gift',
+  path: '/gift',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PartnersRoute = PartnersRouteImport.update({
+  id: '/partners',
+  path: '/partners',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivateEventsRoute = PrivateEventsRouteImport.update({
+  id: '/private-events',
+  path: '/private-events',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogSlugRoute = BlogSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => BlogRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/blog': typeof BlogRouteWithChildren
   '/booking': typeof BookingRoute
+  '/cancellation-policy': typeof CancellationPolicyRoute
   '/experiences': typeof ExperiencesRoute
   '/families': typeof FamiliesRoute
+  '/faq': typeof FaqRoute
+  '/gift': typeof GiftRoute
+  '/partners': typeof PartnersRoute
+  '/privacy': typeof PrivacyRoute
+  '/private-events': typeof PrivateEventsRoute
+  '/terms': typeof TermsRoute
+  '/blog/$slug': typeof BlogSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/blog': typeof BlogRouteWithChildren
   '/booking': typeof BookingRoute
+  '/cancellation-policy': typeof CancellationPolicyRoute
   '/experiences': typeof ExperiencesRoute
   '/families': typeof FamiliesRoute
+  '/faq': typeof FaqRoute
+  '/gift': typeof GiftRoute
+  '/partners': typeof PartnersRoute
+  '/privacy': typeof PrivacyRoute
+  '/private-events': typeof PrivateEventsRoute
+  '/terms': typeof TermsRoute
+  '/blog/$slug': typeof BlogSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/blog': typeof BlogRouteWithChildren
   '/booking': typeof BookingRoute
+  '/cancellation-policy': typeof CancellationPolicyRoute
   '/experiences': typeof ExperiencesRoute
   '/families': typeof FamiliesRoute
+  '/faq': typeof FaqRoute
+  '/gift': typeof GiftRoute
+  '/partners': typeof PartnersRoute
+  '/privacy': typeof PrivacyRoute
+  '/private-events': typeof PrivateEventsRoute
+  '/terms': typeof TermsRoute
+  '/blog/$slug': typeof BlogSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/booking' | '/experiences' | '/families'
+  fullPaths:
+    | '/'
+    | '/blog'
+    | '/booking'
+    | '/cancellation-policy'
+    | '/experiences'
+    | '/families'
+    | '/faq'
+    | '/gift'
+    | '/partners'
+    | '/privacy'
+    | '/private-events'
+    | '/terms'
+    | '/blog/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/booking' | '/experiences' | '/families'
-  id: '__root__' | '/' | '/booking' | '/experiences' | '/families'
+  to:
+    | '/'
+    | '/blog'
+    | '/booking'
+    | '/cancellation-policy'
+    | '/experiences'
+    | '/families'
+    | '/faq'
+    | '/gift'
+    | '/partners'
+    | '/privacy'
+    | '/private-events'
+    | '/terms'
+    | '/blog/$slug'
+  id:
+    | '__root__'
+    | '/'
+    | '/blog'
+    | '/booking'
+    | '/cancellation-policy'
+    | '/experiences'
+    | '/families'
+    | '/faq'
+    | '/gift'
+    | '/partners'
+    | '/privacy'
+    | '/private-events'
+    | '/terms'
+    | '/blog/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BlogRoute: typeof BlogRouteWithChildren
   BookingRoute: typeof BookingRoute
+  CancellationPolicyRoute: typeof CancellationPolicyRoute
   ExperiencesRoute: typeof ExperiencesRoute
   FamiliesRoute: typeof FamiliesRoute
+  FaqRoute: typeof FaqRoute
+  GiftRoute: typeof GiftRoute
+  PartnersRoute: typeof PartnersRoute
+  PrivacyRoute: typeof PrivacyRoute
+  PrivateEventsRoute: typeof PrivateEventsRoute
+  TermsRoute: typeof TermsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -78,11 +207,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/blog': {
+      id: '/blog'
+      path: '/blog'
+      fullPath: '/blog'
+      preLoaderRoute: typeof BlogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/booking': {
       id: '/booking'
       path: '/booking'
       fullPath: '/booking'
       preLoaderRoute: typeof BookingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cancellation-policy': {
+      id: '/cancellation-policy'
+      path: '/cancellation-policy'
+      fullPath: '/cancellation-policy'
+      preLoaderRoute: typeof CancellationPolicyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/experiences': {
@@ -99,14 +242,81 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FamiliesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/faq': {
+      id: '/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof FaqRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/gift': {
+      id: '/gift'
+      path: '/gift'
+      fullPath: '/gift'
+      preLoaderRoute: typeof GiftRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/partners': {
+      id: '/partners'
+      path: '/partners'
+      fullPath: '/partners'
+      preLoaderRoute: typeof PartnersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/private-events': {
+      id: '/private-events'
+      path: '/private-events'
+      fullPath: '/private-events'
+      preLoaderRoute: typeof PrivateEventsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/$slug': {
+      id: '/blog/$slug'
+      path: '/$slug'
+      fullPath: '/blog/$slug'
+      preLoaderRoute: typeof BlogSlugRouteImport
+      parentRoute: typeof BlogRoute
+    }
   }
 }
 
+interface BlogRouteChildren {
+  BlogSlugRoute: typeof BlogSlugRoute
+}
+
+const BlogRouteChildren: BlogRouteChildren = {
+  BlogSlugRoute: BlogSlugRoute,
+}
+
+const BlogRouteWithChildren = BlogRoute._addFileChildren(BlogRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BlogRoute: BlogRouteWithChildren,
   BookingRoute: BookingRoute,
+  CancellationPolicyRoute: CancellationPolicyRoute,
   ExperiencesRoute: ExperiencesRoute,
   FamiliesRoute: FamiliesRoute,
+  FaqRoute: FaqRoute,
+  GiftRoute: GiftRoute,
+  PartnersRoute: PartnersRoute,
+  PrivacyRoute: PrivacyRoute,
+  PrivateEventsRoute: PrivateEventsRoute,
+  TermsRoute: TermsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

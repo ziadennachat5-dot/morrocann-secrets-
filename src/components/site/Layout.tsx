@@ -1,17 +1,33 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Menu, X, MessageCircle, Mail, Instagram } from "lucide-react";
 import { useI18n, LANGS } from "@/lib/i18n";
-import { CONTACT } from "@/lib/content";
 import { BRAND_NAME } from "@/lib/brand";
 import { HeaderLogo, FooterLogo, StarDivider } from "./Brand";
+import { getPublicContactLinks } from "@/lib/public-contact.functions";
+
+type PublicContactLinks = Awaited<ReturnType<typeof getPublicContactLinks>>;
+
+function useContactLinks() {
+  const [links, setLinks] = useState<PublicContactLinks | null>(null);
+  const [error, setError] = useState(false);
+  useEffect(() => {
+    getPublicContactLinks()
+      .then(setLinks)
+      .catch((loadError: unknown) => {
+        console.error("Unable to load public contact links:", loadError);
+        setError(true);
+      });
+  }, []);
+  return { links, error };
+}
 
 const navItems = [
   { to: "/", key: "home" },
   { to: "/experiences", key: "experiences" },
   { to: "/families", key: "families" },
-  { to: "/about", key: "about" },
-  { to: "/contact", key: "contact" },
+  { to: "/faq", key: "faq" },
+  { to: "/blog", key: "blog" },
 ] as const;
 
 function LangSwitch() {
@@ -113,6 +129,7 @@ function Header() {
 
 function Footer() {
   const { t } = useI18n();
+  const { links, error } = useContactLinks();
   return (
     <footer className="bg-ink text-ink-foreground">
       <div className="zellige-bg">
@@ -136,35 +153,76 @@ function Footer() {
                 {t.nav.book}
               </Link>
             </li>
+            <li>
+              <Link to="/private-events" className="hover:text-gold">
+                {t.inquiry.privateEvents.title}
+              </Link>
+            </li>
+            <li>
+              <Link to="/gift" className="hover:text-gold">
+                {t.inquiry.gift.title}
+              </Link>
+            </li>
+            <li>
+              <Link to="/partners" className="hover:text-gold">
+                {t.inquiry.partners.title}
+              </Link>
+            </li>
+            <li>
+              <Link to="/privacy" className="hover:text-gold">
+                {t.legal.privacyTitle}
+              </Link>
+            </li>
+            <li>
+              <Link to="/terms" className="hover:text-gold">
+                {t.legal.termsTitle}
+              </Link>
+            </li>
+            <li>
+              <Link to="/cancellation-policy" className="hover:text-gold">
+                {t.legal.cancellationTitle}
+              </Link>
+            </li>
           </ul>
           <ul className="space-y-3">
-            <li>
-              <a
-                className="inline-flex items-center gap-2 hover:text-gold"
-                href={`https://wa.me/${CONTACT.whatsapp}`}
-              >
-                <MessageCircle className="h-4 w-4" />
-                WhatsApp
-              </a>
-            </li>
-            <li>
-              <a
-                className="inline-flex items-center gap-2 hover:text-gold"
-                href={`mailto:${CONTACT.email}`}
-              >
-                <Mail className="h-4 w-4" />
-                {CONTACT.email}
-              </a>
-            </li>
-            <li>
-              <a
-                className="inline-flex items-center gap-2 hover:text-gold"
-                href={CONTACT.instagram}
-              >
-                <Instagram className="h-4 w-4" />
-                Instagram
-              </a>
-            </li>
+            {error && <li role="alert">{t.contact.unavailable}</li>}
+            {links?.whatsapp && (
+              <li>
+                <a
+                  className="inline-flex items-center gap-2 hover:text-gold"
+                  href={`https://wa.me/${links.whatsapp}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  WhatsApp
+                </a>
+              </li>
+            )}
+            {links?.email && (
+              <li>
+                <a
+                  className="inline-flex items-center gap-2 hover:text-gold"
+                  href={`mailto:${links.email}`}
+                >
+                  <Mail className="h-4 w-4" />
+                  {links.email}
+                </a>
+              </li>
+            )}
+            {links?.instagram && (
+              <li>
+                <a
+                  className="inline-flex items-center gap-2 hover:text-gold"
+                  href={links.instagram}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <Instagram className="h-4 w-4" />
+                  Instagram
+                </a>
+              </li>
+            )}
           </ul>
         </div>
         <StarDivider />
@@ -178,9 +236,11 @@ function Footer() {
 
 function WhatsAppFab() {
   const { t } = useI18n();
+  const { links } = useContactLinks();
+  if (!links?.whatsapp) return null;
   return (
     <a
-      href={`https://wa.me/${CONTACT.whatsapp}`}
+      href={`https://wa.me/${links.whatsapp}`}
       target="_blank"
       rel="noopener noreferrer"
       aria-label={t.whatsappLabel}

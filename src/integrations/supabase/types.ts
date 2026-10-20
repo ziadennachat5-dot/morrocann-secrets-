@@ -37,6 +37,7 @@ export type Database = {
           deposit_amount: number;
           max_guests: number;
           image_url: string;
+          image_alt: Json | null;
           included: Json;
           is_published: boolean;
           created_at: string;
@@ -51,6 +52,7 @@ export type Database = {
           deposit_amount?: number;
           max_guests: number;
           image_url: string;
+          image_alt?: Json | null;
           included?: Json;
           is_published?: boolean;
           created_at?: string;
@@ -65,6 +67,7 @@ export type Database = {
           deposit_amount?: number;
           max_guests?: number;
           image_url?: string;
+          image_alt?: Json | null;
           included?: Json;
           is_published?: boolean;
           created_at?: string;
@@ -82,6 +85,7 @@ export type Database = {
           story: Json;
           address: string | null;
           image_url: string;
+          image_alt: Json | null;
           is_published: boolean;
           created_at: string;
           updated_at: string;
@@ -95,6 +99,7 @@ export type Database = {
           story: Json;
           address?: string | null;
           image_url: string;
+          image_alt?: Json | null;
           is_published?: boolean;
           created_at?: string;
           updated_at?: string;
@@ -108,7 +113,128 @@ export type Database = {
           story?: Json;
           address?: string | null;
           image_url?: string;
+          image_alt?: Json | null;
           is_published?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      faqs: {
+        Row: {
+          id: string;
+          category: Json;
+          question: Json;
+          answer: Json;
+          sort_order: number;
+          is_published: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          category: Json;
+          question: Json;
+          answer: Json;
+          sort_order?: number;
+          is_published?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          category?: Json;
+          question?: Json;
+          answer?: Json;
+          sort_order?: number;
+          is_published?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      inquiries: {
+        Row: {
+          id: string;
+          kind: "private_event" | "gift" | "partner";
+          full_name: string;
+          email: string;
+          phone: string | null;
+          organization: string | null;
+          event_type: string | null;
+          requested_date: string | null;
+          guest_count: number | null;
+          quantity: number | null;
+          message: string;
+          status: "new" | "contacted" | "closed";
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          kind: "private_event" | "gift" | "partner";
+          full_name: string;
+          email: string;
+          phone?: string | null;
+          organization?: string | null;
+          event_type?: string | null;
+          requested_date?: string | null;
+          guest_count?: number | null;
+          quantity?: number | null;
+          message: string;
+          status?: "new" | "contacted" | "closed";
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          kind?: "private_event" | "gift" | "partner";
+          full_name?: string;
+          email?: string;
+          phone?: string | null;
+          organization?: string | null;
+          event_type?: string | null;
+          requested_date?: string | null;
+          guest_count?: number | null;
+          quantity?: number | null;
+          message?: string;
+          status?: "new" | "contacted" | "closed";
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      posts: {
+        Row: {
+          slug: string;
+          title: Json;
+          summary: Json;
+          body: Json;
+          status: "draft" | "published";
+          draft_note: string | null;
+          published_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          slug: string;
+          title: Json;
+          summary: Json;
+          body: Json;
+          status?: "draft" | "published";
+          draft_note?: string | null;
+          published_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          slug?: string;
+          title?: Json;
+          summary?: Json;
+          body?: Json;
+          status?: "draft" | "published";
+          draft_note?: string | null;
+          published_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -316,6 +442,10 @@ export type Database = {
         Returns: Json;
       };
       consume_booking_rate_limit: {
+        Args: { p_ip_hash: string };
+        Returns: boolean;
+      };
+      consume_public_form_rate_limit: {
         Args: { p_ip_hash: string };
         Returns: boolean;
       };
