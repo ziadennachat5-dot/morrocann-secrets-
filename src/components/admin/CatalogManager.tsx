@@ -6,6 +6,7 @@ import {
   emptyExperienceDraft,
   emptyFamilyDraft,
   emptyLocalizedFields,
+  duplicateExperienceId,
   isValidCurrencyCode,
   localizedIncludedItems,
   localizedLines,
@@ -44,6 +45,9 @@ export function CatalogManager({
   const [experience, setExperience] = useState<ExperienceDraft>(emptyExperienceDraft);
   const [family, setFamily] = useState<FamilyDraft>(emptyFamilyDraft);
   const [experienceImage, setExperienceImage] = useState<File | null>(null);
+  const [duplicatedImageUrl, setDuplicatedImageUrl] = useState("");
+  const [experienceErrors, setExperienceErrors] = useState<string[]>([]);
+  const [openExperienceGroups, setOpenExperienceGroups] = useState(() => new Set(["basics"]));
   const [familyImage, setFamilyImage] = useState<File | null>(null);
   const [currencyDraft, setCurrencyDraft] = useState(currency);
   const [currencyBusy, setCurrencyBusy] = useState(false);
@@ -55,26 +59,37 @@ export function CatalogManager({
     setCurrencyDraft(currency);
   }, [currency]);
 
+  function setExperienceGroupOpen(group: string, isOpen: boolean) {
+    setOpenExperienceGroups((current) => {
+      const next = new Set(current);
+      if (isOpen) next.add(group);
+      else next.delete(group);
+      return next;
+    });
+  }
+
   async function saveExperience(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!isValidSlug(experience.id)) {
-      onError("Experience ID must use lowercase letters, numbers, and single hyphens.");
-      return;
-    }
-    const requiredFields = [experience.title, experience.description, experience.duration];
-    if (requiredFields.some((fields) => !hasAllTranslations(fields))) {
-      onError("Enter the experience title, description, and duration in EN, FR, and AR.");
-      return;
-    }
-    if (!isValidCurrencyCode(currency)) {
-      onError("Set the shared booking currency before saving an experience.");
-      return;
-    }
+    setExperienceErrors([]);
+    const errors: string[] = [];
+    if (!isValidSlug(experience.id))
+      errors.push("Experience ID must use lowercase letters, numbers, and single hyphens.");
+    if (
+      [experience.title, experience.description, experience.duration].some(
+        (fields) => !fields.en.trim(),
+      )
+    )
+      errors.push(
+        "Enter the title, description, and duration in English. French and Arabic are optional.",
+      );
+    if (!isValidCurrencyCode(currency))
+      errors.push("Set the shared booking currency before saving an experience.");
     const price = Number(experience.price);
     const childPrice = experience.childPrice === "" ? null : Number(experience.childPrice);
     const maxGuests = Number(experience.maxGuests);
     const minGuests = Number(experience.minGuests);
     if (
+      experience.price.trim() === "" ||
       !Number.isFinite(price) ||
       price < 0 ||
       (childPrice !== null && (!Number.isFinite(childPrice) || childPrice < 0)) ||
@@ -85,8 +100,9 @@ export function CatalogManager({
       maxGuests < 1 ||
       maxGuests > 25
     ) {
-      onError("Enter valid prices and guest limits (minimum at least 1 and maximum at most 25).");
-      return;
+      errors.push(
+        "Enter valid prices and guest limits (minimum at least 1 and maximum at most 25).",
+      );
     }
     const childAgeMin = experience.childAgeMin === "" ? null : Number(experience.childAgeMin);
     const childAgeMax = experience.childAgeMax === "" ? null : Number(experience.childAgeMax);
@@ -95,54 +111,39 @@ export function CatalogManager({
       (childPrice !== null &&
         (!Number.isInteger(childAgeMin) ||
           !Number.isInteger(childAgeMax) ||
-          childAgeMin! < 1 ||
-          childAgeMax! < childAgeMin! ||
-          childAgeMax! > 120))
+          (childAgeMin ?? 0) < 1 ||
+          (childAgeMax ?? 0) < (childAgeMin ?? 0) ||
+          (childAgeMax ?? 0) > 120))
     ) {
-      onError("Set a valid child age range when a child price is configured.");
-      return;
+      errors.push("Set a valid child age range when a child price is configured.");
     }
     if (experience.startTime && !/^([01]\d|2[0-3]):[0-5]\d$/.test(experience.startTime)) {
-      onError("Enter the fixed start time in 24-hour HH:MM format.");
-      return;
+      errors.push("Enter the fixed start time in 24-hour HH:MM format.");
     }
-    if (hasAnyTranslation(experience.imageAlt) && !hasAllTranslations(experience.imageAlt)) {
-      onError("Provide image alt text in all three languages, or leave all three blank.");
-      return;
+    if (hasAnyTranslation(experience.imageAlt) && !experience.imageAlt.en.trim()) {
+      errors.push("Provide image alt text in English, or leave it blank.");
     }
     const { items: included, error: includedError } = localizedIncludedItems(experience.included);
-    if (includedError) {
-      onError(includedError);
-      return;
-    }
+    if (includedError) errors.push(`What's included: ${includedError}`);
     const { items: mealOptions, error: mealOptionsError } = localizedLines(experience.mealOptions);
-    if (mealOptionsError) {
-      onError(`Meal options: ${mealOptionsError}`);
-      return;
-    }
-    const whyLoveHasContent = experience.whyLove.some(hasAnyTranslation);
-    if (whyLoveHasContent && experience.whyLove.some((bullet) => !hasAllTranslations(bullet))) {
-      onError(
-        "Complete all three 'Why you'll love this' bullets in EN, FR, and AR, or leave them empty.",
+    if (mealOptionsError) errors.push(`Meal options: ${mealOptionsError}`);
+    if (experience.whyLove.some((bullet) => hasAnyTranslation(bullet) && !bullet.en.trim()))
+      errors.push(
+        "Enter each 'Why you'll love this' bullet in English; French and Arabic are optional.",
       );
-      return;
-    }
     const optionalLocalized = [
       experience.whatToExpect,
       experience.whatToRemember,
       experience.hostLanguages,
     ];
-    if (
-      optionalLocalized.some((fields) => hasAnyTranslation(fields) && !hasAllTranslations(fields))
-    ) {
-      onError(
-        "Complete each optional experience content block in EN, FR, and AR, or leave it empty.",
-      );
-      return;
-    }
+    if (optionalLocalized.some((fields) => hasAnyTranslation(fields) && !fields.en.trim()))
+      errors.push("Enter each optional content block in English; French and Arabic are optional.");
     const existing = experiences.find((item) => item.id === experience.id);
-    if (!existing && !experienceImage) {
-      onError("Upload an experience image before creating it.");
+    if (!existing && !experienceImage && !duplicatedImageUrl) {
+      errors.push("Upload an experience image before creating it.");
+    }
+    if (errors.length > 0) {
+      setExperienceErrors(errors);
       return;
     }
 
@@ -165,10 +166,10 @@ export function CatalogManager({
       max_guests: maxGuests,
       start_time: experience.startTime || null,
       meal_options: mealOptions,
-      image_url: uploaded?.url ?? existing?.image_url ?? "",
+      image_url: uploaded?.url ?? existing?.image_url ?? duplicatedImageUrl,
       image_alt: optionalLocalizedFields(experience.imageAlt),
       included,
-      why_love: whyLoveHasContent ? experience.whyLove.map(trimFields) : [],
+      why_love: experience.whyLove.filter((bullet) => bullet.en.trim()).map(trimFields),
       what_to_expect: optionalLocalizedFields(experience.whatToExpect),
       what_to_remember: optionalLocalizedFields(experience.whatToRemember),
       host_languages: optionalLocalizedFields(experience.hostLanguages),
@@ -277,28 +278,27 @@ export function CatalogManager({
   }
 
   function editExperience(item: Experience) {
-    setExperience({
-      id: item.id,
-      title: readLocalized(item.title),
-      description: readLocalized(item.blurb),
-      duration: readLocalized(item.duration),
-      imageAlt: readLocalized(item.image_alt),
-      price: String(item.price),
-      childPrice: item.child_price === null ? "" : String(item.child_price),
-      childAgeMin: item.child_age_min === null ? "" : String(item.child_age_min),
-      childAgeMax: item.child_age_max === null ? "" : String(item.child_age_max),
-      minGuests: item.min_guests === null ? "" : String(item.min_guests),
-      maxGuests: String(item.max_guests),
-      startTime: item.start_time?.slice(0, 5) ?? "",
-      mealOptions: localizedRows(item.meal_options),
-      included: includedFields(item.included),
-      whyLove: localizedBullets(item.why_love),
-      whatToExpect: readLocalized(item.what_to_expect),
-      whatToRemember: readLocalized(item.what_to_remember),
-      hostLanguages: readLocalized(item.host_languages),
-      published: item.is_published,
-    });
+    setExperience(experienceDraftFrom(item));
     setExperienceImage(null);
+    setDuplicatedImageUrl("");
+    setExperienceErrors([]);
+    setExperienceFileKey((key) => key + 1);
+  }
+
+  function duplicateExperience(item: Experience) {
+    setExperience(
+      experienceDraftFrom(
+        item,
+        duplicateExperienceId(
+          item.id,
+          experiences.map((experience) => experience.id),
+        ),
+        false,
+      ),
+    );
+    setExperienceImage(null);
+    setDuplicatedImageUrl(item.image_url);
+    setExperienceErrors([]);
     setExperienceFileKey((key) => key + 1);
   }
 
@@ -320,6 +320,8 @@ export function CatalogManager({
   function resetExperience() {
     setExperience(emptyExperienceDraft());
     setExperienceImage(null);
+    setDuplicatedImageUrl("");
+    setExperienceErrors([]);
     setExperienceFileKey((key) => key + 1);
   }
 
@@ -377,6 +379,9 @@ export function CatalogManager({
                     <Button size="sm" variant="outline" onClick={() => editExperience(item)}>
                       Edit
                     </Button>
+                    <Button size="sm" variant="outline" onClick={() => duplicateExperience(item)}>
+                      Duplicate
+                    </Button>
                     <Button size="sm" variant="outline" onClick={() => void deleteExperience(item)}>
                       Delete
                     </Button>
@@ -387,6 +392,7 @@ export function CatalogManager({
           )}
         </div>
         <form
+          noValidate
           onSubmit={(event) => void saveExperience(event)}
           className="space-y-3 rounded-lg border p-4"
         >
@@ -395,222 +401,283 @@ export function CatalogManager({
               ? "Edit experience"
               : "Create experience draft"}
           </h3>
-          <label className="block text-sm">
-            URL ID
-            <input
-              className={`${inputClass} mt-1`}
-              required
-              pattern="[a-z0-9]+(-[a-z0-9]+)*"
-              disabled={experiences.some((item) => item.id === experience.id)}
-              value={experience.id}
-              onChange={(event) =>
-                setExperience((current) => ({ ...current, id: event.target.value }))
-              }
-            />
-          </label>
-          <LocalizedInputs
-            label="Title"
-            value={experience.title}
-            onChange={(title) => setExperience((current) => ({ ...current, title }))}
-          />
-          <LocalizedInputs
-            label="Description"
-            value={experience.description}
-            multiline
-            onChange={(description) => setExperience((current) => ({ ...current, description }))}
-          />
-          <LocalizedInputs
-            label="Duration"
-            value={experience.duration}
-            onChange={(duration) => setExperience((current) => ({ ...current, duration }))}
-          />
-          <h4 className="pt-3 font-semibold">Pricing and group limits</h4>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <label className="block text-sm">
-              Adult price ({currency || "set shared currency"})
-              <input
-                className={`${inputClass} mt-1`}
-                type="number"
-                min="0"
-                step="0.01"
-                required
-                value={experience.price}
-                onChange={(event) =>
-                  setExperience((current) => ({ ...current, price: event.target.value }))
+          {experienceErrors.length > 0 && (
+            <ul
+              role="alert"
+              className="list-disc space-y-1 rounded-md border border-destructive p-3 ps-8 text-sm text-destructive"
+            >
+              {experienceErrors.map((message) => (
+                <li key={message}>{message}</li>
+              ))}
+            </ul>
+          )}
+          <details
+            open={openExperienceGroups.has("basics")}
+            onToggle={(event) => setExperienceGroupOpen("basics", event.currentTarget.open)}
+            className="rounded-md border p-3"
+          >
+            <summary className="cursor-pointer font-semibold">Basics</summary>
+            <div className="mt-4 space-y-3">
+              <label className="block text-sm">
+                URL ID
+                <input
+                  className={`${inputClass} mt-1`}
+                  required
+                  pattern="[a-z0-9]+(-[a-z0-9]+)*"
+                  disabled={experiences.some((item) => item.id === experience.id)}
+                  value={experience.id}
+                  onChange={(event) =>
+                    setExperience((current) => ({ ...current, id: event.target.value }))
+                  }
+                />
+              </label>
+              <LocalizedInputs
+                label="Title"
+                value={experience.title}
+                requiredLanguages={["en"]}
+                onChange={(title) => setExperience((current) => ({ ...current, title }))}
+              />
+              <LocalizedInputs
+                label="Description"
+                value={experience.description}
+                multiline
+                requiredLanguages={["en"]}
+                onChange={(description) =>
+                  setExperience((current) => ({ ...current, description }))
                 }
               />
-            </label>
-            <label className="block text-sm">
-              Child price (optional)
-              <input
-                className={`${inputClass} mt-1`}
-                type="number"
-                min="0"
-                step="0.01"
-                value={experience.childPrice}
-                onChange={(event) =>
-                  setExperience((current) => ({ ...current, childPrice: event.target.value }))
+              <LocalizedInputs
+                label="Duration"
+                value={experience.duration}
+                requiredLanguages={["en"]}
+                onChange={(duration) => setExperience((current) => ({ ...current, duration }))}
+              />
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={experience.published}
+                  onChange={(event) =>
+                    setExperience((current) => ({ ...current, published: event.target.checked }))
+                  }
+                />
+                Publish this experience
+              </label>
+            </div>
+          </details>
+          <details
+            open={openExperienceGroups.has("pricing")}
+            onToggle={(event) => setExperienceGroupOpen("pricing", event.currentTarget.open)}
+            className="rounded-md border p-3"
+          >
+            <summary className="cursor-pointer font-semibold">Pricing and capacity</summary>
+            <div className="mt-4 space-y-3">
+              <h4 className="pt-3 font-semibold">Pricing and group limits</h4>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="block text-sm">
+                  Adult price ({currency || "set shared currency"})
+                  <input
+                    className={`${inputClass} mt-1`}
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    required
+                    value={experience.price}
+                    onChange={(event) =>
+                      setExperience((current) => ({ ...current, price: event.target.value }))
+                    }
+                  />
+                </label>
+                <label className="block text-sm">
+                  Child price (optional)
+                  <input
+                    className={`${inputClass} mt-1`}
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={experience.childPrice}
+                    onChange={(event) =>
+                      setExperience((current) => ({ ...current, childPrice: event.target.value }))
+                    }
+                  />
+                </label>
+                <label className="block text-sm">
+                  Child age from
+                  <input
+                    className={`${inputClass} mt-1`}
+                    type="number"
+                    min="1"
+                    max="120"
+                    disabled={!experience.childPrice}
+                    value={experience.childAgeMin}
+                    onChange={(event) =>
+                      setExperience((current) => ({ ...current, childAgeMin: event.target.value }))
+                    }
+                  />
+                </label>
+                <label className="block text-sm">
+                  Child age to
+                  <input
+                    className={`${inputClass} mt-1`}
+                    type="number"
+                    min="1"
+                    max="120"
+                    disabled={!experience.childPrice}
+                    value={experience.childAgeMax}
+                    onChange={(event) =>
+                      setExperience((current) => ({ ...current, childAgeMax: event.target.value }))
+                    }
+                  />
+                </label>
+                <p className="text-sm text-muted-foreground sm:col-span-2">
+                  Infants are free and are not counted toward availability capacity.
+                </p>
+                <label className="block text-sm">
+                  Minimum guests (adults and children)
+                  <input
+                    className={`${inputClass} mt-1`}
+                    type="number"
+                    min="1"
+                    max="25"
+                    step="1"
+                    required
+                    value={experience.minGuests}
+                    onChange={(event) =>
+                      setExperience((current) => ({ ...current, minGuests: event.target.value }))
+                    }
+                  />
+                </label>
+                <label className="block text-sm">
+                  Maximum guests (adults and children)
+                  <input
+                    className={`${inputClass} mt-1`}
+                    type="number"
+                    min={experience.minGuests || 1}
+                    max="25"
+                    step="1"
+                    required
+                    value={experience.maxGuests}
+                    onChange={(event) =>
+                      setExperience((current) => ({ ...current, maxGuests: event.target.value }))
+                    }
+                  />
+                </label>
+                <label className="block text-sm">
+                  Fixed start time
+                  <input
+                    className={`${inputClass} mt-1`}
+                    type="time"
+                    value={experience.startTime}
+                    onChange={(event) =>
+                      setExperience((current) => ({ ...current, startTime: event.target.value }))
+                    }
+                  />
+                </label>
+              </div>
+            </div>
+          </details>
+          <details
+            open={openExperienceGroups.has("content")}
+            onToggle={(event) => setExperienceGroupOpen("content", event.currentTarget.open)}
+            className="rounded-md border p-3"
+          >
+            <summary className="cursor-pointer font-semibold">Content</summary>
+            <div className="mt-4 space-y-3">
+              <h4 className="pt-3 font-semibold">
+                Meal options (optional, one translated option per line)
+              </h4>
+              <LocalizedInputs
+                label="Available meal choices"
+                value={experience.mealOptions}
+                multiline
+                required={false}
+                onChange={(mealOptions) =>
+                  setExperience((current) => ({ ...current, mealOptions }))
                 }
               />
-            </label>
-            <label className="block text-sm">
-              Child age from
-              <input
-                className={`${inputClass} mt-1`}
-                type="number"
-                min="1"
-                max="120"
-                disabled={!experience.childPrice}
-                value={experience.childAgeMin}
-                onChange={(event) =>
-                  setExperience((current) => ({ ...current, childAgeMin: event.target.value }))
+              <LocalizedInputs
+                label="What's included (one translated item per line)"
+                value={experience.included}
+                multiline
+                required={false}
+                onChange={(included) => setExperience((current) => ({ ...current, included }))}
+              />
+              <h4 className="pt-3 font-semibold">Experience page content (optional)</h4>
+              {experience.whyLove.map((bullet, index) => (
+                <LocalizedInputs
+                  key={index}
+                  label={`Why you'll love this — bullet ${index + 1}`}
+                  value={bullet}
+                  required={false}
+                  onChange={(value) =>
+                    setExperience((current) => ({
+                      ...current,
+                      whyLove: current.whyLove.map((item, itemIndex) =>
+                        itemIndex === index ? value : item,
+                      ) as ExperienceDraft["whyLove"],
+                    }))
+                  }
+                />
+              ))}
+              <LocalizedInputs
+                label="What to expect"
+                value={experience.whatToExpect}
+                multiline
+                required={false}
+                onChange={(whatToExpect) =>
+                  setExperience((current) => ({ ...current, whatToExpect }))
                 }
               />
-            </label>
-            <label className="block text-sm">
-              Child age to
-              <input
-                className={`${inputClass} mt-1`}
-                type="number"
-                min="1"
-                max="120"
-                disabled={!experience.childPrice}
-                value={experience.childAgeMax}
-                onChange={(event) =>
-                  setExperience((current) => ({ ...current, childAgeMax: event.target.value }))
+              <LocalizedInputs
+                label="What to remember"
+                value={experience.whatToRemember}
+                multiline
+                required={false}
+                onChange={(whatToRemember) =>
+                  setExperience((current) => ({ ...current, whatToRemember }))
                 }
               />
-            </label>
-            <p className="text-sm text-muted-foreground sm:col-span-2">
-              Infants are free and are not counted toward availability capacity.
-            </p>
-            <label className="block text-sm">
-              Minimum guests (adults and children)
-              <input
-                className={`${inputClass} mt-1`}
-                type="number"
-                min="1"
-                max="25"
-                step="1"
-                required
-                value={experience.minGuests}
-                onChange={(event) =>
-                  setExperience((current) => ({ ...current, minGuests: event.target.value }))
+              <LocalizedInputs
+                label="Languages spoken by the host"
+                value={experience.hostLanguages}
+                required={false}
+                onChange={(hostLanguages) =>
+                  setExperience((current) => ({ ...current, hostLanguages }))
                 }
               />
-            </label>
-            <label className="block text-sm">
-              Maximum guests (adults and children)
-              <input
-                className={`${inputClass} mt-1`}
-                type="number"
-                min={experience.minGuests || 1}
-                max="25"
-                step="1"
-                required
-                value={experience.maxGuests}
-                onChange={(event) =>
-                  setExperience((current) => ({ ...current, maxGuests: event.target.value }))
-                }
+            </div>
+          </details>
+          <details
+            open={openExperienceGroups.has("photo")}
+            onToggle={(event) => setExperienceGroupOpen("photo", event.currentTarget.open)}
+            className="rounded-md border p-3"
+          >
+            <summary className="cursor-pointer font-semibold">Photo</summary>
+            <div className="mt-4 space-y-3">
+              <LocalizedInputs
+                label="Image alt text (optional)"
+                value={experience.imageAlt}
+                required={false}
+                onChange={(imageAlt) => setExperience((current) => ({ ...current, imageAlt }))}
               />
-            </label>
-            <label className="block text-sm">
-              Fixed start time
-              <input
-                className={`${inputClass} mt-1`}
-                type="time"
-                value={experience.startTime}
-                onChange={(event) =>
-                  setExperience((current) => ({ ...current, startTime: event.target.value }))
-                }
-              />
-            </label>
-          </div>
-          <h4 className="pt-3 font-semibold">
-            Meal options (optional, one translated option per line)
-          </h4>
-          <LocalizedInputs
-            label="Available meal choices"
-            value={experience.mealOptions}
-            multiline
-            required={false}
-            onChange={(mealOptions) => setExperience((current) => ({ ...current, mealOptions }))}
-          />
-          <LocalizedInputs
-            label="What's included (one translated item per line)"
-            value={experience.included}
-            multiline
-            required={false}
-            onChange={(included) => setExperience((current) => ({ ...current, included }))}
-          />
-          <h4 className="pt-3 font-semibold">Experience page content (optional)</h4>
-          {experience.whyLove.map((bullet, index) => (
-            <LocalizedInputs
-              key={index}
-              label={`Why you'll love this — bullet ${index + 1}`}
-              value={bullet}
-              required={false}
-              onChange={(value) =>
-                setExperience((current) => ({
-                  ...current,
-                  whyLove: current.whyLove.map((item, itemIndex) =>
-                    itemIndex === index ? value : item,
-                  ) as ExperienceDraft["whyLove"],
-                }))
-              }
-            />
-          ))}
-          <LocalizedInputs
-            label="What to expect"
-            value={experience.whatToExpect}
-            multiline
-            required={false}
-            onChange={(whatToExpect) => setExperience((current) => ({ ...current, whatToExpect }))}
-          />
-          <LocalizedInputs
-            label="What to remember"
-            value={experience.whatToRemember}
-            multiline
-            required={false}
-            onChange={(whatToRemember) =>
-              setExperience((current) => ({ ...current, whatToRemember }))
-            }
-          />
-          <LocalizedInputs
-            label="Languages spoken by the host"
-            value={experience.hostLanguages}
-            required={false}
-            onChange={(hostLanguages) =>
-              setExperience((current) => ({ ...current, hostLanguages }))
-            }
-          />
-          <LocalizedInputs
-            label="Image alt text (optional)"
-            value={experience.imageAlt}
-            required={false}
-            onChange={(imageAlt) => setExperience((current) => ({ ...current, imageAlt }))}
-          />
-          <label className="block text-sm">
-            Image upload (media bucket)
-            <input
-              key={experienceFileKey}
-              className={`${inputClass} mt-1`}
-              type="file"
-              accept="image/jpeg,image/png,image/webp,image/gif"
-              required={!experiences.some((item) => item.id === experience.id)}
-              onChange={(event) => setExperienceImage(event.target.files?.[0] ?? null)}
-            />
-          </label>
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={experience.published}
-              onChange={(event) =>
-                setExperience((current) => ({ ...current, published: event.target.checked }))
-              }
-            />
-            Publish this experience
-          </label>
+              <label className="block text-sm">
+                Image upload (media bucket)
+                <input
+                  key={experienceFileKey}
+                  className={`${inputClass} mt-1`}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  required={!experiences.some((item) => item.id === experience.id)}
+                  onChange={(event) => setExperienceImage(event.target.files?.[0] ?? null)}
+                />
+              </label>
+              {duplicatedImageUrl && !experienceImage && (
+                <p className="text-sm text-muted-foreground">
+                  The duplicated experience will reuse its existing photo unless you upload a
+                  replacement.
+                </p>
+              )}
+            </div>
+          </details>
           <div className="flex gap-2">
             <Button type="submit" disabled={formBusy}>
               {formBusy ? "Saving…" : "Save experience"}
@@ -846,12 +913,14 @@ function LocalizedInputs({
   onChange,
   multiline = false,
   required = true,
+  requiredLanguages,
 }: {
   label: string;
   value: LocalizedFields;
   onChange: (value: LocalizedFields) => void;
   multiline?: boolean;
   required?: boolean;
+  requiredLanguages?: (keyof LocalizedFields)[];
 }) {
   return (
     <fieldset className="space-y-2">
@@ -859,13 +928,14 @@ function LocalizedInputs({
       {(["en", "fr", "ar"] as const).map((language) => (
         <label key={language} className="block text-sm">
           {language.toUpperCase()}
+          {requiredLanguages && !requiredLanguages.includes(language) ? " (optional)" : ""}
           {multiline ? (
             <textarea
               dir={language === "ar" ? "rtl" : "ltr"}
               className={`${inputClass} mt-1`}
               rows={3}
               maxLength={5000}
-              required={required}
+              required={requiredLanguages ? requiredLanguages.includes(language) : required}
               value={value[language]}
               onChange={(event) => onChange({ ...value, [language]: event.target.value })}
             />
@@ -874,7 +944,7 @@ function LocalizedInputs({
               dir={language === "ar" ? "rtl" : "ltr"}
               className={`${inputClass} mt-1`}
               maxLength={500}
-              required={required}
+              required={requiredLanguages ? requiredLanguages.includes(language) : required}
               value={value[language]}
               onChange={(event) => onChange({ ...value, [language]: event.target.value })}
             />
@@ -887,6 +957,34 @@ function LocalizedInputs({
 
 function isValidSlug(value: string): boolean {
   return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value);
+}
+
+function experienceDraftFrom(
+  item: Experience,
+  id: string = item.id,
+  published: boolean = item.is_published,
+): ExperienceDraft {
+  return {
+    id,
+    title: readLocalized(item.title),
+    description: readLocalized(item.blurb),
+    duration: readLocalized(item.duration),
+    imageAlt: readLocalized(item.image_alt),
+    price: String(item.price),
+    childPrice: item.child_price === null ? "" : String(item.child_price),
+    childAgeMin: item.child_age_min === null ? "" : String(item.child_age_min),
+    childAgeMax: item.child_age_max === null ? "" : String(item.child_age_max),
+    minGuests: item.min_guests === null ? "" : String(item.min_guests),
+    maxGuests: String(item.max_guests),
+    startTime: item.start_time?.slice(0, 5) ?? "",
+    mealOptions: localizedRows(item.meal_options),
+    included: includedFields(item.included),
+    whyLove: localizedBullets(item.why_love),
+    whatToExpect: readLocalized(item.what_to_expect),
+    whatToRemember: readLocalized(item.what_to_remember),
+    hostLanguages: readLocalized(item.host_languages),
+    published,
+  };
 }
 
 function hasAllTranslations(value: LocalizedFields): boolean {
@@ -906,7 +1004,7 @@ function trimFields(value: LocalizedFields): LocalizedFields {
 }
 
 function optionalLocalizedFields(value: LocalizedFields): Json | null {
-  return hasAllTranslations(value) ? trimFields(value) : null;
+  return hasAnyTranslation(value) ? trimFields(value) : null;
 }
 
 function readLocalized(value: Json | null, language: string = "en"): LocalizedFields {

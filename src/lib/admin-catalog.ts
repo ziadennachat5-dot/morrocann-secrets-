@@ -83,22 +83,29 @@ export function localizedIncludedItems(fields: LocalizedFields): {
     fr: splitIncludedLines(fields.fr),
     ar: splitIncludedLines(fields.ar),
   };
-  const counts = Object.values(lines).map((items) => items.length);
-  if (counts.every((count) => count === 0)) return { items: [], error: null };
-  if (counts.some((count) => count !== counts[0])) {
+  if (lines.en.length === 0 && lines.fr.length === 0 && lines.ar.length === 0) {
+    return { items: [], error: null };
+  }
+  if (lines.en.some((item) => !item)) {
     return {
       items: [],
-      error: "Add the same number of included-item translations in each language.",
+      error: "Provide English text for every included item.",
     };
   }
-  if (Object.values(lines).some((items) => items.some((item) => !item))) {
-    return { items: [], error: "Remove blank lines from the included-item translations." };
+  if (
+    (lines.fr.length > 0 && lines.fr.length !== lines.en.length) ||
+    (lines.ar.length > 0 && lines.ar.length !== lines.en.length)
+  ) {
+    return {
+      items: [],
+      error: "Translate each English item on the matching line, or leave that language blank.",
+    };
   }
   return {
     items: lines.en.map((_, index) => ({
       en: lines.en[index]!,
-      fr: lines.fr[index]!,
-      ar: lines.ar[index]!,
+      fr: lines.fr[index] ?? "",
+      ar: lines.ar[index] ?? "",
     })),
     error: null,
   };
@@ -113,6 +120,15 @@ export function localizedLines(fields: LocalizedFields): {
 
 export function isValidCurrencyCode(value: string): boolean {
   return /^[A-Z]{3}$/.test(value);
+}
+
+export function duplicateExperienceId(id: string, existingIds: string[]): string {
+  const usedIds = new Set(existingIds);
+  const base = `${id}-copy`;
+  if (!usedIds.has(base)) return base;
+  let suffix = 2;
+  while (usedIds.has(`${base}-${suffix}`)) suffix += 1;
+  return `${base}-${suffix}`;
 }
 
 function splitIncludedLines(value: string): string[] {

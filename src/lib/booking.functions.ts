@@ -8,7 +8,7 @@ import { parseCancellationTiers } from "./booking-pricing";
 
 const currencySchema = z.string().regex(/^[A-Z]{3}$/);
 const localizedSchema = z.object({
-  en: z.string(),
+  en: z.string().trim().min(1),
   fr: z.string(),
   ar: z.string(),
 });

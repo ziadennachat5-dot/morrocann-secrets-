@@ -18,6 +18,7 @@ import {
   countCapacityGuests,
   formatCancellationTiers,
 } from "@/lib/booking-pricing";
+import { localizedTextForLanguage } from "@/lib/localized-content";
 
 const stepKeys = ["experience", "date", "guests", "contact", "summary"] as const;
 const progressSchema = z.object({
@@ -298,7 +299,7 @@ function BookingPage() {
           <dl className="mt-6 grid gap-3 sm:grid-cols-2">
             <div>
               <dt className="font-semibold">{t.booking.experienceLabel}</dt>
-              <dd>{selectedExperience.title[lang] ?? selectedExperience.title["en"]}</dd>
+              <dd>{localizedTextForLanguage(selectedExperience.title, lang)}</dd>
             </div>
             <div>
               <dt className="font-semibold">{t.booking.dateLabel}</dt>
@@ -325,7 +326,7 @@ function BookingPage() {
               onClick={() =>
                 saveConfirmationCalendarFile(
                   confirmation,
-                  selectedExperience.title[lang] ?? selectedExperience.title["en"] ?? BRAND_NAME,
+                  localizedTextForLanguage(selectedExperience.title, lang) || BRAND_NAME,
                   BRAND_NAME,
                 )
               }
@@ -337,10 +338,10 @@ function BookingPage() {
                 <MessageCircle aria-hidden /> WhatsApp
               </a>
             )}
-            {options.meetingArea?.[lang]?.trim() && (
+            {options.meetingArea && localizedTextForLanguage(options.meetingArea, lang) && (
               <div className="sm:col-span-2">
                 <dt className="font-semibold">{t.booking.meetingArea}</dt>
-                <dd>{options.meetingArea[lang]}</dd>
+                <dd>{localizedTextForLanguage(options.meetingArea, lang)}</dd>
               </div>
             )}
             <Link to="/" className="btn btn-ghost">
@@ -413,10 +414,10 @@ function BookingPage() {
                 />
                 <span>
                   <span className="block font-semibold">
-                    {experience.title[lang] ?? experience.title["en"] ?? experience.id}
+                    {localizedTextForLanguage(experience.title, lang) || experience.id}
                   </span>
                   <span className="block text-sm text-muted-foreground">
-                    {experience.blurb[lang] ?? experience.blurb["en"] ?? ""}
+                    {localizedTextForLanguage(experience.blurb, lang)}
                   </span>
                   {options.currency && (
                     <span className="mt-2 block text-sm">
@@ -445,9 +446,9 @@ function BookingPage() {
                       {t.booking.startTime}: {experience.start_time.slice(0, 5)}
                     </span>
                   )}
-                  {options.meetingArea?.[lang]?.trim() && (
+                  {options.meetingArea && localizedTextForLanguage(options.meetingArea, lang) && (
                     <span className="block text-sm text-muted-foreground">
-                      {t.booking.meetingArea}: {options.meetingArea[lang]}
+                      {t.booking.meetingArea}: {localizedTextForLanguage(options.meetingArea, lang)}
                     </span>
                   )}
                 </span>
@@ -559,8 +560,8 @@ function BookingPage() {
                 >
                   <option value="">{t.booking.chooseMeal}</option>
                   {selectedExperience.meal_options.map((option) => (
-                    <option key={option.en} value={option[lang]}>
-                      {option[lang]}
+                    <option key={option.en} value={localizedTextForLanguage(option, lang)}>
+                      {localizedTextForLanguage(option, lang)}
                     </option>
                   ))}
                 </select>
@@ -693,7 +694,7 @@ function BookingPage() {
               <dl className="grid gap-3 sm:grid-cols-2">
                 <div>
                   <dt className="font-semibold">{t.booking.experienceLabel}</dt>
-                  <dd>{selectedExperience.title[lang] ?? selectedExperience.title["en"]}</dd>
+                  <dd>{localizedTextForLanguage(selectedExperience.title, lang)}</dd>
                 </div>
                 <div>
                   <dt className="font-semibold">{t.booking.dateLabel}</dt>

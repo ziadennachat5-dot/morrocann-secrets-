@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Check, Clock, Users } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import type { PublishedExperience, PublishedFamily } from "@/lib/public-content.functions";
+import { localizedTextForLanguage } from "@/lib/localized-content";
 
 export function ExperienceRow({
   experience,
@@ -22,7 +23,7 @@ export function ExperienceRow({
       {experience.image_alt && (
         <img
           src={experience.image_url}
-          alt={experience.image_alt[lang]}
+          alt={localizedTextForLanguage(experience.image_alt, lang)}
           width={1200}
           height={1600}
           loading="lazy"
@@ -30,13 +31,17 @@ export function ExperienceRow({
         />
       )}
       <div>
-        <h2 className="text-4xl text-foreground">{experience.title[lang]}</h2>
-        <p className="mt-3 text-lg text-muted-foreground">{experience.blurb[lang]}</p>
+        <h2 className="text-4xl text-foreground">
+          {localizedTextForLanguage(experience.title, lang)}
+        </h2>
+        <p className="mt-3 text-lg text-muted-foreground">
+          {localizedTextForLanguage(experience.blurb, lang)}
+        </p>
         <dl className="mt-6 flex flex-wrap gap-x-8 gap-y-3 border-y border-border py-4 text-sm">
           <div className="flex items-center gap-2">
             <Clock className="h-4 w-4 text-accent" aria-hidden />
             <dt className="sr-only">{t.exp.duration}</dt>
-            <dd>{experience.duration[lang]}</dd>
+            <dd>{localizedTextForLanguage(experience.duration, lang)}</dd>
           </div>
           {experience.min_guests !== null && (
             <div className="flex items-center gap-2">
@@ -82,18 +87,18 @@ export function ExperienceRow({
             </div>
           )}
         </dl>
-        {meetingArea?.[lang]?.trim() && (
+        {meetingArea && localizedTextForLanguage(meetingArea, lang) && (
           <p className="mt-4 text-sm">
             <strong>{t.exp.meetingArea}: </strong>
-            {meetingArea[lang]}
+            {localizedTextForLanguage(meetingArea, lang)}
           </p>
         )}
-        {experience.why_love.some((bullet) => bullet[lang].trim()) && (
+        {experience.why_love.some((bullet) => localizedTextForLanguage(bullet, lang)) && (
           <div className="mt-6">
             <p className="eyebrow">{t.exp.whyLove}</p>
             <ul className="mt-3 list-disc space-y-2 ps-5">
               {experience.why_love
-                .map((bullet) => bullet[lang].trim())
+                .map((bullet) => localizedTextForLanguage(bullet, lang))
                 .filter(Boolean)
                 .map((bullet, index) => (
                   <li key={`${index}-${bullet}`}>{bullet}</li>
@@ -101,11 +106,11 @@ export function ExperienceRow({
             </ul>
           </div>
         )}
-        {experience.what_to_expect?.[lang]?.trim() && (
+        {experience.what_to_expect && localizedTextForLanguage(experience.what_to_expect, lang) && (
           <div className="mt-6">
             <p className="eyebrow">{t.exp.whatToExpect}</p>
             <p className="mt-2 whitespace-pre-line text-muted-foreground">
-              {experience.what_to_expect[lang]}
+              {localizedTextForLanguage(experience.what_to_expect, lang)}
             </p>
           </div>
         )}
@@ -116,24 +121,25 @@ export function ExperienceRow({
               {experience.included.map((item, index) => (
                 <li key={`${index}-${item.en}`} className="flex items-center gap-2">
                   <Check className="h-4 w-4 text-accent" aria-hidden />
-                  {item[lang]}
+                  {localizedTextForLanguage(item, lang)}
                 </li>
               ))}
             </ul>
           </>
         )}
-        {experience.what_to_remember?.[lang]?.trim() && (
-          <div className="mt-6">
-            <p className="eyebrow">{t.exp.whatToRemember}</p>
-            <p className="mt-2 whitespace-pre-line text-muted-foreground">
-              {experience.what_to_remember[lang]}
-            </p>
-          </div>
-        )}
-        {experience.host_languages?.[lang]?.trim() && (
+        {experience.what_to_remember &&
+          localizedTextForLanguage(experience.what_to_remember, lang) && (
+            <div className="mt-6">
+              <p className="eyebrow">{t.exp.whatToRemember}</p>
+              <p className="mt-2 whitespace-pre-line text-muted-foreground">
+                {localizedTextForLanguage(experience.what_to_remember, lang)}
+              </p>
+            </div>
+          )}
+        {experience.host_languages && localizedTextForLanguage(experience.host_languages, lang) && (
           <p className="mt-6 text-sm">
             <strong>{t.exp.hostLanguages}: </strong>
-            {experience.host_languages[lang]}
+            {localizedTextForLanguage(experience.host_languages, lang)}
           </p>
         )}
         <Link to="/booking" className="btn btn-primary mt-8">

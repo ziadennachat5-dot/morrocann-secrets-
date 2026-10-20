@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "format": "prettier --write .",
+    "seed:first-experience": "node --env-file=.env --experimental-strip-types scripts/seed-first-experience.ts",
     "test": "vitest run",
     "test:watch": "vitest"
   },

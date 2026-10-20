@@ -6,6 +6,11 @@ const localizedTextSchema = z.object({
   fr: z.string().trim().min(1),
   ar: z.string().trim().min(1),
 });
+const experienceTextSchema = z.object({
+  en: z.string().trim().min(1),
+  fr: z.string().trim(),
+  ar: z.string().trim(),
+});
 const faqSchema = z.object({
   id: z.string().uuid(),
   category: localizedTextSchema,
@@ -21,9 +26,9 @@ const postSchema = z.object({
 });
 const experienceSchema = z.object({
   id: z.string(),
-  title: localizedTextSchema,
-  blurb: localizedTextSchema,
-  duration: localizedTextSchema,
+  title: experienceTextSchema,
+  blurb: experienceTextSchema,
+  duration: experienceTextSchema,
   price: z.number().nonnegative(),
   child_price: z.number().nonnegative().nullable(),
   child_age_min: z.number().int().nullable(),
@@ -32,12 +37,12 @@ const experienceSchema = z.object({
   max_guests: z.number().int().positive(),
   start_time: z.string().nullable(),
   image_url: z.string(),
-  image_alt: localizedTextSchema.nullable(),
-  included: z.array(localizedTextSchema),
-  why_love: z.array(localizedTextSchema),
-  what_to_expect: localizedTextSchema.nullable(),
-  what_to_remember: localizedTextSchema.nullable(),
-  host_languages: localizedTextSchema.nullable(),
+  image_alt: experienceTextSchema.nullable(),
+  included: z.array(experienceTextSchema),
+  why_love: z.array(experienceTextSchema),
+  what_to_expect: experienceTextSchema.nullable(),
+  what_to_remember: experienceTextSchema.nullable(),
+  host_languages: experienceTextSchema.nullable(),
 });
 const familySchema = z.object({
   id: z.string(),
