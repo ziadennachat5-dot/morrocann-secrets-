@@ -7,6 +7,7 @@ import type { Lang } from "@/lib/i18n";
 import { dict } from "@/lib/translations";
 import { readTranslation, translationPaths } from "@/lib/copy-utils";
 import { CatalogManager } from "@/components/admin/CatalogManager";
+import { parseCancellationTiers } from "@/lib/booking-pricing";
 
 type Booking = Tables<"bookings">;
 type Availability = Tables<"availability">;
@@ -284,6 +285,14 @@ function AdminPage() {
       "experience_id",
       "date",
       "guests",
+      "adults",
+      "children",
+      "infants",
+      "adult_unit_price",
+      "child_unit_price",
+      "start_time",
+      "meal_choice",
+      "dietary_needs",
       "status",
       "total_price",
       "language",
@@ -406,10 +415,28 @@ function AdminPage() {
       setError("Settings value must be JSON.");
       return;
     }
+    const key = settingKey.trim();
+    if (key === "booking.cancellation_tiers") {
+      if (
+        !Array.isArray(value) ||
+        (value.length > 0 && parseCancellationTiers(value).length !== value.length)
+      ) {
+        setError(
+          "Cancellation tiers must be an array ordered by descending hours_before, with integer refund_percent values from 0 to 100.",
+        );
+        return;
+      }
+    }
+    if (key === "booking.owner_email" && value !== "" && !isEmail(value)) {
+      setError("The private booking owner email must be a valid email address or an empty string.");
+      return;
+    }
+    const settingValue: Json =
+      key === "booking.owner_email" && isEmail(value) ? value.trim() : value;
     const { error: saveError } = await supabase.from("site_settings").upsert({
-      setting_key: settingKey.trim(),
-      value,
-      is_public: settingPublic,
+      setting_key: key,
+      value: settingValue,
+      is_public: requiredSettingVisibility(key) ?? settingPublic,
       updated_at: new Date().toISOString(),
     });
     if (saveError) setError(`Could not save setting: ${saveError.message}`);
@@ -720,10 +747,31 @@ function AdminPage() {
                   {selectedBooking.name} · {selectedBooking.email}
                 </p>
                 <p className="text-sm">
-                  {selectedBooking.phone} · {selectedBooking.date} · {selectedBooking.guests} guests
+                  {selectedBooking.phone} · {selectedBooking.date}
+                  {selectedBooking.start_time
+                    ? ` · ${selectedBooking.start_time.slice(0, 5)}`
+                    : ""}{" "}
+                  · {selectedBooking.guests} guests
                 </p>
                 <p className="text-sm">
-                  Dietary needs: {selectedBooking.dietary_needs || "Not provided"}
+                  Party: {selectedBooking.adults} adults · {selectedBooking.children} children ·{" "}
+                  {selectedBooking.infants} infants
+                </p>
+                <p className="text-sm">
+                  Meal choice: {selectedBooking.meal_choice || "Not provided"}
+                </p>
+                <p className="text-sm">
+                  Allergies / dietary needs: {selectedBooking.dietary_needs || "Not provided"}
+                </p>
+                <p className="text-sm">
+                  Price: {selectedBooking.adults} ×{" "}
+                  {formatAdminPrice(selectedBooking.adult_unit_price, sharedCurrency)}
+                  {selectedBooking.child_unit_price !== null
+                    ? ` · ${selectedBooking.children} × ${formatAdminPrice(selectedBooking.child_unit_price, sharedCurrency)}`
+                    : ""}
+                  {selectedBooking.infants > 0 ? " · Infants free" : ""}
+                  {" · Total "}
+                  {formatAdminPrice(selectedBooking.total_price, sharedCurrency)}
                 </p>
                 <p className="text-sm">
                   Occasion: {selectedBooking.special_occasion || "Not provided"}
@@ -1189,12 +1237,15 @@ function AdminPage() {
           <div>
             <h2 className="text-2xl font-semibold">Admin-managed settings</h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Use JSON values. Public values are visible to visitors. Supported keys include
-              booking.currency, booking.cancellation_policy, trust.included, trust.not_included,
-              trust.arrival_time, trust.meeting_point, trust.dress, trust.alcohol_policy,
-              trust.what_to_bring, trust.why_family_home, trust.safety_hygiene, contact.whatsapp,
-              contact.email, and contact.instagram. Localized text uses an object with en, fr, and
-              ar strings; included-item values use an object with en, fr, and ar arrays.
+              Use JSON values. Public values are visible to visitors. Configure
+              booking.cancellation_tiers as an array of objects with integer hours_before and
+              refund_percent values, ordered from the largest number of hours to the smallest. An
+              empty array disables booking. Set trust.meeting_area as localized public text and
+              trust.meeting_point as localized private exact details. booking.owner_email is a
+              private JSON string used as a BCC for booking notifications. Other supported keys
+              include booking.currency, trust.included, trust.not_included, trust.arrival_time,
+              trust.dress, trust.alcohol_policy, trust.what_to_bring, trust.why_family_home,
+              trust.safety_hygiene, contact.whatsapp, contact.email, and contact.instagram.
             </p>
             <form
               onSubmit={(event) => void saveSetting(event)}
@@ -1223,10 +1274,13 @@ function AdminPage() {
               <label className="flex items-center gap-2 text-sm">
                 <input
                   type="checkbox"
-                  checked={settingPublic}
+                  checked={requiredSettingVisibility(settingKey.trim()) ?? settingPublic}
+                  disabled={requiredSettingVisibility(settingKey.trim()) !== null}
                   onChange={(event) => setSettingPublic(event.target.checked)}
                 />
-                Publish this setting to the public site
+                {requiredSettingVisibility(settingKey.trim()) === false
+                  ? "Keep this setting private"
+                  : "Publish this setting to the public site"}
               </label>
               <Button type="submit">Save setting</Button>
             </form>
@@ -1452,4 +1506,24 @@ function isJson(value: unknown): value is Json {
   if (Array.isArray(value)) return value.every(isJson);
   if (typeof value !== "object") return false;
   return Object.values(value).every(isJson);
+}
+
+function formatAdminPrice(value: number, currency: string): string {
+  if (!/^[A-Z]{3}$/.test(currency)) return String(value);
+  return new Intl.NumberFormat("en", { style: "currency", currency }).format(value);
+}
+
+function requiredSettingVisibility(key: string): boolean | null {
+  if (["booking.currency", "booking.cancellation_tiers", "trust.meeting_area"].includes(key)) {
+    return true;
+  }
+  if (["trust.meeting_point", "booking.owner_email"].includes(key)) return false;
+  return null;
+}
+
+function isEmail(value: unknown): value is string {
+  return (
+    typeof value === "string" &&
+    /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(value.trim())
+  );
 }

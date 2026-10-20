@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { renderBookingEmail, type BookingEmailKind } from "@/lib/email-templates";
+import type { CancellationTier } from "@/lib/booking-pricing";
 import type { Lang } from "@/lib/i18n";
 
 const kinds: BookingEmailKind[] = [
@@ -28,7 +29,7 @@ describe("localized booking email templates", () => {
     expect(email.html).toContain('alt="Moroccan Secrets Riad"');
     expect(email.html).toContain(sampleData.logoUrl);
     expect(email.html).toContain(sampleData.whatsappUrl);
-    expect(email.html).toContain(
+    expect(email.html).not.toContain(
       language === "fr"
         ? "Point de rendez-vous"
         : language === "ar"
@@ -44,5 +45,34 @@ describe("localized booking email templates", () => {
     const email = renderBookingEmail(kind, "en", sampleData);
     expect(email.html.includes(sampleData.reviewUrl ?? "")).toBe(kind === "review_request");
     expect(email.text).toContain(sampleData.bookingReference);
+  });
+
+  it("includes the exact meeting point only in the booking-confirmed email", () => {
+    const privatePoint = "Private door code 123";
+    const data = { ...sampleData, meetingPoint: privatePoint };
+
+    expect(renderBookingEmail("booking_received", "en", data).text).not.toContain(privatePoint);
+    expect(renderBookingEmail("booking_reminder", "en", data).text).not.toContain(privatePoint);
+    expect(renderBookingEmail("booking_confirmed", "en", data).text).toContain(privatePoint);
+  });
+
+  it("includes guest choices, dietary notes and cancellation tiers in booking emails", () => {
+    const cancellationTiers: CancellationTier[] = [{ hours_before: 72, refund_percent: 100 }];
+    const email = renderBookingEmail("booking_received", "en", {
+      ...sampleData,
+      adults: 2,
+      children: 1,
+      infants: 1,
+      startTime: "18:30",
+      mealChoice: "Vegetarian",
+      dietaryNeeds: "Peanut allergy",
+      cancellationTiers,
+    });
+
+    expect(email.text).toContain("Vegetarian");
+    expect(email.text).toContain("Peanut allergy");
+    expect(email.text).toContain("18:30");
+    expect(email.text).toContain("2 adults · 1 child · 1 infant");
+    expect(email.text).toContain("100% refund");
   });
 });

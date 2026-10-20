@@ -1,6 +1,8 @@
 import { renderBookingEmail, type BookingEmailKind } from "./email-templates";
 import { createSignedReviewToken } from "./review-token";
 import type { Lang } from "./i18n";
+import { parseCancellationTiers } from "./booking-pricing";
+import { z } from "zod";
 
 const supportedLanguages = ["en", "fr", "ar"] as const;
 
@@ -51,13 +53,27 @@ function languageOrEnglish(value: string): Lang {
 async function loadEmailSettings(
   supabaseAdmin: typeof import("@/integrations/supabase/client.server").supabaseAdmin,
 ) {
-  const result = await supabaseAdmin
-    .from("site_settings")
-    .select("setting_key,value")
-    .in("setting_key", ["trust.meeting_point", "contact.whatsapp"])
-    .eq("is_public", true);
-  if (result.error) throw new Error("Unable to load public email contact details.");
-  return new Map((result.data ?? []).map((row) => [row.setting_key, row.value]));
+  const [publicResult, privateResult] = await Promise.all([
+    supabaseAdmin
+      .from("site_settings")
+      .select("setting_key,value")
+      .in("setting_key", ["contact.whatsapp", "booking.cancellation_tiers"])
+      .eq("is_public", true),
+    supabaseAdmin
+      .from("site_settings")
+      .select("setting_key,value")
+      .in("setting_key", ["trust.meeting_point", "booking.owner_email"])
+      .eq("is_public", false),
+  ]);
+  if (publicResult.error || privateResult.error) {
+    throw new Error("Unable to load booking email settings.");
+  }
+  return new Map(
+    [...(publicResult.data ?? []), ...(privateResult.data ?? [])].map((row) => [
+      row.setting_key,
+      row.value,
+    ]),
+  );
 }
 
 export async function processBookingEmailOutbox(batchSize = 10) {
@@ -78,7 +94,9 @@ export async function processBookingEmailOutbox(batchSize = 10) {
     try {
       const bookingResult = await supabaseAdmin
         .from("bookings")
-        .select("id,name,email,experience_id,date,guests,language,status")
+        .select(
+          "id,name,email,experience_id,date,guests,adults,children,infants,start_time,meal_choice,dietary_needs,language,status",
+        )
         .eq("id", job.booking_id)
         .maybeSingle();
       if (bookingResult.error) throw new Error("Unable to load email booking.");
@@ -143,19 +161,34 @@ export async function processBookingEmailOutbox(batchSize = 10) {
         .maybeSingle();
       if (experienceResult.error) throw new Error("Unable to load email experience.");
       const language = languageOrEnglish(booking.language);
-      const meetingPoint = localizedValue(settings.get("trust.meeting_point"), language);
+      const kind = job.kind as BookingEmailKind;
+      const meetingPoint =
+        kind === "booking_confirmed"
+          ? localizedValue(settings.get("trust.meeting_point"), language)
+          : "";
+      const ownerEmailValue = settings.get("booking.owner_email");
+      const ownerEmail =
+        typeof ownerEmailValue === "string" && z.string().email().safeParse(ownerEmailValue).success
+          ? ownerEmailValue
+          : null;
       const data = {
         guestName: booking.name,
         experienceTitle:
           localizedValue(experienceResult.data?.title, language) || booking.experience_id,
         date: booking.date,
         guests: booking.guests,
+        adults: booking.adults,
+        children: booking.children,
+        infants: booking.infants,
+        ...(booking.start_time ? { startTime: booking.start_time.slice(0, 5) } : {}),
+        ...(booking.meal_choice ? { mealChoice: booking.meal_choice } : {}),
+        ...(booking.dietary_needs ? { dietaryNeeds: booking.dietary_needs } : {}),
+        cancellationTiers: parseCancellationTiers(settings.get("booking.cancellation_tiers")),
         bookingReference: booking.id,
         meetingPoint,
         whatsappUrl: whatsappUrl(settings, language),
         logoUrl,
       };
-      const kind = job.kind as BookingEmailKind;
       let reviewUrl: string | undefined;
       if (kind === "review_request") {
         const secret = process.env["REVIEW_TOKEN_SECRET"]?.trim() ?? "";
@@ -198,6 +231,7 @@ export async function processBookingEmailOutbox(batchSize = 10) {
         body: JSON.stringify({
           from,
           to: [booking.email],
+          ...(kind === "booking_received" && ownerEmail ? { bcc: [ownerEmail] } : {}),
           subject: email.subject,
           html: email.html,
           text: email.text,

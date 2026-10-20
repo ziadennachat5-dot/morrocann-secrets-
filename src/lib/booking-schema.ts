@@ -7,16 +7,27 @@ export const bookingRequestSchema = z
     phone: z.string().trim().min(3).max(30),
     experienceId: z.string().trim().min(1).max(80),
     date: z.string().date(),
-    guests: z.number().int().min(1).max(12),
+    adults: z.number().int().min(0).max(2147483647),
+    children: z.number().int().min(0).max(2147483647),
+    infants: z.number().int().min(0).max(2147483647),
+    mealChoice: z.string().trim().max(200),
     privateGroup: z.boolean(),
     dietaryNeeds: z.string().trim().max(500),
     specialOccasion: z.enum(["", "birthday", "anniversary", "honeymoon"]),
     language: z.enum(["en", "fr", "ar"]),
     honeypot: z.string().max(0),
   })
-  .refine((booking) => !booking.privateGroup || booking.guests >= 6, {
+  .refine((booking) => booking.adults + booking.children + booking.infants >= 1, {
+    message: "At least one guest is required.",
+    path: ["adults"],
+  })
+  .refine((booking) => booking.adults + booking.children + booking.infants <= 2147483647, {
+    message: "Guest count is too large.",
+    path: ["adults"],
+  })
+  .refine((booking) => !booking.privateGroup || booking.adults + booking.children >= 6, {
     message: "Private groups require at least 6 guests.",
-    path: ["guests"],
+    path: ["adults"],
   });
 
 export type BookingRequest = z.infer<typeof bookingRequestSchema>;

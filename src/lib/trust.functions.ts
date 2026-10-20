@@ -17,7 +17,7 @@ const settingKeys = [
   "trust.included",
   "trust.not_included",
   "trust.arrival_time",
-  "trust.meeting_point",
+  "trust.meeting_area",
   "trust.dress",
   "trust.alcohol_policy",
   "trust.what_to_bring",
@@ -90,7 +90,7 @@ export const getTrustContent = createServerFn({ method: "GET" }).handler(async (
     notIncluded: localizedLists.get("trust.not_included") ?? null,
     goodToKnow: {
       arrivalTime: localizedText.get("trust.arrival_time") ?? null,
-      meetingPoint: localizedText.get("trust.meeting_point") ?? null,
+      meetingPoint: localizedText.get("trust.meeting_area") ?? null,
       dress: localizedText.get("trust.dress") ?? null,
       alcoholPolicy: localizedText.get("trust.alcohol_policy") ?? null,
       whatToBring: localizedText.get("trust.what_to_bring") ?? null,

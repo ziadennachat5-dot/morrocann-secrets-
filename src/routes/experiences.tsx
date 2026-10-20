@@ -44,7 +44,7 @@ export const Route = createFileRoute("/experiences")({
 });
 
 function ExperiencesPage() {
-  const { experiences, currency } = Route.useLoaderData();
+  const { experiences, currency, meetingArea } = Route.useLoaderData();
   const { t } = useI18n();
   return (
     <div className="mx-auto max-w-6xl px-5 py-20">
@@ -59,6 +59,7 @@ function ExperiencesPage() {
               key={experience.id}
               experience={experience}
               currency={currency}
+              meetingArea={meetingArea}
               reverse={index % 2 === 1}
             />
           ))}

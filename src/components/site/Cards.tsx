@@ -6,10 +6,12 @@ import type { PublishedExperience, PublishedFamily } from "@/lib/public-content.
 export function ExperienceRow({
   experience,
   currency,
+  meetingArea,
   reverse,
 }: {
   experience: PublishedExperience;
   currency: string | null;
+  meetingArea?: { en: string; fr: string; ar: string } | null;
   reverse?: boolean;
 }) {
   const { t, lang } = useI18n();
@@ -36,24 +38,77 @@ export function ExperienceRow({
             <dt className="sr-only">{t.exp.duration}</dt>
             <dd>{experience.duration[lang]}</dd>
           </div>
-          <div className="flex items-center gap-2">
-            <Users className="h-4 w-4 text-accent" aria-hidden />
-            <dt>{t.exp.maxGuests}:</dt>
-            <dd>{experience.max_guests}</dd>
-          </div>
+          {experience.min_guests !== null && (
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4 text-accent" aria-hidden />
+              <dt>{t.exp.guestRange}:</dt>
+              <dd>
+                {experience.min_guests}–{experience.max_guests}
+              </dd>
+            </div>
+          )}
+          {experience.start_time && (
+            <div>
+              <dt>{t.exp.startTime}:</dt>
+              <dd>{experience.start_time.slice(0, 5)}</dd>
+            </div>
+          )}
           {currency && (
             <div className="flex items-baseline gap-1.5">
               <dt className="sr-only">{t.booking.pricePerPerson}</dt>
-              <dd className="font-display text-3xl text-primary">
-                {new Intl.NumberFormat(lang, {
-                  style: "currency",
-                  currency,
-                }).format(experience.price)}
+              <dd>
+                <span>{t.exp.adultPrice}: </span>
+                <strong className="font-display text-2xl text-primary">
+                  {new Intl.NumberFormat(lang, { style: "currency", currency }).format(
+                    experience.price,
+                  )}
+                </strong>
+                <span className="ms-2 text-muted-foreground">{t.exp.perPerson}</span>
               </dd>
-              <span className="text-muted-foreground">{t.exp.perPerson}</span>
+            </div>
+          )}
+          {currency && experience.child_price !== null && (
+            <div>
+              <dt>{t.exp.childPrice}:</dt>
+              <dd>
+                {new Intl.NumberFormat(lang, { style: "currency", currency }).format(
+                  experience.child_price,
+                )}{" "}
+                {t.exp.perPerson}
+                {experience.child_age_min !== null && experience.child_age_max !== null
+                  ? ` · ${experience.child_age_min}–${experience.child_age_max}`
+                  : ""}
+              </dd>
             </div>
           )}
         </dl>
+        {meetingArea?.[lang]?.trim() && (
+          <p className="mt-4 text-sm">
+            <strong>{t.exp.meetingArea}: </strong>
+            {meetingArea[lang]}
+          </p>
+        )}
+        {experience.why_love.some((bullet) => bullet[lang].trim()) && (
+          <div className="mt-6">
+            <p className="eyebrow">{t.exp.whyLove}</p>
+            <ul className="mt-3 list-disc space-y-2 ps-5">
+              {experience.why_love
+                .map((bullet) => bullet[lang].trim())
+                .filter(Boolean)
+                .map((bullet, index) => (
+                  <li key={`${index}-${bullet}`}>{bullet}</li>
+                ))}
+            </ul>
+          </div>
+        )}
+        {experience.what_to_expect?.[lang]?.trim() && (
+          <div className="mt-6">
+            <p className="eyebrow">{t.exp.whatToExpect}</p>
+            <p className="mt-2 whitespace-pre-line text-muted-foreground">
+              {experience.what_to_expect[lang]}
+            </p>
+          </div>
+        )}
         {experience.included.length > 0 && (
           <>
             <p className="eyebrow mt-6">{t.exp.included}</p>
@@ -66,6 +121,20 @@ export function ExperienceRow({
               ))}
             </ul>
           </>
+        )}
+        {experience.what_to_remember?.[lang]?.trim() && (
+          <div className="mt-6">
+            <p className="eyebrow">{t.exp.whatToRemember}</p>
+            <p className="mt-2 whitespace-pre-line text-muted-foreground">
+              {experience.what_to_remember[lang]}
+            </p>
+          </div>
+        )}
+        {experience.host_languages?.[lang]?.trim() && (
+          <p className="mt-6 text-sm">
+            <strong>{t.exp.hostLanguages}: </strong>
+            {experience.host_languages[lang]}
+          </p>
         )}
         <Link to="/booking" className="btn btn-primary mt-8">
           {t.exp.book}

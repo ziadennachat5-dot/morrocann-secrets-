@@ -7,8 +7,18 @@ export type ExperienceDraft = {
   duration: LocalizedFields;
   imageAlt: LocalizedFields;
   price: string;
+  childPrice: string;
+  childAgeMin: string;
+  childAgeMax: string;
+  minGuests: string;
   maxGuests: string;
+  startTime: string;
+  mealOptions: LocalizedFields;
   included: LocalizedFields;
+  whyLove: [LocalizedFields, LocalizedFields, LocalizedFields];
+  whatToExpect: LocalizedFields;
+  whatToRemember: LocalizedFields;
+  hostLanguages: LocalizedFields;
   published: boolean;
 };
 
@@ -35,8 +45,18 @@ export function emptyExperienceDraft(): ExperienceDraft {
     duration: emptyLocalizedFields(),
     imageAlt: emptyLocalizedFields(),
     price: "",
+    childPrice: "",
+    childAgeMin: "",
+    childAgeMax: "",
+    minGuests: "",
     maxGuests: "",
+    startTime: "",
+    mealOptions: emptyLocalizedFields(),
     included: emptyLocalizedFields(),
+    whyLove: [emptyLocalizedFields(), emptyLocalizedFields(), emptyLocalizedFields()],
+    whatToExpect: emptyLocalizedFields(),
+    whatToRemember: emptyLocalizedFields(),
+    hostLanguages: emptyLocalizedFields(),
     published: false,
   };
 }
@@ -82,6 +102,13 @@ export function localizedIncludedItems(fields: LocalizedFields): {
     })),
     error: null,
   };
+}
+
+export function localizedLines(fields: LocalizedFields): {
+  items: LocalizedFields[];
+  error: string | null;
+} {
+  return localizedIncludedItems(fields);
 }
 
 export function isValidCurrencyCode(value: string): boolean {

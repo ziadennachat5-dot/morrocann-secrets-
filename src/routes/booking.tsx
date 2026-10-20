@@ -13,13 +13,21 @@ import { BRAND_NAME } from "@/lib/brand";
 import { getBookingOptions, submitBooking } from "@/lib/booking.functions";
 import { filterAvailableBookingSlots } from "@/lib/booking-availability";
 import type { BookingRequest } from "@/lib/booking-schema";
+import {
+  calculateBookingTotal,
+  countCapacityGuests,
+  formatCancellationTiers,
+} from "@/lib/booking-pricing";
 
 const stepKeys = ["experience", "date", "guests", "contact", "summary"] as const;
 const progressSchema = z.object({
   step: z.number().int().min(0).max(4),
   experienceId: z.string(),
   date: z.string(),
-  guests: z.number().int().min(1).max(12),
+  adults: z.number().int().min(0),
+  children: z.number().int().min(0),
+  infants: z.number().int().min(0),
+  mealChoice: z.string().max(200),
   privateGroup: z.boolean(),
   dietaryNeeds: z.string().max(500),
   specialOccasion: z.enum(["", "birthday", "anniversary", "honeymoon"]),
@@ -37,6 +45,10 @@ const confirmationSchema = z.object({
   experience_title: z.record(z.string(), z.string()),
   date: z.string(),
   guests: z.number().int(),
+  adults: z.number().int(),
+  children: z.number().int(),
+  infants: z.number().int(),
+  start_time: z.string(),
   total_price: z.number(),
   status: z.literal("pending"),
 });
@@ -49,7 +61,10 @@ function emptyDraft(): BookingDraft {
     step: 0,
     experienceId: "",
     date: "",
-    guests: 1,
+    adults: 1,
+    children: 0,
+    infants: 0,
+    mealChoice: "",
     privateGroup: false,
     dietaryNeeds: "",
     specialOccasion: "",
@@ -147,18 +162,20 @@ function BookingPage() {
   const selectedExperience = options?.experiences.find(
     (experience) => experience.id === draft.experienceId,
   );
+  const capacityGuests = countCapacityGuests(draft.adults, draft.children);
+  const guestsTotal = capacityGuests + draft.infants;
   const relevantSlots = useMemo(
     () =>
       options
         ? filterAvailableBookingSlots(
             options.availability,
             draft.experienceId,
-            draft.guests,
+            capacityGuests,
             new Date().toISOString().slice(0, 10),
             draft.privateGroup,
           )
         : [],
-    [options, draft.experienceId, draft.guests, draft.privateGroup],
+    [options, draft.experienceId, capacityGuests, draft.privateGroup],
   );
   const availableDates = useMemo(
     () => relevantSlots.map((slot) => new Date(`${slot.date}T12:00:00`)),
@@ -168,7 +185,14 @@ function BookingPage() {
   const waHref = options?.whatsapp
     ? `https://wa.me/${options.whatsapp}?text=${encodeURIComponent(t.booking.whatsappMessage)}`
     : null;
-  const price = selectedExperience ? selectedExperience.price * draft.guests : null;
+  const price = selectedExperience
+    ? calculateBookingTotal(
+        selectedExperience.price,
+        selectedExperience.child_price,
+        draft.adults,
+        draft.children,
+      )
+    : null;
   const deposit =
     selectedExperience && selectedExperience.deposit_amount > 0
       ? selectedExperience.deposit_amount
@@ -180,13 +204,17 @@ function BookingPage() {
   };
 
   const canContinue = () => {
+    if (!options?.currency || options.cancellationTiers.length === 0) return false;
     if (draft.step === 0) return Boolean(selectedExperience);
     if (draft.step === 1) return Boolean(selectedSlot);
     if (draft.step === 2)
       return (
-        draft.guests >= 1 &&
-        draft.guests <= (selectedExperience?.max_guests ?? 0) &&
-        (!draft.privateGroup || draft.guests >= 6)
+        capacityGuests >= (selectedExperience?.min_guests ?? 0) &&
+        capacityGuests <= (selectedExperience?.max_guests ?? 0) &&
+        Boolean(selectedExperience) &&
+        (draft.children === 0 || selectedExperience?.child_price !== null) &&
+        (!selectedExperience?.meal_options.length || Boolean(draft.mealChoice)) &&
+        (!draft.privateGroup || capacityGuests >= 6)
       );
     if (draft.step === 3)
       return (
@@ -194,7 +222,7 @@ function BookingPage() {
         z.string().email().safeParse(draft.email).success &&
         draft.phone.trim().length >= 3
       );
-    return Boolean(options?.cancellationPolicy && options.currency && selectedSlot);
+    return Boolean(options?.cancellationTiers.length && options.currency && selectedSlot);
   };
 
   const continueStep = () => {
@@ -203,7 +231,12 @@ function BookingPage() {
   };
 
   const submit = async () => {
-    if (!selectedExperience || !selectedSlot || !options?.cancellationPolicy || !options.currency)
+    if (
+      !selectedExperience ||
+      !selectedSlot ||
+      !options?.cancellationTiers.length ||
+      !options.currency
+    )
       return;
     const payload: BookingRequest = {
       name: draft.name,
@@ -211,7 +244,10 @@ function BookingPage() {
       phone: draft.phone,
       experienceId: draft.experienceId,
       date: draft.date,
-      guests: draft.guests,
+      adults: draft.adults,
+      children: draft.children,
+      infants: draft.infants,
+      mealChoice: draft.mealChoice,
       privateGroup: draft.privateGroup,
       dietaryNeeds: draft.dietaryNeeds,
       specialOccasion: draft.specialOccasion,
@@ -266,11 +302,17 @@ function BookingPage() {
             </div>
             <div>
               <dt className="font-semibold">{t.booking.dateLabel}</dt>
-              <dd>{confirmation.date}</dd>
+              <dd>
+                {confirmation.date} · {confirmation.start_time.slice(0, 5)}
+              </dd>
             </div>
             <div>
               <dt className="font-semibold">{t.booking.guestsLabel}</dt>
-              <dd>{confirmation.guests}</dd>
+              <dd>
+                {confirmation.adults} {t.booking.adults.toLocaleLowerCase()} ·{" "}
+                {confirmation.children} {t.booking.children.toLocaleLowerCase()} ·{" "}
+                {confirmation.infants} {t.booking.infants.toLocaleLowerCase()}
+              </dd>
             </div>
             <div>
               <dt className="font-semibold">{t.booking.reference}</dt>
@@ -294,6 +336,12 @@ function BookingPage() {
               <a className="btn btn-ghost" href={waHref} target="_blank" rel="noreferrer">
                 <MessageCircle aria-hidden /> WhatsApp
               </a>
+            )}
+            {options.meetingArea?.[lang]?.trim() && (
+              <div className="sm:col-span-2">
+                <dt className="font-semibold">{t.booking.meetingArea}</dt>
+                <dd>{options.meetingArea[lang]}</dd>
+              </div>
             )}
             <Link to="/" className="btn btn-ghost">
               {t.booking.home}
@@ -335,6 +383,16 @@ function BookingPage() {
         <h2 id="booking-step-title" className="text-3xl">
           {t.booking.steps[stepKeys[draft.step] ?? "experience"]}
         </h2>
+        {options.cancellationTiers.length === 0 && (
+          <p role="alert" className="mt-4 text-destructive">
+            {t.booking.policyMissing}
+          </p>
+        )}
+        {!options.currency && (
+          <p role="alert" className="mt-4 text-destructive">
+            {t.booking.currencyMissing}
+          </p>
+        )}
         {draft.step === 0 && (
           <fieldset className="mt-6 space-y-3">
             <legend className="sr-only">{t.booking.chooseExperience}</legend>
@@ -348,7 +406,9 @@ function BookingPage() {
                   name="experience"
                   value={experience.id}
                   checked={draft.experienceId === experience.id}
-                  onChange={() => updateDraft({ experienceId: experience.id, date: "" })}
+                  onChange={() =>
+                    updateDraft({ experienceId: experience.id, date: "", mealChoice: "" })
+                  }
                   className="mt-1 accent-primary"
                 />
                 <span>
@@ -364,7 +424,30 @@ function BookingPage() {
                         style: "currency",
                         currency: options.currency,
                       }).format(experience.price)}{" "}
-                      {t.booking.perPerson}
+                      {t.exp.adultPrice.toLocaleLowerCase()} · {experience.min_guests}–
+                      {experience.max_guests} {t.booking.adultsAndChildren.toLocaleLowerCase()}
+                    </span>
+                  )}
+                  {options.currency && experience.child_price !== null && (
+                    <span className="block text-sm text-muted-foreground">
+                      {new Intl.NumberFormat(lang, {
+                        style: "currency",
+                        currency: options.currency,
+                      }).format(experience.child_price)}{" "}
+                      {t.exp.childPrice.toLocaleLowerCase()}
+                      {experience.child_age_min !== null && experience.child_age_max !== null
+                        ? ` (${experience.child_age_min}–${experience.child_age_max})`
+                        : ""}
+                    </span>
+                  )}
+                  {experience.start_time && (
+                    <span className="block text-sm text-muted-foreground">
+                      {t.booking.startTime}: {experience.start_time.slice(0, 5)}
+                    </span>
+                  )}
+                  {options.meetingArea?.[lang]?.trim() && (
+                    <span className="block text-sm text-muted-foreground">
+                      {t.booking.meetingArea}: {options.meetingArea[lang]}
                     </span>
                   )}
                 </span>
@@ -407,6 +490,9 @@ function BookingPage() {
                 {selectedSlot && (
                   <p className="mt-3 text-sm text-muted-foreground">
                     {t.booking.spotsRemaining}: {selectedSlot.remaining}
+                    {selectedExperience.start_time
+                      ? ` · ${t.booking.startTime}: ${selectedExperience.start_time.slice(0, 5)}`
+                      : ""}
                   </p>
                 )}
               </>
@@ -417,16 +503,69 @@ function BookingPage() {
         {draft.step === 2 && (
           <div className="mt-6 space-y-5">
             <div>
-              <Label htmlFor="booking-guests">{t.booking.guestsLabel}</Label>
+              <Label htmlFor="booking-adults">{t.booking.adults}</Label>
               <Input
-                id="booking-guests"
+                id="booking-adults"
                 type="number"
-                min={1}
-                max={Math.min(12, selectedExperience?.max_guests ?? 12)}
-                value={draft.guests}
-                onChange={(event) => updateDraft({ guests: Number(event.target.value), date: "" })}
+                min={0}
+                max={selectedExperience?.max_guests ?? 25}
+                value={draft.adults}
+                onChange={(event) => updateDraft({ adults: Number(event.target.value), date: "" })}
               />
             </div>
+            <div>
+              <Label htmlFor="booking-children">{t.booking.children}</Label>
+              <Input
+                id="booking-children"
+                type="number"
+                min={0}
+                max={selectedExperience?.max_guests ?? 25}
+                value={draft.children}
+                onChange={(event) =>
+                  updateDraft({ children: Number(event.target.value), date: "" })
+                }
+              />
+              {selectedExperience &&
+                selectedExperience.child_price !== null &&
+                selectedExperience.child_age_min !== null &&
+                selectedExperience.child_age_max !== null && (
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {t.booking.childAgeRange}: {selectedExperience.child_age_min}–
+                    {selectedExperience.child_age_max}
+                  </p>
+                )}
+            </div>
+            <div>
+              <Label htmlFor="booking-infants">{t.booking.infants}</Label>
+              <Input
+                id="booking-infants"
+                type="number"
+                min={0}
+                max={2147483647}
+                value={draft.infants}
+                onChange={(event) => updateDraft({ infants: Number(event.target.value), date: "" })}
+              />
+              <p className="mt-1 text-sm text-muted-foreground">{t.booking.infantsFree}</p>
+            </div>
+            {selectedExperience && selectedExperience.meal_options.length > 0 && (
+              <div>
+                <Label htmlFor="booking-meal">{t.booking.mealChoice}</Label>
+                <select
+                  id="booking-meal"
+                  value={draft.mealChoice}
+                  onChange={(event) => updateDraft({ mealChoice: event.target.value })}
+                  className="field"
+                  required
+                >
+                  <option value="">{t.booking.chooseMeal}</option>
+                  {selectedExperience.meal_options.map((option) => (
+                    <option key={option.en} value={option[lang]}>
+                      {option[lang]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
             <label className="flex items-start gap-3">
               <input
                 type="checkbox"
@@ -472,12 +611,23 @@ function BookingPage() {
             {selectedExperience && options.currency && price !== null && (
               <div aria-live="polite" className="rounded-lg bg-sand p-4">
                 <p>
-                  {t.booking.pricePerPerson}:{" "}
+                  {t.booking.adults}: {draft.adults} ×{" "}
                   {new Intl.NumberFormat(lang, {
                     style: "currency",
                     currency: options.currency,
-                  }).format(selectedExperience.price)}{" "}
-                  × {draft.guests}
+                  }).format(selectedExperience.price)}
+                </p>
+                {draft.children > 0 && selectedExperience.child_price !== null && (
+                  <p>
+                    {t.booking.children}: {draft.children} ×{" "}
+                    {new Intl.NumberFormat(lang, {
+                      style: "currency",
+                      currency: options.currency,
+                    }).format(selectedExperience.child_price)}
+                  </p>
+                )}
+                <p>
+                  {t.booking.infants}: {draft.infants} · {t.booking.infantsFree}
                 </p>
                 <p className="mt-1 font-semibold">
                   {t.booking.estimatedTotal}:{" "}
@@ -550,12 +700,26 @@ function BookingPage() {
                   <dd>{draft.date}</dd>
                 </div>
                 <div>
+                  <dt className="font-semibold">{t.booking.startTime}</dt>
+                  <dd>{selectedExperience.start_time?.slice(0, 5)}</dd>
+                </div>
+                <div>
                   <dt className="font-semibold">{t.booking.guestsLabel}</dt>
                   <dd>
-                    {draft.guests}
+                    {draft.adults} {t.booking.adults.toLocaleLowerCase()} · {draft.children}{" "}
+                    {t.booking.children.toLocaleLowerCase()} · {draft.infants}{" "}
+                    {t.booking.infants.toLocaleLowerCase()}
+                    {" · "}
+                    {guestsTotal} {t.booking.guestsLabel.toLocaleLowerCase()}
                     {draft.privateGroup ? ` · ${t.booking.privateGroup}` : ""}
                   </dd>
                 </div>
+                {draft.mealChoice && (
+                  <div>
+                    <dt className="font-semibold">{t.booking.mealChoice}</dt>
+                    <dd>{draft.mealChoice}</dd>
+                  </div>
+                )}
                 <div>
                   <dt className="font-semibold">{t.booking.name}</dt>
                   <dd>{draft.name}</dd>
@@ -585,12 +749,23 @@ function BookingPage() {
             {selectedExperience && options.currency && price !== null && (
               <div className="text-lg">
                 <p>
-                  {t.booking.pricePerPerson}:{" "}
+                  {t.booking.adults}: {draft.adults} ×{" "}
                   {new Intl.NumberFormat(lang, {
                     style: "currency",
                     currency: options.currency,
-                  }).format(selectedExperience.price)}{" "}
-                  × {draft.guests}
+                  }).format(selectedExperience.price)}
+                </p>
+                {draft.children > 0 && selectedExperience.child_price !== null && (
+                  <p>
+                    {t.booking.children}: {draft.children} ×{" "}
+                    {new Intl.NumberFormat(lang, {
+                      style: "currency",
+                      currency: options.currency,
+                    }).format(selectedExperience.child_price)}
+                  </p>
+                )}
+                <p>
+                  {t.booking.infants}: {draft.infants} · {t.booking.infantsFree}
                 </p>
                 <p className="mt-1 font-semibold">
                   {t.booking.estimatedTotal}:{" "}
@@ -610,21 +785,15 @@ function BookingPage() {
                 )}
               </div>
             )}
-            {options.cancellationPolicy && (
+            {options.cancellationTiers.length > 0 && (
               <div className="rounded-xl border border-border p-4">
                 <h3 className="font-semibold">{t.booking.cancellationPolicy}</h3>
-                <p className="mt-2 whitespace-pre-line">{options.cancellationPolicy[lang]}</p>
+                <ul className="mt-2 list-disc space-y-1 ps-5">
+                  {formatCancellationTiers(options.cancellationTiers, lang).map((tier) => (
+                    <li key={tier}>{tier}</li>
+                  ))}
+                </ul>
               </div>
-            )}
-            {!options.cancellationPolicy && (
-              <p role="alert" className="text-destructive">
-                {t.booking.policyMissing}
-              </p>
-            )}
-            {!options.currency && (
-              <p role="alert" className="text-destructive">
-                {t.booking.currencyMissing}
-              </p>
             )}
           </div>
         )}

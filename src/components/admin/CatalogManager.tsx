@@ -5,8 +5,10 @@ import type { Json, Tables } from "@/integrations/supabase/types";
 import {
   emptyExperienceDraft,
   emptyFamilyDraft,
+  emptyLocalizedFields,
   isValidCurrencyCode,
   localizedIncludedItems,
+  localizedLines,
   type ExperienceDraft,
   type FamilyDraft,
   type LocalizedFields,
@@ -69,15 +71,39 @@ export function CatalogManager({
       return;
     }
     const price = Number(experience.price);
+    const childPrice = experience.childPrice === "" ? null : Number(experience.childPrice);
     const maxGuests = Number(experience.maxGuests);
+    const minGuests = Number(experience.minGuests);
     if (
       !Number.isFinite(price) ||
       price < 0 ||
+      (childPrice !== null && (!Number.isFinite(childPrice) || childPrice < 0)) ||
       !Number.isInteger(maxGuests) ||
+      !Number.isInteger(minGuests) ||
+      minGuests < 1 ||
+      minGuests > maxGuests ||
       maxGuests < 1 ||
       maxGuests > 25
     ) {
-      onError("Enter a non-negative price and a maximum guest count from 1 to 25.");
+      onError("Enter valid prices and guest limits (minimum at least 1 and maximum at most 25).");
+      return;
+    }
+    const childAgeMin = experience.childAgeMin === "" ? null : Number(experience.childAgeMin);
+    const childAgeMax = experience.childAgeMax === "" ? null : Number(experience.childAgeMax);
+    if (
+      (childPrice === null && (childAgeMin !== null || childAgeMax !== null)) ||
+      (childPrice !== null &&
+        (!Number.isInteger(childAgeMin) ||
+          !Number.isInteger(childAgeMax) ||
+          childAgeMin! < 1 ||
+          childAgeMax! < childAgeMin! ||
+          childAgeMax! > 120))
+    ) {
+      onError("Set a valid child age range when a child price is configured.");
+      return;
+    }
+    if (experience.startTime && !/^([01]\d|2[0-3]):[0-5]\d$/.test(experience.startTime)) {
+      onError("Enter the fixed start time in 24-hour HH:MM format.");
       return;
     }
     if (hasAnyTranslation(experience.imageAlt) && !hasAllTranslations(experience.imageAlt)) {
@@ -87,6 +113,31 @@ export function CatalogManager({
     const { items: included, error: includedError } = localizedIncludedItems(experience.included);
     if (includedError) {
       onError(includedError);
+      return;
+    }
+    const { items: mealOptions, error: mealOptionsError } = localizedLines(experience.mealOptions);
+    if (mealOptionsError) {
+      onError(`Meal options: ${mealOptionsError}`);
+      return;
+    }
+    const whyLoveHasContent = experience.whyLove.some(hasAnyTranslation);
+    if (whyLoveHasContent && experience.whyLove.some((bullet) => !hasAllTranslations(bullet))) {
+      onError(
+        "Complete all three 'Why you'll love this' bullets in EN, FR, and AR, or leave them empty.",
+      );
+      return;
+    }
+    const optionalLocalized = [
+      experience.whatToExpect,
+      experience.whatToRemember,
+      experience.hostLanguages,
+    ];
+    if (
+      optionalLocalized.some((fields) => hasAnyTranslation(fields) && !hasAllTranslations(fields))
+    ) {
+      onError(
+        "Complete each optional experience content block in EN, FR, and AR, or leave it empty.",
+      );
       return;
     }
     const existing = experiences.find((item) => item.id === experience.id);
@@ -107,10 +158,20 @@ export function CatalogManager({
       blurb: trimFields(experience.description),
       duration: trimFields(experience.duration),
       price,
+      child_price: childPrice,
+      child_age_min: childAgeMin,
+      child_age_max: childAgeMax,
+      min_guests: minGuests,
       max_guests: maxGuests,
+      start_time: experience.startTime || null,
+      meal_options: mealOptions,
       image_url: uploaded?.url ?? existing?.image_url ?? "",
       image_alt: optionalLocalizedFields(experience.imageAlt),
       included,
+      why_love: whyLoveHasContent ? experience.whyLove.map(trimFields) : [],
+      what_to_expect: optionalLocalizedFields(experience.whatToExpect),
+      what_to_remember: optionalLocalizedFields(experience.whatToRemember),
+      host_languages: optionalLocalizedFields(experience.hostLanguages),
       is_published: experience.published,
       updated_at: new Date().toISOString(),
     };
@@ -223,8 +284,18 @@ export function CatalogManager({
       duration: readLocalized(item.duration),
       imageAlt: readLocalized(item.image_alt),
       price: String(item.price),
+      childPrice: item.child_price === null ? "" : String(item.child_price),
+      childAgeMin: item.child_age_min === null ? "" : String(item.child_age_min),
+      childAgeMax: item.child_age_max === null ? "" : String(item.child_age_max),
+      minGuests: item.min_guests === null ? "" : String(item.min_guests),
       maxGuests: String(item.max_guests),
+      startTime: item.start_time?.slice(0, 5) ?? "",
+      mealOptions: localizedRows(item.meal_options),
       included: includedFields(item.included),
+      whyLove: localizedBullets(item.why_love),
+      whatToExpect: readLocalized(item.what_to_expect),
+      whatToRemember: readLocalized(item.what_to_remember),
+      hostLanguages: readLocalized(item.host_languages),
       published: item.is_published,
     });
     setExperienceImage(null);
@@ -353,9 +424,10 @@ export function CatalogManager({
             value={experience.duration}
             onChange={(duration) => setExperience((current) => ({ ...current, duration }))}
           />
+          <h4 className="pt-3 font-semibold">Pricing and group limits</h4>
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="block text-sm">
-              Price per person ({currency || "set shared currency"})
+              Adult price ({currency || "set shared currency"})
               <input
                 className={`${inputClass} mt-1`}
                 type="number"
@@ -369,11 +441,70 @@ export function CatalogManager({
               />
             </label>
             <label className="block text-sm">
-              Maximum guests
+              Child price (optional)
+              <input
+                className={`${inputClass} mt-1`}
+                type="number"
+                min="0"
+                step="0.01"
+                value={experience.childPrice}
+                onChange={(event) =>
+                  setExperience((current) => ({ ...current, childPrice: event.target.value }))
+                }
+              />
+            </label>
+            <label className="block text-sm">
+              Child age from
               <input
                 className={`${inputClass} mt-1`}
                 type="number"
                 min="1"
+                max="120"
+                disabled={!experience.childPrice}
+                value={experience.childAgeMin}
+                onChange={(event) =>
+                  setExperience((current) => ({ ...current, childAgeMin: event.target.value }))
+                }
+              />
+            </label>
+            <label className="block text-sm">
+              Child age to
+              <input
+                className={`${inputClass} mt-1`}
+                type="number"
+                min="1"
+                max="120"
+                disabled={!experience.childPrice}
+                value={experience.childAgeMax}
+                onChange={(event) =>
+                  setExperience((current) => ({ ...current, childAgeMax: event.target.value }))
+                }
+              />
+            </label>
+            <p className="text-sm text-muted-foreground sm:col-span-2">
+              Infants are free and are not counted toward availability capacity.
+            </p>
+            <label className="block text-sm">
+              Minimum guests (adults and children)
+              <input
+                className={`${inputClass} mt-1`}
+                type="number"
+                min="1"
+                max="25"
+                step="1"
+                required
+                value={experience.minGuests}
+                onChange={(event) =>
+                  setExperience((current) => ({ ...current, minGuests: event.target.value }))
+                }
+              />
+            </label>
+            <label className="block text-sm">
+              Maximum guests (adults and children)
+              <input
+                className={`${inputClass} mt-1`}
+                type="number"
+                min={experience.minGuests || 1}
                 max="25"
                 step="1"
                 required
@@ -383,13 +514,75 @@ export function CatalogManager({
                 }
               />
             </label>
+            <label className="block text-sm">
+              Fixed start time
+              <input
+                className={`${inputClass} mt-1`}
+                type="time"
+                value={experience.startTime}
+                onChange={(event) =>
+                  setExperience((current) => ({ ...current, startTime: event.target.value }))
+                }
+              />
+            </label>
           </div>
+          <h4 className="pt-3 font-semibold">
+            Meal options (optional, one translated option per line)
+          </h4>
+          <LocalizedInputs
+            label="Available meal choices"
+            value={experience.mealOptions}
+            multiline
+            required={false}
+            onChange={(mealOptions) => setExperience((current) => ({ ...current, mealOptions }))}
+          />
           <LocalizedInputs
             label="What's included (one translated item per line)"
             value={experience.included}
             multiline
             required={false}
             onChange={(included) => setExperience((current) => ({ ...current, included }))}
+          />
+          <h4 className="pt-3 font-semibold">Experience page content (optional)</h4>
+          {experience.whyLove.map((bullet, index) => (
+            <LocalizedInputs
+              key={index}
+              label={`Why you'll love this — bullet ${index + 1}`}
+              value={bullet}
+              required={false}
+              onChange={(value) =>
+                setExperience((current) => ({
+                  ...current,
+                  whyLove: current.whyLove.map((item, itemIndex) =>
+                    itemIndex === index ? value : item,
+                  ) as ExperienceDraft["whyLove"],
+                }))
+              }
+            />
+          ))}
+          <LocalizedInputs
+            label="What to expect"
+            value={experience.whatToExpect}
+            multiline
+            required={false}
+            onChange={(whatToExpect) => setExperience((current) => ({ ...current, whatToExpect }))}
+          />
+          <LocalizedInputs
+            label="What to remember"
+            value={experience.whatToRemember}
+            multiline
+            required={false}
+            onChange={(whatToRemember) =>
+              setExperience((current) => ({ ...current, whatToRemember }))
+            }
+          />
+          <LocalizedInputs
+            label="Languages spoken by the host"
+            value={experience.hostLanguages}
+            required={false}
+            onChange={(hostLanguages) =>
+              setExperience((current) => ({ ...current, hostLanguages }))
+            }
           />
           <LocalizedInputs
             label="Image alt text (optional)"
@@ -569,7 +762,7 @@ export function CatalogManager({
                     {review.author} · {review.rating}/5
                   </p>
                   <p className="mt-1 whitespace-pre-wrap text-sm">
-                    {readLocalized(review.quote, review.language)}
+                    {localizedValue(review.quote, review.language)}
                   </p>
                   <p className="mt-1 text-xs text-muted-foreground">
                     {review.origin || "Origin not provided"} · {review.language.toUpperCase()} ·{" "}
@@ -743,6 +936,37 @@ function includedFields(value: Json): LocalizedFields {
       .filter(Boolean)
       .join("\n"),
   };
+}
+
+function localizedRows(value: Json): LocalizedFields {
+  const items = Array.isArray(value) ? value : [];
+  return {
+    en: items
+      .map((item) => localizedValue(item, "en"))
+      .filter(Boolean)
+      .join("\n"),
+    fr: items
+      .map((item) => localizedValue(item, "fr"))
+      .filter(Boolean)
+      .join("\n"),
+    ar: items
+      .map((item) => localizedValue(item, "ar"))
+      .filter(Boolean)
+      .join("\n"),
+  };
+}
+
+function localizedBullets(value: Json): ExperienceDraft["whyLove"] {
+  const items = Array.isArray(value) ? value : [];
+  const getBullet = (index: number) =>
+    items[index] === undefined
+      ? emptyLocalizedFields()
+      : {
+          en: localizedValue(items[index]!, "en"),
+          fr: localizedValue(items[index]!, "fr"),
+          ar: localizedValue(items[index]!, "ar"),
+        };
+  return [getBullet(0), getBullet(1), getBullet(2)];
 }
 
 function localizedValue(value: Json, language: string): string {

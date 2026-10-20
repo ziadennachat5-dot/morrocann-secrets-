@@ -1,5 +1,6 @@
 import { BRAND_NAME } from "./brand";
 import type { Lang } from "./i18n";
+import { formatCancellationTiers, type CancellationTier } from "./booking-pricing";
 
 export type BookingEmailKind =
   | "booking_received"
@@ -13,6 +14,13 @@ export type BookingEmailData = {
   experienceTitle: string;
   date: string;
   guests: number;
+  adults?: number;
+  children?: number;
+  infants?: number;
+  startTime?: string;
+  mealChoice?: string;
+  dietaryNeeds?: string;
+  cancellationTiers?: CancellationTier[];
   bookingReference: string;
   meetingPoint: string;
   whatsappUrl: string;
@@ -304,17 +312,75 @@ export function renderBookingEmail(
   const copy = localizedCopy[language][kind];
   const rtl = language === "ar";
   const meetingPoint = data.meetingPoint.trim() || copy.meetingPointFallback;
+  const detailLabels = {
+    en: {
+      startTime: "Start time",
+      party: "Party breakdown",
+      meal: "Meal choice",
+      dietary: "Allergies and dietary needs",
+      cancellation: "Cancellation terms",
+      adults: ["adult", "adults"],
+      children: ["child", "children"],
+      infants: ["infant", "infants"],
+    },
+    fr: {
+      startTime: "Heure de début",
+      party: "Répartition des invités",
+      meal: "Choix du repas",
+      dietary: "Allergies et besoins alimentaires",
+      cancellation: "Conditions d'annulation",
+      adults: ["adulte", "adultes"],
+      children: ["enfant", "enfants"],
+      infants: ["nourrisson", "nourrissons"],
+    },
+    ar: {
+      startTime: "وقت البدء",
+      party: "تفصيل الضيوف",
+      meal: "اختيار الوجبة",
+      dietary: "الحساسية والاحتياجات الغذائية",
+      cancellation: "شروط الإلغاء",
+      adults: ["بالغ", "بالغون"],
+      children: ["طفل", "أطفال"],
+      infants: ["رضيع", "رضّع"],
+    },
+  }[language];
+  const countLabel = (count: number, labels: string[]) => `${count} ${labels[count === 1 ? 0 : 1]}`;
   const emailRows: [string, string][] = [
     [copy.experience, data.experienceTitle],
     [copy.date, data.date],
     [copy.guests, String(data.guests)],
+    ...(data.adults !== undefined && data.children !== undefined && data.infants !== undefined
+      ? [
+          [
+            detailLabels.party,
+            [
+              countLabel(data.adults, detailLabels.adults),
+              countLabel(data.children, detailLabels.children),
+              countLabel(data.infants, detailLabels.infants),
+            ].join(" · "),
+          ] as [string, string],
+        ]
+      : []),
+    ...(data.startTime ? [[detailLabels.startTime, data.startTime] as [string, string]] : []),
+    ...(data.mealChoice ? [[detailLabels.meal, data.mealChoice] as [string, string]] : []),
+    ...(data.dietaryNeeds ? [[detailLabels.dietary, data.dietaryNeeds] as [string, string]] : []),
     [copy.reference, data.bookingReference],
-    [copy.meetingPoint, meetingPoint],
+    ...(kind === "booking_confirmed"
+      ? ([[copy.meetingPoint, meetingPoint]] as [string, string][])
+      : []),
+    ...(data.cancellationTiers?.length
+      ? [
+          [
+            detailLabels.cancellation,
+            formatCancellationTiers(data.cancellationTiers, language).join("\n"),
+          ] as [string, string],
+        ]
+      : []),
   ];
   const rowsHtml = emailRows
     .map(
       ([label, value]) =>
-        `<tr><th align="start" style="padding:10px;border-bottom:1px solid #eadfd2;color:#6b6259">${escapeHtml(label)}</th><td style="padding:10px;border-bottom:1px solid #eadfd2">${escapeHtml(value)}</td></tr>`,
+        `<tr><th align="start" style="padding:10px;border-bottom:1px solid #eadfd2;color:#6b6259">${escapeHtml(label)}</th><td style="padding:10px;border-bottom:1px solid #eadfd2;white-space:pre-line">${escapeHtml(value)}</td></tr>`,
     )
     .join("");
   const reviewButton =

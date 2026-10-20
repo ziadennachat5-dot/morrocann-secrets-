@@ -25,10 +25,19 @@ const experienceSchema = z.object({
   blurb: localizedTextSchema,
   duration: localizedTextSchema,
   price: z.number().nonnegative(),
+  child_price: z.number().nonnegative().nullable(),
+  child_age_min: z.number().int().nullable(),
+  child_age_max: z.number().int().nullable(),
+  min_guests: z.number().int().positive().nullable(),
   max_guests: z.number().int().positive(),
+  start_time: z.string().nullable(),
   image_url: z.string(),
   image_alt: localizedTextSchema.nullable(),
   included: z.array(localizedTextSchema),
+  why_love: z.array(localizedTextSchema),
+  what_to_expect: localizedTextSchema.nullable(),
+  what_to_remember: localizedTextSchema.nullable(),
+  host_languages: localizedTextSchema.nullable(),
 });
 const familySchema = z.object({
   id: z.string(),
@@ -50,10 +59,12 @@ function configuredCurrency(): string | null {
 
 export const getPublishedExperiences = createServerFn({ method: "GET" }).handler(async () => {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const [result, currencyResult] = await Promise.all([
+  const [result, currencyResult, meetingAreaResult] = await Promise.all([
     supabaseAdmin
       .from("experiences")
-      .select("id,title,blurb,duration,price,max_guests,image_url,image_alt,included")
+      .select(
+        "id,title,blurb,duration,price,child_price,child_age_min,child_age_max,min_guests,max_guests,start_time,image_url,image_alt,included,why_love,what_to_expect,what_to_remember,host_languages",
+      )
       .eq("is_published", true)
       .order("id"),
     supabaseAdmin
@@ -62,9 +73,16 @@ export const getPublishedExperiences = createServerFn({ method: "GET" }).handler
       .eq("setting_key", "booking.currency")
       .eq("is_public", true)
       .maybeSingle(),
+    supabaseAdmin
+      .from("site_settings")
+      .select("value")
+      .eq("setting_key", "trust.meeting_area")
+      .eq("is_public", true)
+      .maybeSingle(),
   ]);
   if (result.error) throw new Error("Unable to load published experiences.");
   if (currencyResult.error) throw new Error("Unable to load booking currency.");
+  if (meetingAreaResult.error) throw new Error("Unable to load the public meeting area.");
   const configuredSettingCurrency =
     typeof currencyResult.data?.value === "string" ? currencyResult.data.value : null;
   const currency =
@@ -74,6 +92,9 @@ export const getPublishedExperiences = createServerFn({ method: "GET" }).handler
   return {
     experiences: z.array(experienceSchema).parse(result.data),
     currency,
+    meetingArea: meetingAreaResult.data
+      ? localizedTextSchema.parse(meetingAreaResult.data.value)
+      : null,
   };
 });
 

@@ -14,6 +14,13 @@ describe("admin catalog drafts", () => {
     expect(experience.published).toBe(false);
     expect(experience.title).toEqual({ en: "", fr: "", ar: "" });
     expect(experience.included).toEqual({ en: "", fr: "", ar: "" });
+    expect(experience.childPrice).toBe("");
+    expect(experience.mealOptions).toEqual({ en: "", fr: "", ar: "" });
+    expect(experience.whyLove).toEqual([
+      { en: "", fr: "", ar: "" },
+      { en: "", fr: "", ar: "" },
+      { en: "", fr: "", ar: "" },
+    ]);
     expect(family.published).toBe(false);
     expect(family.story).toEqual({ en: "", fr: "", ar: "" });
   });
