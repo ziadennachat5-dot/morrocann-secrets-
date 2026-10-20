@@ -12,7 +12,7 @@ type Availability = Tables<"availability">;
 type Inquiry = Tables<"inquiries">;
 type SiteSetting = Tables<"site_settings">;
 type Review = Tables<"reviews">;
-type AdminTab = "overview" | "bookings" | "calendar" | "content" | "inquiries";
+type AdminTab = "overview" | "bookings" | "calendar" | "content" | "inquiries" | "subscribers";
 type LocalizedFields = { en: string; fr: string; ar: string };
 
 const inputClass =
@@ -23,9 +23,13 @@ const tabs: { id: AdminTab; label: string }[] = [
   { id: "calendar", label: "Availability" },
   { id: "content", label: "Site content & settings" },
   { id: "inquiries", label: "Inquiries" },
+  { id: "subscribers", label: "Newsletter subscribers" },
 ];
 
 export const Route = createFileRoute("/admin")({
+  head: () => ({
+    meta: [{ name: "robots", content: "noindex,nofollow" }],
+  }),
   component: AdminPage,
 });
 
@@ -45,6 +49,7 @@ function AdminPage() {
   const [faqs, setFaqs] = useState<Tables<"faqs">[]>([]);
   const [posts, setPosts] = useState<Tables<"posts">[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [subscribers, setSubscribers] = useState<Tables<"subscribers">[]>([]);
   const [faqId, setFaqId] = useState("");
   const [faqCategory, setFaqCategory] = useState<LocalizedFields>({ en: "", fr: "", ar: "" });
   const [faqQuestion, setFaqQuestion] = useState<LocalizedFields>({ en: "", fr: "", ar: "" });
@@ -90,6 +95,7 @@ function AdminPage() {
       faqResult,
       postResult,
       reviewResult,
+      subscriberResult,
     ] = await Promise.all([
       supabase.from("bookings").select("*").order("date", { ascending: true }),
       supabase.from("experiences").select("*").order("id"),
@@ -99,6 +105,7 @@ function AdminPage() {
       supabase.from("faqs").select("*").order("sort_order"),
       supabase.from("posts").select("*").order("created_at", { ascending: false }),
       supabase.from("reviews").select("*").order("created_at", { ascending: false }),
+      supabase.from("subscribers").select("*").order("created_at", { ascending: false }),
     ]);
     const failure =
       bookingResult.error ||
@@ -108,7 +115,8 @@ function AdminPage() {
       settingsResult.error ||
       faqResult.error ||
       postResult.error ||
-      reviewResult.error;
+      reviewResult.error ||
+      subscriberResult.error;
     if (failure) {
       setError(`Could not load admin data: ${failure.message}`);
       setBusy(false);
@@ -122,6 +130,7 @@ function AdminPage() {
     setFaqs(faqResult.data ?? []);
     setPosts(postResult.data ?? []);
     setReviews(reviewResult.data ?? []);
+    setSubscribers(subscriberResult.data ?? []);
     setSelectedBookingId((current) => current || bookingResult.data?.[0]?.id || "");
     setBusy(false);
   }, []);
@@ -1287,6 +1296,43 @@ function AdminPage() {
                 </li>
               ))}
             </ul>
+          )}
+        </section>
+      )}
+      {tab === "subscribers" && (
+        <section className="mt-6">
+          <h2 className="text-2xl font-semibold">Newsletter subscribers</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Only confirmed addresses have opted in. Pending email requests are not subscribed.
+          </p>
+          {subscribers.length === 0 ? (
+            <p className="mt-4 text-muted-foreground">
+              No subscription requests have been received.
+            </p>
+          ) : (
+            <div className="mt-4 overflow-x-auto rounded-lg border">
+              <table className="w-full min-w-[620px] text-left text-sm">
+                <caption className="sr-only">Newsletter subscription status</caption>
+                <thead>
+                  <tr className="border-b bg-muted/40">
+                    <th className="p-3">Email</th>
+                    <th className="p-3">Language</th>
+                    <th className="p-3">Status</th>
+                    <th className="p-3">Opt-in date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {subscribers.map((subscriber) => (
+                    <tr key={subscriber.id} className="border-b">
+                      <td className="p-3">{subscriber.email}</td>
+                      <td className="p-3">{subscriber.language.toUpperCase()}</td>
+                      <td className="p-3">{subscriber.status}</td>
+                      <td className="p-3">{new Date(subscriber.consented_at).toLocaleString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </section>
       )}

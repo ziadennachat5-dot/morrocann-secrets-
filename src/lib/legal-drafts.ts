@@ -56,6 +56,18 @@ export const legalDrafts: Record<"privacy" | "terms" | "cancellation", LegalDraf
           ar: "قبل الإطلاق، يجب على المشغل إضافة وسيلة تواصل للخصوصية ومراجعتها بانتظام، وتحديد كيفية التعامل مع طلبات الوصول إلى المعلومات أو تصحيحها أو حذفها وفق القانون المعمول به.",
         },
       },
+      {
+        heading: {
+          en: "Browser storage, analytics, and newsletter",
+          fr: "Stockage dans le navigateur, statistiques et lettre d'information",
+          ar: "التخزين في المتصفح والإحصاءات والنشرة البريدية",
+        },
+        body: {
+          en: "The site stores your selected language and cookie-consent choice in browser local storage. If configured, Plausible analytics is loaded only after you accept optional analytics; declining keeps it disabled. Newsletter addresses remain pending until the recipient confirms by email. Before launch, the operator must confirm provider locations, retention periods, and a monitored way to withdraw newsletter consent.",
+          fr: "Le site mémorise la langue choisie et le choix de consentement aux cookies dans le stockage local du navigateur. Si elle est configurée, la mesure d'audience Plausible ne se charge qu'après votre accord ; un refus la laisse désactivée. Les adresses de la lettre d'information restent en attente jusqu'à confirmation par e-mail. Avant le lancement, l'exploitant doit confirmer l'emplacement des prestataires, les durées de conservation et un moyen suivi de retirer son consentement.",
+          ar: "يحفظ الموقع اللغة التي اخترتها وخيار الموافقة على ملفات الارتباط في التخزين المحلي للمتصفح. إذا تم إعداد إحصاءات Plausible، فلن يتم تحميلها إلا بعد موافقتك على الإحصاءات الاختيارية؛ ويؤدي الرفض إلى إبقائها متوقفة. تظل عناوين النشرة البريدية معلقة حتى يؤكدها المستلم عبر البريد الإلكتروني. يجب على المشغل قبل الإطلاق تأكيد مواقع مزودي الخدمة ومدد الاحتفاظ ووسيلة متابعة لسحب الموافقة على النشرة.",
+        },
+      },
     ],
   },
   terms: {

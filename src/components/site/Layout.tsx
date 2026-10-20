@@ -1,10 +1,13 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { Menu, X, MessageCircle, Mail, Instagram } from "lucide-react";
 import { useI18n, LANGS } from "@/lib/i18n";
 import { BRAND_NAME } from "@/lib/brand";
 import { HeaderLogo, FooterLogo, StarDivider } from "./Brand";
 import { getPublicContactLinks } from "@/lib/public-contact.functions";
+import { CookieConsent, CookieSettingsButton } from "./CookieConsent";
+import { Button } from "@/components/ui/button";
+import { requestNewsletterSubscription } from "@/lib/newsletter.functions";
 
 type PublicContactLinks = Awaited<ReturnType<typeof getPublicContactLinks>>;
 
@@ -133,7 +136,7 @@ function Footer() {
   return (
     <footer className="bg-ink text-ink-foreground">
       <div className="zellige-bg">
-        <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 md:grid-cols-3">
+        <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 md:grid-cols-4">
           <div>
             <div className="flex items-center">
               <FooterLogo />
@@ -223,7 +226,11 @@ function Footer() {
                 </a>
               </li>
             )}
+            <li>
+              <CookieSettingsButton />
+            </li>
           </ul>
+          <NewsletterSignup />
         </div>
         <StarDivider />
         <p className="py-6 text-center text-xs text-ink-foreground/60">
@@ -231,6 +238,65 @@ function Footer() {
         </p>
       </div>
     </footer>
+  );
+}
+
+function NewsletterSignup() {
+  const { t, lang } = useI18n();
+  const [email, setEmail] = useState("");
+  const [honeypot, setHoneypot] = useState("");
+  const [status, setStatus] = useState<"idle" | "submitting" | "submitted" | "error">("idle");
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setStatus("submitting");
+    try {
+      await requestNewsletterSubscription({ data: { email, language: lang, honeypot } });
+      setStatus("submitted");
+      setEmail("");
+    } catch (error) {
+      console.error("Newsletter subscription request failed:", error);
+      setStatus("error");
+    }
+  }
+
+  return (
+    <section aria-labelledby="newsletter-heading">
+      <h2 id="newsletter-heading" className="font-display text-2xl text-gold">
+        {t.consent.newsletterTitle}
+      </h2>
+      <p className="mt-2 text-sm text-ink-foreground/75">{t.consent.newsletterBody}</p>
+      <form className="mt-4 space-y-3" onSubmit={(event) => void submit(event)}>
+        <label className="block text-sm">
+          {t.consent.email}
+          <input
+            className="mt-1 w-full rounded-md border border-ink-foreground/30 bg-background px-3 py-2 text-foreground"
+            type="email"
+            autoComplete="email"
+            maxLength={255}
+            required
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+          />
+        </label>
+        <label aria-hidden="true" className="absolute -left-[10000px] h-px w-px overflow-hidden">
+          Leave this field empty
+          <input
+            tabIndex={-1}
+            autoComplete="off"
+            value={honeypot}
+            onChange={(event) => setHoneypot(event.target.value)}
+          />
+        </label>
+        <Button type="submit" variant="secondary" size="sm" disabled={status === "submitting"}>
+          {status === "submitting" ? "…" : t.consent.subscribe}
+        </Button>
+        <p role="status" aria-live="polite" className="text-sm">
+          {status === "submitted" && t.consent.subscriptionPending}
+          {status === "error" && t.consent.subscriptionError}
+        </p>
+      </form>
+    </section>
   );
 }
 
@@ -281,6 +347,7 @@ export function SiteLayout({ children }: { children: ReactNode }) {
       <Footer />
       <WhatsAppFab />
       <MobileBookingBar />
+      <CookieConsent />
     </div>
   );
 }

@@ -2,6 +2,75 @@ import { BRAND_NAME } from "./brand";
 
 const en = {
   copyLoadError: "Published page text could not be loaded.",
+  seo: {
+    home: {
+      title: "Moroccan Secrets Riad — Dine with a Moroccan family in Marrakesh",
+      description:
+        "Share a home-cooked Moroccan meal and cultural evening with a host family in Marrakesh.",
+    },
+    experiences: {
+      title: "Moroccan home dining experiences in Marrakesh",
+      description: "Explore the dining and cooking experiences currently published by our hosts.",
+    },
+    families: {
+      title: "Meet our Moroccan host families",
+      description: "Meet the host families and profiles published by Moroccan Secrets Riad.",
+    },
+    booking: {
+      title: "Request a booking — Moroccan Secrets Riad",
+      description:
+        "Choose a published home dining experience and an available date to request a booking.",
+    },
+    faq: {
+      title: "Frequently asked questions — Moroccan Secrets Riad",
+      description: "Answers to questions published by the host about the experiences and visit.",
+    },
+    blog: {
+      title: "Guides to Moroccan home dining",
+      description: "Read published guides about Moroccan home dining and food.",
+    },
+    privateEvents: {
+      title: "Private events in Marrakesh — Moroccan Secrets Riad",
+      description: "Send an inquiry about a private group event or dinner.",
+    },
+    gift: {
+      title: "Gift voucher inquiry — Moroccan Secrets Riad",
+      description:
+        "Ask about a Moroccan Secrets Riad gift voucher. Vouchers are currently inquiry-only.",
+    },
+    partners: {
+      title: "Partner with Moroccan Secrets Riad",
+      description: "Hotels, riads, and guides can send a partnership inquiry.",
+    },
+    privacy: {
+      title: "Privacy notice draft — Moroccan Secrets Riad",
+      description: "Draft privacy information for Moroccan Secrets Riad; review before launch.",
+    },
+    terms: {
+      title: "Terms draft — Moroccan Secrets Riad",
+      description: "Draft terms for Moroccan Secrets Riad; review before launch.",
+    },
+    cancellationPolicy: {
+      title: "Cancellation policy — Moroccan Secrets Riad",
+      description: "Read the current booking cancellation policy.",
+    },
+  },
+  consent: {
+    title: "Your privacy choices",
+    body: "Optional privacy-friendly analytics stay off unless you accept. Essential site storage is used to remember your language and this choice.",
+    accept: "Accept analytics",
+    decline: "Decline",
+    settings: "Cookie preferences",
+    newsletterTitle: "Occasional notes from Moroccan Secrets",
+    newsletterBody:
+      "Enter your email to receive occasional updates. Confirm your subscription from the email we send.",
+    email: "Email address",
+    subscribe: "Request subscription",
+    subscriptionPending: "If this address can be subscribed, we will send a confirmation email.",
+    subscriptionConfirmed: "Your email subscription is confirmed.",
+    subscriptionInvalid: "This confirmation link is invalid or has expired.",
+    subscriptionError: "We could not process your request. Please try again later.",
+  },
   nav: {
     home: "Home",
     experiences: "Experiences",
@@ -284,6 +353,81 @@ export type Dict = typeof en;
 
 const fr: Dict = {
   copyLoadError: "Impossible de charger le texte publié du site.",
+  seo: {
+    home: {
+      title: "Moroccan Secrets Riad — Dîner chez une famille marocaine à Marrakech",
+      description:
+        "Partagez un repas marocain fait maison et une soirée culturelle avec une famille d'accueil à Marrakech.",
+    },
+    experiences: {
+      title: "Expériences culinaires chez l'habitant à Marrakech",
+      description:
+        "Découvrez les expériences de cuisine et de repas actuellement publiées par nos hôtes.",
+    },
+    families: {
+      title: "Rencontrez nos familles d'accueil marocaines",
+      description:
+        "Découvrez les familles et les profils d'hôtes publiés par Moroccan Secrets Riad.",
+    },
+    booking: {
+      title: "Demander une réservation — Moroccan Secrets Riad",
+      description:
+        "Choisissez une expérience publiée et une date disponible pour demander une réservation.",
+    },
+    faq: {
+      title: "Questions fréquentes — Moroccan Secrets Riad",
+      description: "Réponses publiées par l'hôte au sujet des expériences et de la visite.",
+    },
+    blog: {
+      title: "Guides sur les repas marocains chez l'habitant",
+      description:
+        "Lisez les guides publiés sur les repas et la cuisine marocains chez l'habitant.",
+    },
+    privateEvents: {
+      title: "Événements privés à Marrakech — Moroccan Secrets Riad",
+      description: "Envoyez une demande pour un événement privé en groupe ou un dîner.",
+    },
+    gift: {
+      title: "Demande de bon cadeau — Moroccan Secrets Riad",
+      description:
+        "Renseignez-vous sur un bon cadeau Moroccan Secrets Riad. Les bons sont actuellement sur demande.",
+    },
+    partners: {
+      title: "Devenir partenaire de Moroccan Secrets Riad",
+      description: "Les hôtels, riads et guides peuvent envoyer une demande de partenariat.",
+    },
+    privacy: {
+      title: "Projet de notice de confidentialité — Moroccan Secrets Riad",
+      description:
+        "Projet d'informations sur la confidentialité ; à faire vérifier avant lancement.",
+    },
+    terms: {
+      title: "Projet de conditions — Moroccan Secrets Riad",
+      description:
+        "Projet de conditions pour Moroccan Secrets Riad ; à faire vérifier avant lancement.",
+    },
+    cancellationPolicy: {
+      title: "Politique d'annulation — Moroccan Secrets Riad",
+      description: "Consultez la politique d'annulation actuelle des réservations.",
+    },
+  },
+  consent: {
+    title: "Vos choix de confidentialité",
+    body: "Les statistiques facultatives respectueuses de la vie privée restent désactivées sans votre accord. Le stockage essentiel mémorise votre langue et ce choix.",
+    accept: "Accepter les statistiques",
+    decline: "Refuser",
+    settings: "Préférences de cookies",
+    newsletterTitle: "Quelques nouvelles de Moroccan Secrets",
+    newsletterBody:
+      "Indiquez votre adresse e-mail pour recevoir occasionnellement des nouvelles. Confirmez votre inscription depuis l'e-mail envoyé.",
+    email: "Adresse e-mail",
+    subscribe: "Demander l'inscription",
+    subscriptionPending:
+      "Si cette adresse peut être inscrite, nous enverrons un e-mail de confirmation.",
+    subscriptionConfirmed: "Votre inscription par e-mail est confirmée.",
+    subscriptionInvalid: "Ce lien de confirmation est invalide ou a expiré.",
+    subscriptionError: "Impossible de traiter votre demande. Veuillez réessayer plus tard.",
+  },
   nav: {
     home: "Accueil",
     experiences: "Expériences",
@@ -571,6 +715,72 @@ const fr: Dict = {
 
 const ar: Dict = {
   copyLoadError: "تعذر تحميل النص المنشور للموقع.",
+  seo: {
+    home: {
+      title: "أسرار مغربية رياض — عشاء مع عائلة مغربية في مراكش",
+      description: "شارك وجبة مغربية منزلية وأمسية ثقافية مع عائلة مضيفة في مراكش.",
+    },
+    experiences: {
+      title: "تجارب تناول الطعام المنزلي في مراكش",
+      description: "اكتشف تجارب الطعام والطهي المنشورة حالياً من قبل مضيفينا.",
+    },
+    families: {
+      title: "تعرّف على عائلاتنا المغربية المضيفة",
+      description: "تعرّف على العائلات والملفات المنشورة من قبل أسرار مغربية رياض.",
+    },
+    booking: {
+      title: "طلب حجز — أسرار مغربية رياض",
+      description: "اختر تجربة منشورة وموعداً متاحاً لإرسال طلب الحجز.",
+    },
+    faq: {
+      title: "الأسئلة الشائعة — أسرار مغربية رياض",
+      description: "إجابات نشرها المضيف حول التجارب والزيارة.",
+    },
+    blog: {
+      title: "أدلة تناول الطعام المغربي في المنازل",
+      description: "اقرأ الأدلة المنشورة عن الطعام والطهي المغربي المنزلي.",
+    },
+    privateEvents: {
+      title: "فعاليات خاصة في مراكش — أسرار مغربية رياض",
+      description: "أرسل استفساراً عن فعالية خاصة لمجموعة أو عشاء.",
+    },
+    gift: {
+      title: "استفسار عن قسيمة هدية — أسرار مغربية رياض",
+      description: "استفسر عن قسيمة هدية. القسائم متاحة حالياً عبر الاستفسار فقط.",
+    },
+    partners: {
+      title: "كن شريكاً لأسرار مغربية رياض",
+      description: "يمكن للفنادق والرياض والمرشدين إرسال استفسار للشراكة.",
+    },
+    privacy: {
+      title: "مسودة إشعار الخصوصية — أسرار مغربية رياض",
+      description: "مسودة معلومات الخصوصية؛ يجب مراجعتها قبل الإطلاق.",
+    },
+    terms: {
+      title: "مسودة الشروط — أسرار مغربية رياض",
+      description: "مسودة شروط أسرار مغربية رياض؛ يجب مراجعتها قبل الإطلاق.",
+    },
+    cancellationPolicy: {
+      title: "سياسة الإلغاء — أسرار مغربية رياض",
+      description: "اطلع على سياسة إلغاء الحجز الحالية.",
+    },
+  },
+  consent: {
+    title: "خيارات الخصوصية",
+    body: "تبقى الإحصاءات الاختيارية التي تحترم الخصوصية متوقفة حتى توافق عليها. يستخدم التخزين الأساسي لحفظ لغتك واختيارك.",
+    accept: "الموافقة على الإحصاءات",
+    decline: "رفض",
+    settings: "تفضيلات ملفات الارتباط",
+    newsletterTitle: "رسائل من أسرار مغربية",
+    newsletterBody:
+      "أدخل بريدك الإلكتروني لتلقي تحديثات من حين لآخر. أكد اشتراكك من الرسالة التي سنرسلها.",
+    email: "البريد الإلكتروني",
+    subscribe: "طلب الاشتراك",
+    subscriptionPending: "إذا أمكن الاشتراك بهذا العنوان، فسنرسل رسالة تأكيد.",
+    subscriptionConfirmed: "تم تأكيد اشتراك بريدك الإلكتروني.",
+    subscriptionInvalid: "رابط التأكيد غير صالح أو انتهت صلاحيته.",
+    subscriptionError: "تعذر إتمام طلبك. يرجى المحاولة لاحقاً.",
+  },
   nav: {
     home: "الرئيسية",
     experiences: "التجارب",

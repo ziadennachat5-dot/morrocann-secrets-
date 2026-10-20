@@ -535,6 +535,45 @@ export type Database = {
         };
         Relationships: [];
       };
+      subscribers: {
+        Row: {
+          id: string;
+          email: string;
+          language: "en" | "fr" | "ar";
+          status: "pending" | "confirmed" | "unsubscribed";
+          confirmation_token_hash: string | null;
+          confirmation_expires_at: string | null;
+          consented_at: string;
+          confirmed_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          email: string;
+          language: "en" | "fr" | "ar";
+          status?: "pending" | "confirmed" | "unsubscribed";
+          confirmation_token_hash?: string | null;
+          confirmation_expires_at?: string | null;
+          consented_at?: string;
+          confirmed_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          email?: string;
+          language?: "en" | "fr" | "ar";
+          status?: "pending" | "confirmed" | "unsubscribed";
+          confirmation_token_hash?: string | null;
+          confirmation_expires_at?: string | null;
+          consented_at?: string;
+          confirmed_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;

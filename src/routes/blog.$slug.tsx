@@ -1,4 +1,5 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { SectionHead } from "@/components/site/Brand";
 import { useI18n } from "@/lib/i18n";
 import { getPublishedPost } from "@/lib/public-content.functions";
@@ -34,6 +35,24 @@ function BlogArticlePage() {
     author: { "@type": "Organization", name: BRAND_NAME },
     mainEntityOfPage: articleUrl,
   };
+
+  useEffect(() => {
+    document.title = `${post.title[lang]} — ${BRAND_NAME}`;
+    const pageUrl = new URL(window.location.href);
+    pageUrl.searchParams.set("lang", lang);
+    document
+      .querySelector<HTMLLinkElement>('link[rel="canonical"]')
+      ?.setAttribute("href", pageUrl.toString());
+    document
+      .querySelector<HTMLMetaElement>('meta[name="description"]')
+      ?.setAttribute("content", post.summary[lang]);
+    document
+      .querySelector<HTMLMetaElement>('meta[property="og:title"]')
+      ?.setAttribute("content", `${post.title[lang]} — ${BRAND_NAME}`);
+    document
+      .querySelector<HTMLMetaElement>('meta[property="og:description"]')
+      ?.setAttribute("content", post.summary[lang]);
+  }, [lang, post]);
 
   return (
     <article className="mx-auto max-w-3xl px-5 py-16">

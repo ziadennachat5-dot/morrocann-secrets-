@@ -5,20 +5,32 @@ import { StarDivider } from "@/components/site/Brand";
 import { TrustSections } from "@/components/site/TrustSections";
 import hero from "@/assets/hero.jpg";
 import { BRAND_NAME, TAGLINE, BRAND_DESCRIPTION } from "@/lib/brand";
+import { getSiteUrl } from "@/lib/seo";
 
 const jsonLd = {
   "@context": "https://schema.org",
-  "@type": "Organization",
+  "@type": "LocalBusiness",
   name: BRAND_NAME,
   description: BRAND_DESCRIPTION,
+  url: getSiteUrl(),
+  image: `${getSiteUrl()}/og-image.png`,
   availableLanguage: ["English", "French", "Arabic"],
 };
 
 export const Route = createFileRoute("/")({
-  head: () => ({
-    ...pageHead("/", `${BRAND_NAME} — ${TAGLINE}`, BRAND_DESCRIPTION),
-    scripts: [{ type: "application/ld+json", children: JSON.stringify(jsonLd) }],
-  }),
+  head: () => {
+    const metadata = pageHead("/", `${BRAND_NAME} — ${TAGLINE}`, BRAND_DESCRIPTION);
+    return {
+      ...metadata,
+      scripts: [
+        ...(metadata.scripts ?? []),
+        {
+          type: "application/ld+json",
+          children: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+        },
+      ],
+    };
+  },
   component: Home,
 });
 

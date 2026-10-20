@@ -93,6 +93,10 @@ Sign in at `/admin` with that Auth account. The console checks `public.is_admin(
 
 Apply the booking email outbox migration. Booking receipts, status changes, 48-hour reminders, and post-visit review requests are queued transactionally and processed by `POST /api/cron/emails` with `Authorization: Bearer $CRON_SECRET`. Schedule that endpoint with a trusted cron service; do not expose the secret in client code. When `RESEND_API_KEY` is empty, the worker records a log-only delivery state and logs a masked recipient and subject without storing/rendering message content in logs. To send reviews with signed booking-only links, configure `REVIEW_TOKEN_SECRET` with at least 32 random characters. Guest reviews are stored unapproved and only appear after admin approval; each booking can submit at most one review.
 
+## SEO, Analytics, and Newsletter
+
+The sitemap is served dynamically from `/sitemap.xml` and includes public pages and published articles in English, French, and Arabic. Language versions use `?lang=` URLs; canonical and alternate-language links are emitted with page metadata. Open Graph photos are selected by page, and structured data includes LocalBusiness, TouristTrip, BreadcrumbList, FAQPage, and Article entries. Newsletter requests are stored as pending in `public.subscribers`; only a valid confirmation link activates an address. Confirmation emails use Resend, and requests remain pending when delivery is log-only. Plausible analytics are disabled unless a visitor accepts optional analytics in the consent banner. Configure both `VITE_PLAUSIBLE_DOMAIN` and `VITE_PLAUSIBLE_SCRIPT_URL`; the configured HTTPS script is not loaded before consent. No third-party analytics runs on newsletter forms.
+
 ## Environment Variables
 
 See `.env.example` for all configurable environment variables, including:
@@ -108,6 +112,8 @@ See `.env.example` for all configurable environment variables, including:
 - `TRIPADVISOR_REVIEWS_URL`: Optional HTTPS link to the business review profile
 - `GOOGLE_BUSINESS_REVIEWS_URL`: Optional HTTPS link to the Google Business review profile
 - `REVIEW_TOKEN_SECRET`: Required for signed guest review links; at least 32 random characters
+- `VITE_PLAUSIBLE_DOMAIN`: Optional Plausible site domain, loaded only after analytics consent
+- `VITE_PLAUSIBLE_SCRIPT_URL`: Optional HTTPS Plausible-compatible script URL, loaded only after consent
 
 ## License
 

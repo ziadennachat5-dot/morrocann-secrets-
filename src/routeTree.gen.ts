@@ -22,8 +22,10 @@ import { Route as PartnersRouteImport } from './routes/partners'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PrivateEventsRouteImport } from './routes/private-events'
 import { Route as ReviewRouteImport } from './routes/review'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
+import { Route as NewsletterConfirmRouteImport } from './routes/newsletter.confirm'
 import { Route as ApiCronEmailsRouteImport } from './routes/api/cron/emails'
 
 const IndexRoute = IndexRouteImport.update({
@@ -91,6 +93,11 @@ const ReviewRoute = ReviewRouteImport.update({
   path: '/review',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
@@ -100,6 +107,11 @@ const BlogSlugRoute = BlogSlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
   getParentRoute: () => BlogRoute,
+} as any)
+const NewsletterConfirmRoute = NewsletterConfirmRouteImport.update({
+  id: '/newsletter/confirm',
+  path: '/newsletter/confirm',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiCronEmailsRoute = ApiCronEmailsRouteImport.update({
   id: '/api/cron/emails',
@@ -121,8 +133,10 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/private-events': typeof PrivateEventsRoute
   '/review': typeof ReviewRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/newsletter/confirm': typeof NewsletterConfirmRoute
   '/api/cron/emails': typeof ApiCronEmailsRoute
 }
 export interface FileRoutesByTo {
@@ -139,8 +153,10 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/private-events': typeof PrivateEventsRoute
   '/review': typeof ReviewRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/newsletter/confirm': typeof NewsletterConfirmRoute
   '/api/cron/emails': typeof ApiCronEmailsRoute
 }
 export interface FileRoutesById {
@@ -158,8 +174,10 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/private-events': typeof PrivateEventsRoute
   '/review': typeof ReviewRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/newsletter/confirm': typeof NewsletterConfirmRoute
   '/api/cron/emails': typeof ApiCronEmailsRoute
 }
 export interface FileRouteTypes {
@@ -178,8 +196,10 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/private-events'
     | '/review'
+    | '/sitemap.xml'
     | '/terms'
     | '/blog/$slug'
+    | '/newsletter/confirm'
     | '/api/cron/emails'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -196,8 +216,10 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/private-events'
     | '/review'
+    | '/sitemap.xml'
     | '/terms'
     | '/blog/$slug'
+    | '/newsletter/confirm'
     | '/api/cron/emails'
   id:
     | '__root__'
@@ -214,8 +236,10 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/private-events'
     | '/review'
+    | '/sitemap.xml'
     | '/terms'
     | '/blog/$slug'
+    | '/newsletter/confirm'
     | '/api/cron/emails'
   fileRoutesById: FileRoutesById
 }
@@ -233,7 +257,9 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   PrivateEventsRoute: typeof PrivateEventsRoute
   ReviewRoute: typeof ReviewRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
+  NewsletterConfirmRoute: typeof NewsletterConfirmRoute
   ApiCronEmailsRoute: typeof ApiCronEmailsRoute
 }
 
@@ -330,6 +356,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReviewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/terms': {
       id: '/terms'
       path: '/terms'
@@ -343,6 +376,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/blog/$slug'
       preLoaderRoute: typeof BlogSlugRouteImport
       parentRoute: typeof BlogRoute
+    }
+    '/newsletter/confirm': {
+      id: '/newsletter/confirm'
+      path: '/newsletter/confirm'
+      fullPath: '/newsletter/confirm'
+      preLoaderRoute: typeof NewsletterConfirmRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/cron/emails': {
       id: '/api/cron/emails'
@@ -378,7 +418,9 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   PrivateEventsRoute: PrivateEventsRoute,
   ReviewRoute: ReviewRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
+  NewsletterConfirmRoute: NewsletterConfirmRoute,
   ApiCronEmailsRoute: ApiCronEmailsRoute,
 }
 export const routeTree = rootRouteImport

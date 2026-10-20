@@ -8,12 +8,38 @@ import { getPublishedExperiences } from "@/lib/public-content.functions";
 
 export const Route = createFileRoute("/experiences")({
   loader: () => getPublishedExperiences(),
-  head: () =>
-    pageHead(
+  head: () => {
+    const metadata = pageHead(
       "/experiences",
       `Experiences — ${BRAND_NAME}`,
       "Experiences and details published by the host.",
-    ),
+    );
+    const trip = {
+      "@context": "https://schema.org",
+      "@type": "TouristTrip",
+      name: "Moroccan home dining experiences",
+      description: "Experiences and details published by the host.",
+      url: `${metadata.links[0]?.href ?? ""}`,
+      provider: {
+        "@type": "LocalBusiness",
+        name: BRAND_NAME,
+      },
+      touristDestination: {
+        "@type": "TouristDestination",
+        name: "Marrakesh",
+      },
+    };
+    return {
+      ...metadata,
+      scripts: [
+        ...(metadata.scripts ?? []),
+        {
+          type: "application/ld+json",
+          children: JSON.stringify(trip).replace(/</g, "\\u003c"),
+        },
+      ],
+    };
+  },
   component: ExperiencesPage,
 });
 
