@@ -97,6 +97,10 @@ Apply the booking email outbox migration. Booking receipts, status changes, 48-h
 
 The sitemap is served dynamically from `/sitemap.xml` and includes public pages and published articles in English, French, and Arabic. Language versions use `?lang=` URLs; canonical and alternate-language links are emitted with page metadata. Open Graph photos are selected by page, and structured data includes LocalBusiness, TouristTrip, BreadcrumbList, FAQPage, and Article entries. Newsletter requests are stored as pending in `public.subscribers`; only a valid confirmation link activates an address. Confirmation emails use Resend, and requests remain pending when delivery is log-only. Plausible analytics are disabled unless a visitor accepts optional analytics in the consent banner. Configure both `VITE_PLAUSIBLE_DOMAIN` and `VITE_PLAUSIBLE_SCRIPT_URL`; the configured HTTPS script is not loaded before consent. No third-party analytics runs on newsletter forms.
 
+## Security and Launch Checks
+
+The server adds a Content Security Policy, `X-Content-Type-Options`, and `Referrer-Policy` to all responses, plus HSTS on HTTPS requests. The CSP allows the configured Supabase endpoint, Google Fonts, and the optional analytics script origin. Booking and public form endpoints validate input with Zod, use honeypots where applicable, and apply database-backed rate limits; set `BOOKING_RATE_LIMIT_SECRET` and `PUBLIC_FORM_RATE_LIMIT_SECRET` to independent random secrets of at least 32 characters. Apply every migration before exposing forms. The project build and unit tests do not replace a production Lighthouse run or a manual screen-reader review. Legal page copy is explicitly draft material and must be reviewed by a qualified professional before launch.
+
 ## Environment Variables
 
 See `.env.example` for all configurable environment variables, including:
@@ -114,6 +118,8 @@ See `.env.example` for all configurable environment variables, including:
 - `REVIEW_TOKEN_SECRET`: Required for signed guest review links; at least 32 random characters
 - `VITE_PLAUSIBLE_DOMAIN`: Optional Plausible site domain, loaded only after analytics consent
 - `VITE_PLAUSIBLE_SCRIPT_URL`: Optional HTTPS Plausible-compatible script URL, loaded only after consent
+
+Additional server variables documented in `.env.example` include `BOOKING_CURRENCY`, `BOOKING_RATE_LIMIT_SECRET`, the three `CANCELLATION_POLICY_*` values, `PUBLIC_FORM_RATE_LIMIT_SECRET`, `RESEND_API_KEY`, `NOTIFICATION_EMAIL_TO`, `NOTIFICATION_EMAIL_FROM`, `CRON_SECRET_PREVIOUS`, the server-side Supabase URL/key/project ID, and `APP_URL` for local development.
 
 ## License
 

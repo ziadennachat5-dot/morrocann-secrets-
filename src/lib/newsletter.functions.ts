@@ -169,10 +169,21 @@ export const requestNewsletterSubscription = createServerFn({ method: "POST" })
 export const confirmNewsletterSubscription = createServerFn({ method: "POST" })
   .validator(confirmationSchema)
   .handler(async ({ data }) => {
+    const ip = getRequest().headers.get("cf-connecting-ip");
+    const rateLimitSecret = process.env["PUBLIC_FORM_RATE_LIMIT_SECRET"];
+    if (!ip || !rateLimitSecret || rateLimitSecret.length < 32) {
+      throw new Error("Newsletter confirmations are temporarily unavailable.");
+    }
+    const ipHash = await createRateLimitHash(ip, rateLimitSecret);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const rateLimit = await supabaseAdmin.rpc("consume_public_form_rate_limit", {
+      p_ip_hash: ipHash,
+    });
+    if (rateLimit.error) throw new Error("Unable to verify newsletter confirmation limits.");
+    if (!rateLimit.data) throw new Error("Too many newsletter confirmation attempts.");
     if (!/^[A-Za-z0-9_-]+$/.test(data.token)) return { confirmed: false };
     const tokenHash = await hashToken(data.token);
     const now = new Date().toISOString();
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const result = await supabaseAdmin
       .from("subscribers")
       .update({
