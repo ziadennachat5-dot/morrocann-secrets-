@@ -1,10 +1,4 @@
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[];
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type Database = {
   __InternalSupabase: {
@@ -177,6 +171,8 @@ export type Database = {
           deposit_paid: number;
           total_price: number;
           language: "en" | "fr" | "ar";
+          special_occasion: string | null;
+          private_group: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -195,6 +191,8 @@ export type Database = {
           deposit_paid?: number;
           total_price?: number;
           language?: "en" | "fr" | "ar";
+          special_occasion?: string | null;
+          private_group?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -213,6 +211,8 @@ export type Database = {
           deposit_paid?: number;
           total_price?: number;
           language?: "en" | "fr" | "ar";
+          special_occasion?: string | null;
+          private_group?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -289,8 +289,14 @@ export type Database = {
           p_language?: string;
           p_payment_method?: string;
           p_deposit_paid?: number;
+          p_special_occasion?: string | null;
+          p_private_group?: boolean;
         };
         Returns: Json;
+      };
+      consume_booking_rate_limit: {
+        Args: { p_ip_hash: string };
+        Returns: boolean;
       };
     };
     Enums: {
@@ -324,10 +330,8 @@ export type Tables<
     }
     ? R
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] & DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R;
       }
       ? R
@@ -336,8 +340,7 @@ export type Tables<
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
+    keyof DefaultSchema["Tables"] | { schema: keyof DatabaseWithoutInternals },
   TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
@@ -361,8 +364,7 @@ export type TablesInsert<
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
+    keyof DefaultSchema["Tables"] | { schema: keyof DatabaseWithoutInternals },
   TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }

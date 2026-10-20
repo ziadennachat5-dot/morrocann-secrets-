@@ -66,6 +66,12 @@ npm test
 - Root-level source photos stay ignored and are not copied into the deployed public assets. Do not use `RIAD.png` as a photo; it belongs in `public/brand/` as the logo.
 - Generate renditions only up to each source image's actual width; do not upscale small photos to fill a larger breakpoint.
 
+## Booking Configuration
+
+The booking flow displays only published Supabase experiences and explicit future availability rows. It does not invent open dates or accept bookings without an availability row, a configured ISO currency, and reviewed cancellation text in English, French, and Arabic. Requests are saved as pending bookings; no payment is collected.
+
+Configure `BOOKING_CURRENCY`, `BOOKING_RATE_LIMIT_SECRET`, and `CANCELLATION_POLICY_EN`, `CANCELLATION_POLICY_FR`, and `CANCELLATION_POLICY_AR` in the deployment environment. The server rate limit uses Cloudflare's connecting-IP header and a database counter; booking requests fail closed if its secret or client IP is missing. Apply the Supabase migration before enabling the flow.
+
 ## Environment Variables
 
 See `.env.example` for all configurable environment variables, including:

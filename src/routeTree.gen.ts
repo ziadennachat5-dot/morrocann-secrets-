@@ -10,12 +10,18 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BookingRouteImport } from './routes/booking'
 import { Route as ExperiencesRouteImport } from './routes/experiences'
 import { Route as FamiliesRouteImport } from './routes/families'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BookingRoute = BookingRouteImport.update({
+  id: '/booking',
+  path: '/booking',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ExperiencesRoute = ExperiencesRouteImport.update({
@@ -31,30 +37,34 @@ const FamiliesRoute = FamiliesRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/booking': typeof BookingRoute
   '/experiences': typeof ExperiencesRoute
   '/families': typeof FamiliesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/booking': typeof BookingRoute
   '/experiences': typeof ExperiencesRoute
   '/families': typeof FamiliesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/booking': typeof BookingRoute
   '/experiences': typeof ExperiencesRoute
   '/families': typeof FamiliesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/experiences' | '/families'
+  fullPaths: '/' | '/booking' | '/experiences' | '/families'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/experiences' | '/families'
-  id: '__root__' | '/' | '/experiences' | '/families'
+  to: '/' | '/booking' | '/experiences' | '/families'
+  id: '__root__' | '/' | '/booking' | '/experiences' | '/families'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BookingRoute: typeof BookingRoute
   ExperiencesRoute: typeof ExperiencesRoute
   FamiliesRoute: typeof FamiliesRoute
 }
@@ -66,6 +76,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/booking': {
+      id: '/booking'
+      path: '/booking'
+      fullPath: '/booking'
+      preLoaderRoute: typeof BookingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/experiences': {
@@ -87,6 +104,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BookingRoute: BookingRoute,
   ExperiencesRoute: ExperiencesRoute,
   FamiliesRoute: FamiliesRoute,
 }
