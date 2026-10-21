@@ -64,9 +64,13 @@ function LangSwitch() {
 
 function Header() {
   const { t } = useI18n();
+  const pathname = useLocation({ select: (location) => location.pathname });
+  const isHomepage = pathname === "/";
   const [open, setOpen] = useState(false);
   return (
-    <header className="sticky top-0 z-40 border-b border-border/70 bg-background/90 backdrop-blur">
+    <header
+      className={`${isHomepage ? "relative" : "sticky top-0"} z-40 border-b border-border/70 bg-background/90 backdrop-blur`}
+    >
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-3">
         <Link
           to="/"
@@ -76,36 +80,42 @@ function Header() {
         >
           <HeaderLogo />
         </Link>
-        <nav aria-label="Main" className="hidden items-center gap-7 lg:flex">
-          {navItems.map((n) => (
-            <Link
-              key={n.to}
-              to={n.to}
-              className="text-sm font-medium text-foreground/80 hover:text-primary"
-              activeProps={{ className: "text-primary" }}
-              activeOptions={{ exact: true }}
-            >
-              {t.nav[n.key]}
-            </Link>
-          ))}
-        </nav>
+        {!isHomepage && (
+          <nav aria-label="Main" className="hidden items-center gap-7 lg:flex">
+            {navItems.map((n) => (
+              <Link
+                key={n.to}
+                to={n.to}
+                className="text-sm font-medium text-foreground/80 hover:text-primary"
+                activeProps={{ className: "text-primary" }}
+                activeOptions={{ exact: true }}
+              >
+                {t.nav[n.key]}
+              </Link>
+            ))}
+          </nav>
+        )}
         <div className="flex items-center gap-3">
           <LangSwitch />
-          <Link to="/booking" className="btn btn-primary hidden !py-2.5 sm:inline-flex">
-            {t.nav.book}
-          </Link>
-          <button
-            type="button"
-            className="rounded-md p-2 lg:hidden"
-            aria-label="Menu"
-            aria-expanded={open}
-            onClick={() => setOpen(!open)}
-          >
-            {open ? <X /> : <Menu />}
-          </button>
+          {!isHomepage && (
+            <Link to="/booking" className="btn btn-primary hidden !py-2.5 sm:inline-flex">
+              {t.nav.book}
+            </Link>
+          )}
+          {!isHomepage && (
+            <button
+              type="button"
+              className="rounded-md p-2 lg:hidden"
+              aria-label="Menu"
+              aria-expanded={open}
+              onClick={() => setOpen(!open)}
+            >
+              {open ? <X /> : <Menu />}
+            </button>
+          )}
         </div>
       </div>
-      {open && (
+      {!isHomepage && open && (
         <nav
           aria-label="Mobile"
           className="border-t border-border bg-background px-5 py-4 lg:hidden"
@@ -147,7 +157,6 @@ function Footer() {
             <div className="flex items-center">
               <FooterLogo />
             </div>
-            <p className="mt-4 max-w-xs text-ink-foreground/75">{t.footer.tagline}</p>
           </div>
           <ul className="space-y-2">
             {navItems.map((n) => (
@@ -285,7 +294,7 @@ function NewsletterSignup() {
             onChange={(event) => setEmail(event.target.value)}
           />
         </label>
-        <label aria-hidden="true" className="absolute -left-[10000px] h-px w-px overflow-hidden">
+        <label aria-hidden="true" className="sr-only">
           Leave this field empty
           <input
             tabIndex={-1}
@@ -326,7 +335,7 @@ function WhatsAppFab() {
 function MobileBookingBar() {
   const { t } = useI18n();
   const pathname = useLocation({ select: (location) => location.pathname });
-  if (pathname === "/booking") return null;
+  if (pathname === "/booking" || pathname === "/") return null;
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 p-3 shadow-lg backdrop-blur sm:hidden">
@@ -338,6 +347,21 @@ function MobileBookingBar() {
 }
 
 export function SiteLayout({ children }: { children: ReactNode }) {
+  const pathname = useLocation({ select: (location) => location.pathname });
+  if (pathname === "/admin") {
+    return (
+      <div className="min-h-screen bg-background">
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:absolute focus:start-4 focus:top-4 focus:z-50 focus:bg-background focus:p-2"
+        >
+          Skip to content
+        </a>
+        {children}
+        <CookieConsent />
+      </div>
+    );
+  }
   return (
     <div className="flex min-h-screen flex-col">
       <a

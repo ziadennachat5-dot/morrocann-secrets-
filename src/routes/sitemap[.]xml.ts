@@ -4,14 +4,13 @@ import { getSiteUrl } from "@/lib/seo";
 const languages = ["en", "fr", "ar"] as const;
 const publicPaths = [
   "/",
-  "/experiences",
-  "/families",
-  "/booking",
-  "/faq",
   "/blog",
   "/private-events",
   "/gift",
   "/partners",
+  "/privacy",
+  "/terms",
+  "/cancellation-policy",
 ];
 
 function escapeXml(value: string): string {

@@ -4,9 +4,8 @@ const en = {
   copyLoadError: "Published page text could not be loaded.",
   seo: {
     home: {
-      title: "Moroccan Secrets Riad — Dine with a Moroccan family in Marrakesh",
-      description:
-        "Share a home-cooked Moroccan meal and cultural evening with a host family in Marrakesh.",
+      title: "Moroccan Secrets | Experiences",
+      description: "View published experiences, check availability, and request a booking.",
     },
     experiences: {
       title: "Moroccan home dining experiences in Marrakesh",
@@ -80,6 +79,7 @@ const en = {
     about: "Our Story",
     contact: "Contact",
     book: "Book",
+    bookThis: "Book this",
   },
   hero: {
     eyebrow: "Marrakesh · Home dining",
@@ -242,6 +242,7 @@ const en = {
     next: "Next",
     photo: "Photo",
     navigationHint: "Use the left and right arrow keys to browse photos. Press Escape to close.",
+    unavailable: "The photo gallery is temporarily unavailable.",
   },
   booking: {
     eyebrow: "Booking",
@@ -299,6 +300,8 @@ const en = {
     noExperiences: "No published experiences are available to book yet.",
     noDates: "No dates with available capacity are open for this experience.",
     availableDates: "Choose a date with available capacity",
+    fullyBooked: "Fully booked",
+    closed: "Unavailable",
     spotsRemaining: "Places currently available",
     perPerson: "per person",
     privateGroup: "Request a private group",
@@ -376,9 +379,9 @@ const fr: Dict = {
   copyLoadError: "Impossible de charger le texte publié du site.",
   seo: {
     home: {
-      title: "Moroccan Secrets Riad — Dîner chez une famille marocaine à Marrakech",
+      title: "Moroccan Secrets | Expériences",
       description:
-        "Partagez un repas marocain fait maison et une soirée culturelle avec une famille d'accueil à Marrakech.",
+        "Consultez les expériences publiées, vérifiez les disponibilités et envoyez une demande de réservation.",
     },
     experiences: {
       title: "Expériences culinaires chez l'habitant à Marrakech",
@@ -458,6 +461,7 @@ const fr: Dict = {
     about: "Notre histoire",
     contact: "Contact",
     book: "Réserver",
+    bookThis: "Réserver cette expérience",
   },
   hero: {
     eyebrow: "Marrakech · Dîner chez l'habitant",
@@ -623,6 +627,7 @@ const fr: Dict = {
     photo: "Photo",
     navigationHint:
       "Utilisez les flèches gauche et droite pour parcourir les photos. Échap pour fermer.",
+    unavailable: "La galerie de photos est temporairement indisponible.",
   },
   booking: {
     eyebrow: "Réservation",
@@ -680,6 +685,8 @@ const fr: Dict = {
     noExperiences: "Aucune expérience publiée n'est encore disponible à la réservation.",
     noDates: "Aucune date avec des places disponibles n'est ouverte pour cette expérience.",
     availableDates: "Choisissez une date avec des places disponibles",
+    fullyBooked: "Complet",
+    closed: "Indisponible",
     spotsRemaining: "Places actuellement disponibles",
     perPerson: "par personne",
     privateGroup: "Demander un groupe privé",
@@ -759,8 +766,8 @@ const ar: Dict = {
   copyLoadError: "تعذر تحميل النص المنشور للموقع.",
   seo: {
     home: {
-      title: "أسرار مغربية رياض — عشاء مع عائلة مغربية في مراكش",
-      description: "شارك وجبة مغربية منزلية وأمسية ثقافية مع عائلة مضيفة في مراكش.",
+      title: "أسرار مغربية | التجارب",
+      description: "تعرّف على التجارب المنشورة، وتحقق من التوفر، وأرسل طلب حجز.",
     },
     experiences: {
       title: "تجارب تناول الطعام المنزلي في مراكش",
@@ -832,6 +839,7 @@ const ar: Dict = {
     about: "قصتنا",
     contact: "اتصل بنا",
     book: "احجز",
+    bookThis: "احجز هذه التجربة",
   },
   hero: {
     eyebrow: "مراكش · عشاء في البيت",
@@ -988,6 +996,7 @@ const ar: Dict = {
     next: "التالية",
     photo: "الصورة",
     navigationHint: "استخدم السهمين الأيمن والأيسر للتنقل بين الصور. اضغط على Escape للإغلاق.",
+    unavailable: "معرض الصور غير متاح مؤقتًا.",
   },
   booking: {
     eyebrow: "الحجز",
@@ -1044,6 +1053,8 @@ const ar: Dict = {
     noExperiences: "لا توجد تجارب منشورة متاحة للحجز بعد.",
     noDates: "لا توجد مواعيد مفتوحة لهذه التجربة بها أماكن متاحة.",
     availableDates: "اختر موعداً به أماكن متاحة",
+    fullyBooked: "ممتلئ بالكامل",
+    closed: "غير متاح",
     spotsRemaining: "الأماكن المتاحة حالياً",
     perPerson: "للشخص",
     privateGroup: "طلب مجموعة خاصة",

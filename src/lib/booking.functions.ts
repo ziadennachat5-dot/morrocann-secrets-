@@ -53,7 +53,6 @@ export const getBookingOptions = createServerFn({ method: "GET" }).handler(async
       .from("availability")
       .select("id,date,experience_id,capacity,booked_count,status")
       .gte("date", today)
-      .eq("status", "available")
       .order("date"),
     supabaseAdmin
       .from("site_settings")
@@ -72,11 +71,12 @@ export const getBookingOptions = createServerFn({ method: "GET" }).handler(async
       .filter((experience) => experience.start_time !== null && experience.min_guests !== null)
       .map((experience) => experience.id),
   );
+  const relevantAvailability = (availabilityResult.data ?? []).filter((slot) =>
+    publishedIds.has(slot.experience_id),
+  );
   const availability = filterAvailableBookingSlots(
-    (availabilityResult.data ?? [])
-      .filter(
-        (slot) => publishedIds.has(slot.experience_id) && slot.capacity - slot.booked_count > 0,
-      )
+    relevantAvailability
+      .filter((slot) => slot.status === "available" && slot.capacity - slot.booked_count > 0)
       .map((slot) => ({
         id: slot.id,
         date: slot.date,
@@ -105,6 +105,16 @@ export const getBookingOptions = createServerFn({ method: "GET" }).handler(async
       (experience) => experience.start_time !== null && experience.min_guests !== null,
     ),
     availability,
+    calendarStatuses: relevantAvailability.map((slot) => ({
+      date: slot.date,
+      experienceId: slot.experience_id,
+      state:
+        slot.status === "closed"
+          ? "closed"
+          : slot.status === "booked" || slot.booked_count >= slot.capacity
+            ? "full"
+            : "available",
+    })),
     currency: currencyResult.success ? currencyResult.data : null,
     cancellationTiers,
     meetingArea: readLocalized(settings.get("trust.meeting_area")),

@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import { CalendarDays, Check, ChevronLeft, ChevronRight, MessageCircle } from "lucide-react";
@@ -115,6 +115,9 @@ function saveConfirmationCalendarFile(
 }
 
 export const Route = createFileRoute("/booking")({
+  beforeLoad: () => {
+    throw redirect({ to: "/", hash: "booking" });
+  },
   head: () =>
     pageHead(
       "/booking",
@@ -125,8 +128,18 @@ export const Route = createFileRoute("/booking")({
 });
 
 function BookingPage() {
+  return <BookingFlow />;
+}
+
+export function BookingFlow({
+  initialExperienceId,
+  initialOptions,
+}: {
+  initialExperienceId?: string;
+  initialOptions?: BookingOptions;
+}) {
   const { t, l, lang } = useI18n();
-  const [options, setOptions] = useState<BookingOptions | null>(null);
+  const [options, setOptions] = useState<BookingOptions | null>(initialOptions ?? null);
   const [loadError, setLoadError] = useState(false);
   const [draft, setDraft] = useState<BookingDraft>(emptyDraft);
   const [confirmation, setConfirmation] = useState<Confirmation | null>(null);
@@ -144,13 +157,26 @@ function BookingPage() {
     } catch (error) {
       console.error("Unable to restore booking progress:", error);
     }
-    getBookingOptions()
-      .then(setOptions)
-      .catch((error: unknown) => {
-        console.error("Unable to load booking options:", error);
-        setLoadError(true);
-      });
-  }, []);
+    if (!initialOptions) {
+      getBookingOptions()
+        .then(setOptions)
+        .catch((error: unknown) => {
+          console.error("Unable to load booking options:", error);
+          setLoadError(true);
+        });
+    }
+  }, [initialOptions]);
+
+  useEffect(() => {
+    if (initialExperienceId) {
+      setDraft((current) => ({
+        ...current,
+        experienceId: initialExperienceId,
+        date: "",
+        step: 0,
+      }));
+    }
+  }, [initialExperienceId]);
 
   useEffect(() => {
     try {
@@ -181,6 +207,20 @@ function BookingPage() {
   const availableDates = useMemo(
     () => relevantSlots.map((slot) => new Date(`${slot.date}T12:00:00`)),
     [relevantSlots],
+  );
+  const fullyBookedDates = useMemo(
+    () =>
+      options?.calendarStatuses
+        .filter((slot) => slot.experienceId === draft.experienceId && slot.state === "full")
+        .map((slot) => new Date(`${slot.date}T12:00:00`)) ?? [],
+    [options, draft.experienceId],
+  );
+  const closedDates = useMemo(
+    () =>
+      options?.calendarStatuses
+        .filter((slot) => slot.experienceId === draft.experienceId && slot.state === "closed")
+        .map((slot) => new Date(`${slot.date}T12:00:00`)) ?? [],
+    [options, draft.experienceId],
   );
   const selectedSlot = relevantSlots.find((slot) => slot.date === draft.date);
   const waHref = options?.whatsapp
@@ -481,10 +521,32 @@ function BookingPage() {
                       (available) => available.toDateString() === date.toDateString(),
                     )
                   }
-                  modifiers={{ available: availableDates }}
-                  modifiersClassNames={{ available: "font-bold text-accent" }}
+                  modifiers={{
+                    available: availableDates,
+                    fullyBooked: fullyBookedDates,
+                    unavailable: closedDates,
+                  }}
+                  modifiersClassNames={{
+                    available: "font-bold text-accent",
+                    fullyBooked: "bg-muted text-muted-foreground line-through opacity-70",
+                    unavailable: "text-muted-foreground opacity-40",
+                  }}
                   aria-label={t.booking.availableDates}
                 />
+                <ul className="mt-3 flex flex-wrap gap-4 text-sm">
+                  <li className="flex items-center gap-2">
+                    <span aria-hidden className="h-4 w-4 rounded border-2 border-accent" />
+                    {t.booking.spotsRemaining}
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span aria-hidden className="h-4 w-4 rounded bg-muted" />
+                    {t.booking.fullyBooked}
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span aria-hidden className="h-4 w-4 rounded bg-muted/40" />
+                    {t.booking.closed}
+                  </li>
+                </ul>
                 {relevantSlots.length === 0 && (
                   <p className="mt-3 text-muted-foreground">{t.booking.noDates}</p>
                 )}

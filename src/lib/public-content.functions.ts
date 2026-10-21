@@ -13,9 +13,9 @@ const experienceTextSchema = z.object({
 });
 const faqSchema = z.object({
   id: z.string().uuid(),
-  category: localizedTextSchema,
-  question: localizedTextSchema,
-  answer: localizedTextSchema,
+  category: experienceTextSchema,
+  question: experienceTextSchema,
+  answer: experienceTextSchema,
 });
 const postSchema = z.object({
   slug: z.string().min(1),
