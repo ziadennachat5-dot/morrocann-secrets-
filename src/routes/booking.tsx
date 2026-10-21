@@ -527,23 +527,35 @@ export function BookingFlow({
                     unavailable: closedDates,
                   }}
                   modifiersClassNames={{
-                    available: "font-bold text-accent",
-                    fullyBooked: "bg-muted text-muted-foreground line-through opacity-70",
-                    unavailable: "text-muted-foreground opacity-40",
+                    available:
+                      "!bg-emerald-100 !text-emerald-950 font-bold border border-emerald-500",
+                    fullyBooked:
+                      "!bg-amber-100 !text-amber-950 border border-amber-400 line-through opacity-80 cursor-not-allowed",
+                    unavailable:
+                      "!bg-stone-200 !text-stone-500 border border-stone-300 opacity-60 cursor-not-allowed",
                   }}
                   aria-label={t.booking.availableDates}
                 />
                 <ul className="mt-3 flex flex-wrap gap-4 text-sm">
                   <li className="flex items-center gap-2">
-                    <span aria-hidden className="h-4 w-4 rounded border-2 border-accent" />
+                    <span
+                      aria-hidden
+                      className="h-4 w-4 rounded border-2 border-emerald-500 bg-emerald-100"
+                    />
                     {t.booking.spotsRemaining}
                   </li>
                   <li className="flex items-center gap-2">
-                    <span aria-hidden className="h-4 w-4 rounded bg-muted" />
+                    <span
+                      aria-hidden
+                      className="h-4 w-4 rounded border border-amber-400 bg-amber-100"
+                    />
                     {t.booking.fullyBooked}
                   </li>
                   <li className="flex items-center gap-2">
-                    <span aria-hidden className="h-4 w-4 rounded bg-muted/40" />
+                    <span
+                      aria-hidden
+                      className="h-4 w-4 rounded border border-stone-300 bg-stone-200"
+                    />
                     {t.booking.closed}
                   </li>
                 </ul>
