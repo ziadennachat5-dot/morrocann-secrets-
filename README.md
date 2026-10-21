@@ -65,6 +65,8 @@ npm test
 - Their dimensions, crop positions, and English, French, and Arabic alt text are maintained in `src/lib/photos.ts`.
 - Root-level source photos stay ignored and are not copied into the deployed public assets. Do not use `RIAD.png` as a photo; it belongs in `public/brand/` as the logo.
 - Generate renditions only up to each source image's actual width; do not upscale small photos to fill a larger breakpoint.
+- Guest photos use a separate private `guest-photos` storage bucket. The public gallery serves short-lived signed URLs only for rows whose guest consent is confirmed; seed records remain unapproved until consent is checked in `/admin`.
+- After applying `20261031000000_guest_photo_consent.sql`, place the numbered `1.jpeg`, `2.jpeg`, … source files in the repository root and run `npm run seed:guest-photos`. The script creates metadata-stripped WebP renditions, skips files already seeded, and leaves all consent flags unchecked. Keep the source files out of commits.
 
 ## Booking Configuration
 
@@ -87,7 +89,9 @@ FROM auth.users
 WHERE email = 'your-admin-email@example.com';
 ```
 
-Sign in at `/admin` with that Auth account. The console checks `public.is_admin()` and performs reads and writes through the authenticated Supabase client under the existing RLS rules; it does not expose the service-role key. It supports booking operations and CSV export, internal notes and communication logs, availability date management, public inquiries, translated site text, trust/contact/booking settings, FAQ content, and blog drafts/publishing. Booking currency and cancellation-policy settings in `site_settings` take precedence over the documented environment fallbacks.
+Sign in at `/admin` with that Auth account. The console checks `public.is_admin()` and performs reads and writes through the authenticated Supabase client under the existing RLS rules; it does not expose the service-role key. It supports booking operations and CSV export, internal notes and communication logs, a month availability calendar, experiences, consent-gated guest photos, editable homepage text, FAQ content, inquiries, and newsletter requests. Rare settings and moderation tools are under Advanced. Booking currency and cancellation-policy settings in `site_settings` take precedence over the documented environment fallbacks.
+
+The public home page is the main journey. Its hero, idea, reasons, and steps are managed by public `home.hero`, `home.idea`, `home.reasons`, and `home.steps` settings; unfilled text sections remain hidden. French and Arabic fields may be left blank and fall back to English.
 
 ## Booking Email Delivery
 
