@@ -7,39 +7,20 @@ import type { Lang } from "@/lib/i18n";
 import { dict } from "@/lib/translations";
 import { readTranslation, translationPaths } from "@/lib/copy-utils";
 import { CatalogManager } from "@/components/admin/CatalogManager";
+import { GuestPhotoManager } from "@/components/admin/GuestPhotoManager";
+import { HomepageTextEditor } from "@/components/admin/HomepageTextEditor";
 import { parseCancellationTiers } from "@/lib/booking-pricing";
+import { getCalendarSlotState, nextCalendarSlotState } from "@/lib/admin-calendar";
 
 type Booking = Tables<"bookings">;
 type Availability = Tables<"availability">;
 type Inquiry = Tables<"inquiries">;
 type SiteSetting = Tables<"site_settings">;
 type Review = Tables<"reviews">;
-type AdminTab =
-  | "overview"
-  | "bookings"
-  | "calendar"
-  | "experiences"
-  | "families"
-  | "reviews"
-  | "content"
-  | "inquiries"
-  | "subscribers";
 type LocalizedFields = { en: string; fr: string; ar: string };
 
 const inputClass =
   "w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
-const tabs: { id: AdminTab; label: string }[] = [
-  { id: "overview", label: "Dashboard" },
-  { id: "bookings", label: "Bookings" },
-  { id: "calendar", label: "Availability" },
-  { id: "experiences", label: "Experiences" },
-  { id: "families", label: "Host families" },
-  { id: "reviews", label: "Reviews" },
-  { id: "content", label: "Site content & settings" },
-  { id: "inquiries", label: "Inquiries" },
-  { id: "subscribers", label: "Newsletter subscribers" },
-];
-
 export const Route = createFileRoute("/admin")({
   head: () => ({
     meta: [{ name: "robots", content: "noindex,nofollow" }],
@@ -54,7 +35,6 @@ function AdminPage() {
   const [authReady, setAuthReady] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [tab, setTab] = useState<AdminTab>("overview");
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [experiences, setExperiences] = useState<Tables<"experiences">[]>([]);
   const [families, setFamilies] = useState<Tables<"host_families">[]>([]);
@@ -64,6 +44,7 @@ function AdminPage() {
   const [faqs, setFaqs] = useState<Tables<"faqs">[]>([]);
   const [posts, setPosts] = useState<Tables<"posts">[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [guestPhotos, setGuestPhotos] = useState<Tables<"guest_photos">[]>([]);
   const [subscribers, setSubscribers] = useState<Tables<"subscribers">[]>([]);
   const [faqId, setFaqId] = useState("");
   const [faqCategory, setFaqCategory] = useState<LocalizedFields>({ en: "", fr: "", ar: "" });
@@ -92,6 +73,13 @@ function AdminPage() {
   const [availabilityStatus, setAvailabilityStatus] =
     useState<Tables<"availability">["status"]>("available");
   const [repeatWeekly, setRepeatWeekly] = useState(false);
+  const [calendarMonth, setCalendarMonth] = useState(
+    () => new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+  );
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState(() =>
+    toLocalDateString(new Date()),
+  );
+  const [calendarMessage, setCalendarMessage] = useState("");
   const [settingKey, setSettingKey] = useState("");
   const [settingJson, setSettingJson] = useState('{\n  "en": "",\n  "fr": "",\n  "ar": ""\n}');
   const [settingPublic, setSettingPublic] = useState(true);
@@ -101,6 +89,25 @@ function AdminPage() {
     (item) => item.setting_key === "booking.currency",
   )?.value;
   const sharedCurrency = typeof sharedCurrencyValue === "string" ? sharedCurrencyValue : "";
+  const calendarDates = useMemo(() => {
+    const first = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), 1);
+    const start = new Date(first);
+    start.setDate(first.getDate() - first.getDay());
+    return Array.from({ length: 42 }, (_, index) => {
+      const date = new Date(start);
+      date.setDate(start.getDate() + index);
+      return date;
+    });
+  }, [calendarMonth]);
+  const selectedCalendarSlot = availability.find(
+    (slot) => slot.experience_id === availabilityExperience && slot.date === selectedCalendarDate,
+  );
+  const selectedDateBookings = bookings.filter(
+    (booking) =>
+      booking.experience_id === availabilityExperience &&
+      booking.date === selectedCalendarDate &&
+      booking.status !== "cancelled",
+  );
 
   const refresh = useCallback(async () => {
     setBusy(true);
@@ -116,6 +123,7 @@ function AdminPage() {
       postResult,
       reviewResult,
       subscriberResult,
+      guestPhotoResult,
     ] = await Promise.all([
       supabase.from("bookings").select("*").order("date", { ascending: true }),
       supabase.from("experiences").select("*").order("id"),
@@ -127,7 +135,15 @@ function AdminPage() {
       supabase.from("posts").select("*").order("created_at", { ascending: false }),
       supabase.from("reviews").select("*").order("created_at", { ascending: false }),
       supabase.from("subscribers").select("*").order("created_at", { ascending: false }),
+      supabase.from("guest_photos").select("*").order("sort_order", { ascending: true }),
     ]);
+    const photoMigrationMissing =
+      guestPhotoResult.error && ["42P01", "PGRST205"].includes(guestPhotoResult.error.code ?? "");
+    if (photoMigrationMissing) {
+      setError(
+        "Photo tools are unavailable until migration 20261031000000_guest_photo_consent.sql is applied.",
+      );
+    }
     const failure =
       bookingResult.error ||
       experienceResult.error ||
@@ -138,7 +154,8 @@ function AdminPage() {
       faqResult.error ||
       postResult.error ||
       reviewResult.error ||
-      subscriberResult.error;
+      subscriberResult.error ||
+      (!photoMigrationMissing ? guestPhotoResult.error : null);
     if (failure) {
       setError(`Could not load admin data: ${failure.message}`);
       setBusy(false);
@@ -154,6 +171,8 @@ function AdminPage() {
     setPosts(postResult.data ?? []);
     setReviews(reviewResult.data ?? []);
     setSubscribers(subscriberResult.data ?? []);
+    setGuestPhotos(guestPhotoResult.data ?? []);
+    setAvailabilityExperience((current) => current || experienceResult.data?.[0]?.id || "");
     setSelectedBookingId((current) => current || bookingResult.data?.[0]?.id || "");
     setBusy(false);
   }, []);
@@ -229,19 +248,6 @@ function AdminPage() {
     () => bookings.find((booking) => booking.id === selectedBookingId) ?? null,
     [bookings, selectedBookingId],
   );
-  const today = new Date().toISOString().slice(0, 10);
-  const weekEnd = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
-  const upcomingBookings = bookings.filter(
-    (booking) => booking.date >= today && booking.date <= weekEnd && booking.status !== "cancelled",
-  );
-  const todaysBookings = bookings.filter(
-    (booking) => booking.date === today && booking.status !== "cancelled",
-  );
-  const pendingBookings = bookings.filter((booking) => booking.status === "pending");
-  const revenueEstimate = upcomingBookings.reduce(
-    (total, booking) => total + Number(booking.total_price),
-    0,
-  );
   const experienceOptions = useMemo(
     () => experiences.map((experience) => experience.id),
     [experiences],
@@ -277,6 +283,7 @@ function AdminPage() {
   }
 
   function exportBookings() {
+    const today = new Date().toISOString().slice(0, 10);
     const columns: (keyof Booking)[] = [
       "id",
       "name",
@@ -396,6 +403,181 @@ function AdminPage() {
       .upsert(rows, { onConflict: "date,experience_id" });
     if (saveError) setError(`Could not save availability: ${saveError.message}`);
     else await refresh();
+  }
+
+  async function saveCalendarState(date: string, state: "available" | "full" | "closed") {
+    if (!availabilityExperience) {
+      setError("Choose an experience to manage its calendar.");
+      return;
+    }
+    const capacity = selectedCalendarSlot?.capacity ?? Number(availabilityCapacity);
+    if (!Number.isInteger(capacity) || capacity < 1 || capacity > 500) {
+      setError("Calendar capacity must be a whole number from 1 to 500.");
+      return;
+    }
+    const { error: saveError } = await supabase.from("availability").upsert(
+      {
+        date,
+        experience_id: availabilityExperience,
+        capacity,
+        status: state === "full" ? "booked" : state,
+      },
+      { onConflict: "date,experience_id" },
+    );
+    if (saveError) {
+      setError(`Could not update ${date}: ${saveError.message}`);
+      setCalendarMessage("");
+      return;
+    }
+    setCalendarMessage(
+      `${date}: ${state === "full" ? "Fully booked" : state === "closed" ? "Closed" : "Available"}.`,
+    );
+    await refresh();
+  }
+
+  async function cycleCalendarDay(date: string) {
+    setSelectedCalendarDate(date);
+    const slot = availability.find(
+      (item) => item.experience_id === availabilityExperience && item.date === date,
+    );
+    const activeGuests = bookings
+      .filter(
+        (booking) =>
+          booking.experience_id === availabilityExperience &&
+          booking.date === date &&
+          booking.status !== "cancelled",
+      )
+      .reduce((total, booking) => total + booking.adults + booking.children, 0);
+    const currentState = getCalendarSlotState(slot ?? null, activeGuests);
+    const nextState = nextCalendarSlotState(currentState);
+    const capacity = Number(availabilityCapacity);
+    if (!Number.isInteger(capacity) || capacity < 1 || capacity > 500) {
+      setError("Calendar capacity must be a whole number from 1 to 500.");
+      return;
+    }
+    const { error: saveError } = await supabase.from("availability").upsert(
+      {
+        date,
+        experience_id: availabilityExperience,
+        capacity,
+        status: nextState === "full" ? "booked" : nextState,
+      },
+      { onConflict: "date,experience_id" },
+    );
+    if (saveError) {
+      setError(`Could not update ${date}: ${saveError.message}`);
+      return;
+    }
+    setCalendarMessage(
+      `${date}: ${nextState === "full" ? "Fully booked" : nextState === "closed" ? "Closed" : "Available"}.`,
+    );
+    await refresh();
+  }
+
+  async function openWeekends() {
+    if (!availabilityExperience) {
+      setError("Choose an experience to manage its calendar.");
+      return;
+    }
+    const capacity = Number(availabilityCapacity);
+    if (!Number.isInteger(capacity) || capacity < 1 || capacity > 500) {
+      setError("Calendar capacity must be a whole number from 1 to 500.");
+      return;
+    }
+    const weekendRows = calendarDates
+      .filter(
+        (date) =>
+          date.getMonth() === calendarMonth.getMonth() &&
+          date.getFullYear() === calendarMonth.getFullYear() &&
+          (date.getDay() === 5 || date.getDay() === 6),
+      )
+      .filter((date) => {
+        const dateValue = toLocalDateString(date);
+        return !bookings.some(
+          (booking) =>
+            booking.experience_id === availabilityExperience &&
+            booking.date === dateValue &&
+            booking.status !== "cancelled",
+        );
+      })
+      .map((date) => ({
+        date: toLocalDateString(date),
+        experience_id: availabilityExperience,
+        capacity,
+        status: "available" as const,
+      }));
+    if (weekendRows.length === 0) {
+      setCalendarMessage("No unreserved Fridays or Saturdays were available to open.");
+      return;
+    }
+    const { error: saveError } = await supabase
+      .from("availability")
+      .upsert(weekendRows, { onConflict: "date,experience_id" });
+    if (saveError) {
+      setError(`Could not open Fridays and Saturdays: ${saveError.message}`);
+      return;
+    }
+    setCalendarMessage(
+      "Unreserved Fridays and Saturdays this month are available. Dates with bookings were left unchanged.",
+    );
+    await refresh();
+  }
+
+  async function copyCalendarToNextFourWeeks() {
+    if (!availabilityExperience) {
+      setError("Choose an experience to manage its calendar.");
+      return;
+    }
+    const slot = availability.find(
+      (item) => item.experience_id === availabilityExperience && item.date === selectedCalendarDate,
+    );
+    const selectedDay = new Date(`${selectedCalendarDate}T12:00:00`);
+    const state = getCalendarSlotState(
+      slot ?? null,
+      selectedDateBookings.reduce((total, booking) => total + booking.adults + booking.children, 0),
+    );
+    const capacity = slot?.capacity ?? Number(availabilityCapacity);
+    if (!Number.isInteger(capacity) || capacity < 1 || capacity > 500) {
+      setError("Calendar capacity must be a whole number from 1 to 500.");
+      return;
+    }
+    const rows = Array.from({ length: 4 }, (_, index) => {
+      const date = new Date(selectedDay);
+      date.setDate(date.getDate() + (index + 1) * 7);
+      return {
+        date: toLocalDateString(date),
+        experience_id: availabilityExperience,
+        capacity,
+        status: state === "full" ? ("booked" as const) : state,
+      };
+    }).filter(
+      (row) =>
+        !bookings.some(
+          (booking) =>
+            booking.experience_id === availabilityExperience &&
+            booking.date === row.date &&
+            booking.status !== "cancelled",
+        ),
+    );
+    if (rows.length === 0) {
+      setCalendarMessage(
+        "The next four matching days already have bookings and were left unchanged.",
+      );
+      return;
+    }
+    const { error: saveError } = await supabase
+      .from("availability")
+      .upsert(rows, { onConflict: "date,experience_id" });
+    if (saveError) {
+      setError(`Could not copy this day to the next four weeks: ${saveError.message}`);
+      return;
+    }
+    setCalendarMessage(
+      rows.length === 4
+        ? "Copied this day's availability to the next four weeks."
+        : `Copied availability to ${rows.length} unreserved dates; dates with bookings were left unchanged.`,
+    );
+    await refresh();
   }
 
   async function saveSetting(event: FormEvent<HTMLFormElement>) {
@@ -529,6 +711,12 @@ function AdminPage() {
     const sortOrder = Number(faqSortOrder);
     if (!Number.isInteger(sortOrder)) {
       setError("FAQ sort order must be a whole number.");
+      return;
+    }
+    if ([faqCategory.en, faqQuestion.en, faqAnswer.en].some((value) => !value.trim())) {
+      setError(
+        "Enter the FAQ category, question, and answer in English. French and Arabic are optional.",
+      );
       return;
     }
     const record = {
@@ -667,7 +855,7 @@ function AdminPage() {
   }
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-8 md:px-8">
+    <main id="top" className="mx-auto max-w-7xl px-4 py-8 md:px-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="eyebrow">Moroccan Secrets</p>
@@ -687,197 +875,327 @@ function AdminPage() {
           {error}
         </p>
       )}
-      <nav aria-label="Admin sections" className="mt-6 flex flex-wrap gap-2 border-b pb-3">
-        {tabs.map((item) => (
-          <Button
-            key={item.id}
-            variant={tab === item.id ? "default" : "outline"}
-            onClick={() => setTab(item.id)}
-            aria-current={tab === item.id ? "page" : undefined}
-          >
-            {item.label}
-          </Button>
-        ))}
+      <nav
+        aria-label="Admin sections"
+        className="sticky top-0 z-30 mt-6 border-b bg-background/95 py-3 backdrop-blur"
+      >
+        <div className="flex gap-2 overflow-x-auto">
+          {[
+            ["admin-calendar", "Calendar"],
+            ["admin-bookings", "Bookings"],
+            ["admin-experiences", "Experiences"],
+            ["admin-photos", "Photos"],
+            ["admin-page-text", "Page text"],
+            ["admin-settings", "Settings"],
+          ].map(([id, label]) => (
+            <a
+              key={id}
+              href={`#${id}`}
+              className="min-h-11 shrink-0 content-center rounded-md border px-4 text-sm font-medium hover:bg-muted"
+            >
+              {label}
+            </a>
+          ))}
+        </div>
       </nav>
 
-      {tab === "overview" && (
-        <section className="mt-6">
-          <h2 className="text-2xl font-semibold">Operations overview</h2>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <Metric label="Today's bookings" value={todaysBookings.length} />
-            <Metric label="Pending bookings" value={pendingBookings.length} />
-            <Metric label="Next 7 days" value={upcomingBookings.length} />
-            <Metric
-              label="Next 7 days' revenue estimate"
-              value={revenueEstimate.toLocaleString()}
-            />
+      <section id="admin-bookings" className="mt-8 scroll-mt-24">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-2xl font-semibold">Bookings</h2>
+          <Button variant="outline" onClick={exportBookings}>
+            Export CSV
+          </Button>
+        </div>
+        <BookingTable
+          bookings={bookings}
+          onStatus={saveBookingStatus}
+          onSelect={setSelectedBookingId}
+          selectedId={selectedBookingId}
+        />
+        {selectedBooking && (
+          <div className="mt-8 grid gap-6 lg:grid-cols-3">
+            <section className="rounded-lg border p-4">
+              <h3 className="font-semibold">Guest and booking</h3>
+              <p className="mt-2 text-sm">
+                {selectedBooking.name} · {selectedBooking.email}
+              </p>
+              <p className="text-sm">
+                {selectedBooking.phone} · {selectedBooking.date}
+                {selectedBooking.start_time
+                  ? ` · ${selectedBooking.start_time.slice(0, 5)}`
+                  : ""} · {selectedBooking.guests} guests
+              </p>
+              <p className="text-sm">
+                Party: {selectedBooking.adults} adults · {selectedBooking.children} children ·{" "}
+                {selectedBooking.infants} infants
+              </p>
+              <p className="text-sm">
+                Meal choice: {selectedBooking.meal_choice || "Not provided"}
+              </p>
+              <p className="text-sm">
+                Allergies / dietary needs: {selectedBooking.dietary_needs || "Not provided"}
+              </p>
+              <p className="text-sm">
+                Price: {selectedBooking.adults} ×{" "}
+                {formatAdminPrice(selectedBooking.adult_unit_price, sharedCurrency)}
+                {selectedBooking.child_unit_price !== null
+                  ? ` · ${selectedBooking.children} × ${formatAdminPrice(selectedBooking.child_unit_price, sharedCurrency)}`
+                  : ""}
+                {selectedBooking.infants > 0 ? " · Infants free" : ""}
+                {" · Total "}
+                {formatAdminPrice(selectedBooking.total_price, sharedCurrency)}
+              </p>
+              <p className="text-sm">
+                Occasion: {selectedBooking.special_occasion || "Not provided"}
+              </p>
+              <p className="text-sm">
+                Private group: {selectedBooking.private_group ? "Yes" : "No"}
+              </p>
+            </section>
+            <section className="rounded-lg border p-4">
+              <h3 className="font-semibold">Internal notes</h3>
+              <form
+                className="mt-3 space-y-2"
+                onSubmit={(event) => void addBookingRecord(event, "note")}
+              >
+                <label className="sr-only" htmlFor="booking-note">
+                  Add internal note
+                </label>
+                <textarea
+                  id="booking-note"
+                  className={inputClass}
+                  maxLength={4000}
+                  required
+                  value={noteDraft}
+                  onChange={(event) => setNoteDraft(event.target.value)}
+                />
+                <Button size="sm" type="submit">
+                  Add note
+                </Button>
+              </form>
+              <ul className="mt-4 space-y-2 text-sm">
+                {notes.map((note) => (
+                  <li key={note.id} className="border-t pt-2">
+                    <time>{new Date(note.created_at).toLocaleString()}</time>
+                    <p>{note.note}</p>
+                  </li>
+                ))}
+              </ul>
+            </section>
+            <section className="rounded-lg border p-4">
+              <h3 className="font-semibold">Guest message history</h3>
+              <form
+                className="mt-3 space-y-2"
+                onSubmit={(event) => void addBookingRecord(event, "message")}
+              >
+                <label className="block text-sm">
+                  Channel
+                  <select
+                    className={`${inputClass} mt-1`}
+                    value={messageChannel}
+                    onChange={(event) =>
+                      setMessageChannel(event.target.value as typeof messageChannel)
+                    }
+                  >
+                    <option value="email">Email</option>
+                    <option value="whatsapp">WhatsApp</option>
+                    <option value="phone">Phone</option>
+                    <option value="other">Other</option>
+                  </select>
+                </label>
+                <label className="block text-sm">
+                  Direction
+                  <select
+                    className={`${inputClass} mt-1`}
+                    value={messageDirection}
+                    onChange={(event) =>
+                      setMessageDirection(event.target.value as typeof messageDirection)
+                    }
+                  >
+                    <option value="outbound">Sent</option>
+                    <option value="inbound">Received</option>
+                  </select>
+                </label>
+                <label className="sr-only" htmlFor="booking-message">
+                  Log guest communication
+                </label>
+                <textarea
+                  id="booking-message"
+                  className={inputClass}
+                  maxLength={4000}
+                  required
+                  value={messageDraft}
+                  onChange={(event) => setMessageDraft(event.target.value)}
+                />
+                <Button size="sm" type="submit">
+                  Log message
+                </Button>
+              </form>
+              <ul className="mt-4 space-y-2 text-sm">
+                {messages.map((message) => (
+                  <li key={message.id} className="border-t pt-2">
+                    <time>{new Date(message.created_at).toLocaleString()}</time>
+                    <p>
+                      {message.direction} · {message.channel}: {message.message}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </section>
           </div>
-          <h3 className="mt-8 text-xl font-semibold">Upcoming bookings</h3>
-          <BookingTable
-            bookings={upcomingBookings}
-            onStatus={saveBookingStatus}
-            onSelect={setSelectedBookingId}
-            selectedId={selectedBookingId}
-          />
-          <p className="mt-3 text-xs text-muted-foreground">
-            Revenue estimate is based on saved booking totals and is not a cash-received report.
-          </p>
-        </section>
-      )}
+        )}
+      </section>
 
-      {tab === "bookings" && (
-        <section className="mt-6">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-2xl font-semibold">Bookings</h2>
-            <Button variant="outline" onClick={exportBookings}>
-              Export CSV
+      <section id="admin-calendar" className="mt-8 scroll-mt-24">
+        <h2 className="text-2xl font-semibold">Availability calendar</h2>
+        <div className="mt-4 flex flex-wrap items-end gap-3">
+          <label className="min-w-56 text-sm">
+            Experience
+            <select
+              className={`${inputClass} mt-1 min-h-11`}
+              value={availabilityExperience}
+              onChange={(event) => setAvailabilityExperience(event.target.value)}
+            >
+              <option value="">Choose experience</option>
+              {experienceOptions.map((id) => (
+                <option key={id} value={id}>
+                  {localizedJson(experiences.find((experience) => experience.id === id)?.title)} ·{" "}
+                  {id}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="w-36 text-sm">
+            Capacity
+            <input
+              className={`${inputClass} mt-1 min-h-11`}
+              type="number"
+              min="1"
+              max="500"
+              value={availabilityCapacity}
+              onChange={(event) => setAvailabilityCapacity(event.target.value)}
+            />
+          </label>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              className="min-h-11"
+              aria-label="Previous month"
+              onClick={() =>
+                setCalendarMonth((month) => new Date(month.getFullYear(), month.getMonth() - 1, 1))
+              }
+            >
+              ‹
+            </Button>
+            <h3 className="min-w-36 text-center font-semibold">
+              {calendarMonth.toLocaleDateString("en", { month: "long", year: "numeric" })}
+            </h3>
+            <Button
+              variant="outline"
+              className="min-h-11"
+              aria-label="Next month"
+              onClick={() =>
+                setCalendarMonth((month) => new Date(month.getFullYear(), month.getMonth() + 1, 1))
+              }
+            >
+              ›
             </Button>
           </div>
-          <BookingTable
-            bookings={bookings}
-            onStatus={saveBookingStatus}
-            onSelect={setSelectedBookingId}
-            selectedId={selectedBookingId}
-          />
-          {selectedBooking && (
-            <div className="mt-8 grid gap-6 lg:grid-cols-3">
-              <section className="rounded-lg border p-4">
-                <h3 className="font-semibold">Guest and booking</h3>
-                <p className="mt-2 text-sm">
-                  {selectedBooking.name} · {selectedBooking.email}
-                </p>
-                <p className="text-sm">
-                  {selectedBooking.phone} · {selectedBooking.date}
-                  {selectedBooking.start_time
-                    ? ` · ${selectedBooking.start_time.slice(0, 5)}`
-                    : ""}{" "}
-                  · {selectedBooking.guests} guests
-                </p>
-                <p className="text-sm">
-                  Party: {selectedBooking.adults} adults · {selectedBooking.children} children ·{" "}
-                  {selectedBooking.infants} infants
-                </p>
-                <p className="text-sm">
-                  Meal choice: {selectedBooking.meal_choice || "Not provided"}
-                </p>
-                <p className="text-sm">
-                  Allergies / dietary needs: {selectedBooking.dietary_needs || "Not provided"}
-                </p>
-                <p className="text-sm">
-                  Price: {selectedBooking.adults} ×{" "}
-                  {formatAdminPrice(selectedBooking.adult_unit_price, sharedCurrency)}
-                  {selectedBooking.child_unit_price !== null
-                    ? ` · ${selectedBooking.children} × ${formatAdminPrice(selectedBooking.child_unit_price, sharedCurrency)}`
-                    : ""}
-                  {selectedBooking.infants > 0 ? " · Infants free" : ""}
-                  {" · Total "}
-                  {formatAdminPrice(selectedBooking.total_price, sharedCurrency)}
-                </p>
-                <p className="text-sm">
-                  Occasion: {selectedBooking.special_occasion || "Not provided"}
-                </p>
-                <p className="text-sm">
-                  Private group: {selectedBooking.private_group ? "Yes" : "No"}
-                </p>
-              </section>
-              <section className="rounded-lg border p-4">
-                <h3 className="font-semibold">Internal notes</h3>
-                <form
-                  className="mt-3 space-y-2"
-                  onSubmit={(event) => void addBookingRecord(event, "note")}
-                >
-                  <label className="sr-only" htmlFor="booking-note">
-                    Add internal note
-                  </label>
-                  <textarea
-                    id="booking-note"
-                    className={inputClass}
-                    maxLength={4000}
-                    required
-                    value={noteDraft}
-                    onChange={(event) => setNoteDraft(event.target.value)}
-                  />
-                  <Button size="sm" type="submit">
-                    Add note
-                  </Button>
-                </form>
-                <ul className="mt-4 space-y-2 text-sm">
-                  {notes.map((note) => (
-                    <li key={note.id} className="border-t pt-2">
-                      <time>{new Date(note.created_at).toLocaleString()}</time>
-                      <p>{note.note}</p>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-              <section className="rounded-lg border p-4">
-                <h3 className="font-semibold">Guest message history</h3>
-                <form
-                  className="mt-3 space-y-2"
-                  onSubmit={(event) => void addBookingRecord(event, "message")}
-                >
-                  <label className="block text-sm">
-                    Channel
-                    <select
-                      className={`${inputClass} mt-1`}
-                      value={messageChannel}
-                      onChange={(event) =>
-                        setMessageChannel(event.target.value as typeof messageChannel)
-                      }
-                    >
-                      <option value="email">Email</option>
-                      <option value="whatsapp">WhatsApp</option>
-                      <option value="phone">Phone</option>
-                      <option value="other">Other</option>
-                    </select>
-                  </label>
-                  <label className="block text-sm">
-                    Direction
-                    <select
-                      className={`${inputClass} mt-1`}
-                      value={messageDirection}
-                      onChange={(event) =>
-                        setMessageDirection(event.target.value as typeof messageDirection)
-                      }
-                    >
-                      <option value="outbound">Sent</option>
-                      <option value="inbound">Received</option>
-                    </select>
-                  </label>
-                  <label className="sr-only" htmlFor="booking-message">
-                    Log guest communication
-                  </label>
-                  <textarea
-                    id="booking-message"
-                    className={inputClass}
-                    maxLength={4000}
-                    required
-                    value={messageDraft}
-                    onChange={(event) => setMessageDraft(event.target.value)}
-                  />
-                  <Button size="sm" type="submit">
-                    Log message
-                  </Button>
-                </form>
-                <ul className="mt-4 space-y-2 text-sm">
-                  {messages.map((message) => (
-                    <li key={message.id} className="border-t pt-2">
-                      <time>{new Date(message.created_at).toLocaleString()}</time>
-                      <p>
-                        {message.direction} · {message.channel}: {message.message}
-                      </p>
-                    </li>
-                  ))}
-                </ul>
-              </section>
+          <Button variant="outline" className="min-h-11" onClick={() => void openWeekends()}>
+            Open all Fridays and Saturdays this month
+          </Button>
+        </div>
+        <div className="mt-4 grid grid-cols-7 gap-1 sm:gap-2">
+          {Array.from({ length: 7 }, (_, index) => (
+            <div
+              key={`weekday-${index}`}
+              className="p-1 text-center text-xs font-semibold sm:text-sm"
+            >
+              {new Date(2024, 0, 7 + index).toLocaleDateString("en", { weekday: "short" })}
             </div>
+          ))}
+          {calendarDates.map((date) => {
+            const dateValue = toLocalDateString(date);
+            const slot = availability.find(
+              (item) => item.experience_id === availabilityExperience && item.date === dateValue,
+            );
+            const activeGuests = bookings
+              .filter(
+                (booking) =>
+                  booking.experience_id === availabilityExperience &&
+                  booking.date === dateValue &&
+                  booking.status !== "cancelled",
+              )
+              .reduce((total, booking) => total + booking.adults + booking.children, 0);
+            const bookedGuests = Math.max(slot?.booked_count ?? 0, activeGuests);
+            const capacity = slot?.capacity ?? Number(availabilityCapacity);
+            const state = getCalendarSlotState(slot ?? null, bookedGuests);
+            const inMonth = date.getMonth() === calendarMonth.getMonth();
+            const selected = selectedCalendarDate === dateValue;
+            const stateClasses =
+              state === "available"
+                ? "bg-green-100 text-green-950"
+                : state === "full"
+                  ? "bg-gray-200 text-gray-700"
+                  : "bg-red-50 text-red-900";
+            return (
+              <button
+                key={dateValue}
+                type="button"
+                disabled={!availabilityExperience}
+                aria-label={`${dateValue}, ${state === "full" ? "fully booked" : state}, ${bookedGuests} guests booked. Tap to change state.`}
+                aria-pressed={selected}
+                onClick={() => void cycleCalendarDay(dateValue)}
+                className={`min-h-16 rounded-lg border p-1 text-center text-xs focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 sm:min-h-20 sm:text-sm ${stateClasses} ${!inMonth ? "opacity-40" : ""} ${selected ? "ring-2 ring-primary" : ""}`}
+              >
+                <span className="block font-semibold">{date.getDate()}</span>
+                <span className="block capitalize">{state === "full" ? "Full" : state}</span>
+                <span className="block">
+                  {bookedGuests}/{capacity}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <Button
+            variant="outline"
+            className="min-h-11"
+            disabled={!availabilityExperience}
+            onClick={() => void saveCalendarState(selectedCalendarDate, "closed")}
+          >
+            Close this day
+          </Button>
+          <Button
+            variant="outline"
+            className="min-h-11"
+            disabled={!availabilityExperience}
+            onClick={() => void copyCalendarToNextFourWeeks()}
+          >
+            Copy to next 4 weeks
+          </Button>
+        </div>
+        {calendarMessage && (
+          <p role="status" className="mt-3 text-sm font-medium text-green-800">
+            {calendarMessage}
+          </p>
+        )}
+        <section className="mt-6 rounded-lg border p-4">
+          <h3 className="text-lg font-semibold">Bookings on {selectedCalendarDate}</h3>
+          {selectedDateBookings.length ? (
+            <ul className="mt-3 space-y-2">
+              {selectedDateBookings.map((booking) => (
+                <li key={booking.id} className="rounded border p-3 text-sm">
+                  {booking.name} · {booking.guests} guests · {booking.status}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-2 text-sm text-muted-foreground">No bookings on this day.</p>
           )}
         </section>
-      )}
-
-      {tab === "calendar" && (
-        <section className="mt-6">
-          <h2 className="text-2xl font-semibold">Availability calendar</h2>
+        <details className="mt-6 rounded-lg border p-4">
+          <summary className="cursor-pointer font-semibold">Advanced: add a date range</summary>
           <form
             onSubmit={(event) => void saveAvailability(event)}
             className="mt-4 grid gap-4 rounded-lg border p-4 sm:grid-cols-2 lg:grid-cols-3"
@@ -981,12 +1299,12 @@ function AdminPage() {
               </tbody>
             </table>
           </div>
-        </section>
-      )}
+        </details>
+      </section>
 
-      {(tab === "experiences" || tab === "families" || tab === "reviews") && (
+      <section id="admin-experiences" className="mt-8 scroll-mt-24">
         <CatalogManager
-          section={tab}
+          section="experiences"
           experiences={experiences}
           families={families}
           reviews={reviews}
@@ -995,9 +1313,14 @@ function AdminPage() {
           onRefresh={refresh}
           onError={setError}
         />
-      )}
+      </section>
 
-      {tab === "content" && (
+      <section id="admin-photos" className="mt-8 scroll-mt-24">
+        <GuestPhotoManager photos={guestPhotos} onRefresh={refresh} onError={setError} />
+      </section>
+
+      <section id="admin-page-text" className="mt-8 scroll-mt-24">
+        <HomepageTextEditor settings={settings} onRefresh={refresh} onError={setError} />
         <section className="mt-6 grid gap-8 xl:grid-cols-2">
           <div>
             <h2 className="text-2xl font-semibold">Edit site text (EN / FR / AR)</h2>
@@ -1024,6 +1347,7 @@ function AdminPage() {
               {(["en", "fr", "ar"] as const).map((language) => (
                 <label key={language} className="block text-sm">
                   {language.toUpperCase()}
+                  {language !== "en" ? " (optional)" : ""}
                   <textarea
                     dir={language === "ar" ? "rtl" : "ltr"}
                     className={`${inputClass} mt-1`}
@@ -1096,7 +1420,7 @@ function AdminPage() {
                           className={`${inputClass} mt-1`}
                           rows={field === "answer" ? 3 : 1}
                           maxLength={field === "answer" ? 5000 : 500}
-                          required
+                          required={language === "en"}
                           value={values[language]}
                           onChange={(event) =>
                             update((current) => ({ ...current, [language]: event.target.value }))
@@ -1234,8 +1558,8 @@ function AdminPage() {
               </div>
             </form>
           </div>
-          <div>
-            <h2 className="text-2xl font-semibold">Admin-managed settings</h2>
+          <details id="admin-settings" className="scroll-mt-24 rounded-lg border p-4">
+            <summary className="cursor-pointer text-xl font-semibold">Advanced settings</summary>
             <p className="mt-2 text-sm text-muted-foreground">
               Use JSON values. Public values are visible to visitors. Configure
               booking.cancellation_tiers as an array of objects with integer hours_before and
@@ -1308,11 +1632,34 @@ function AdminPage() {
                 </li>
               ))}
             </ul>
-          </div>
+          </details>
         </section>
-      )}
+      </section>
 
-      {tab === "inquiries" && (
+      <details className="mt-10 rounded-lg border p-4">
+        <summary className="cursor-pointer text-xl font-semibold">Advanced</summary>
+        <section className="mt-6">
+          <CatalogManager
+            section="families"
+            experiences={experiences}
+            families={families}
+            reviews={reviews}
+            currency={sharedCurrency}
+            onSaveCurrency={saveCatalogCurrency}
+            onRefresh={refresh}
+            onError={setError}
+          />
+          <CatalogManager
+            section="reviews"
+            experiences={experiences}
+            families={families}
+            reviews={reviews}
+            currency={sharedCurrency}
+            onSaveCurrency={saveCatalogCurrency}
+            onRefresh={refresh}
+            onError={setError}
+          />
+        </section>
         <section className="mt-6">
           <h2 className="text-2xl font-semibold">Inquiries inbox</h2>
           {inquiries.length === 0 ? (
@@ -1360,8 +1707,6 @@ function AdminPage() {
             </ul>
           )}
         </section>
-      )}
-      {tab === "subscribers" && (
         <section className="mt-6">
           <h2 className="text-2xl font-semibold">Newsletter subscribers</h2>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -1397,7 +1742,13 @@ function AdminPage() {
             </div>
           )}
         </section>
-      )}
+      </details>
+      <a
+        href="#top"
+        className="fixed bottom-5 end-5 z-40 rounded-full bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-lg"
+      >
+        Back to top
+      </a>
     </main>
   );
 }
@@ -1423,59 +1774,76 @@ function BookingTable({
   selectedId: string;
 }) {
   return (
-    <div className="mt-4 overflow-x-auto rounded-lg border">
-      <table className="w-full min-w-[760px] text-left text-sm">
-        <caption className="sr-only">Guest bookings and status</caption>
-        <thead>
-          <tr className="border-b bg-muted/40">
-            <th className="p-3">Guest</th>
-            <th className="p-3">Date</th>
-            <th className="p-3">Experience</th>
-            <th className="p-3">Guests</th>
-            <th className="p-3">Total</th>
-            <th className="p-3">Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {bookings.map((booking) => (
-            <tr
-              key={booking.id}
-              className={`border-b ${booking.id === selectedId ? "bg-muted/30" : ""}`}
+    <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      {bookings.map((booking) => (
+        <article
+          key={booking.id}
+          className={`rounded-xl border p-4 ${booking.id === selectedId ? "border-primary ring-1 ring-primary" : ""}`}
+        >
+          <div className="flex items-start justify-between gap-3">
+            <button
+              className="min-h-11 text-start font-semibold text-primary underline"
+              onClick={() => onSelect(booking.id)}
             >
-              <td className="p-3">
-                <button
-                  className="font-medium text-primary underline"
-                  onClick={() => onSelect(booking.id)}
-                >
-                  {booking.name}
-                </button>
-                <span className="block text-xs text-muted-foreground">{booking.email}</span>
-              </td>
-              <td className="p-3">{booking.date}</td>
-              <td className="p-3">{booking.experience_id}</td>
-              <td className="p-3">{booking.guests}</td>
-              <td className="p-3">{Number(booking.total_price).toLocaleString()}</td>
-              <td className="p-3">
-                <label className="sr-only" htmlFor={`status-${booking.id}`}>
-                  Booking status for {booking.name}
-                </label>
-                <select
-                  id={`status-${booking.id}`}
-                  className={inputClass}
-                  value={booking.status}
-                  onChange={(event) =>
-                    void onStatus(booking, event.target.value as Booking["status"])
-                  }
-                >
-                  <option value="pending">Pending</option>
-                  <option value="confirmed">Confirmed</option>
-                  <option value="cancelled">Cancelled</option>
-                </select>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+              {booking.name}
+              <span className="block text-sm font-normal text-muted-foreground">
+                {booking.email}
+              </span>
+            </button>
+            <span className="rounded-full bg-muted px-3 py-1 text-xs font-semibold capitalize">
+              {booking.status}
+            </span>
+          </div>
+          <dl className="mt-4 space-y-2 text-sm">
+            <div>
+              <dt className="inline font-medium">Date: </dt>
+              <dd className="inline">
+                {booking.date}
+                {booking.start_time ? ` · ${booking.start_time.slice(0, 5)}` : ""}
+              </dd>
+            </div>
+            <div>
+              <dt className="inline font-medium">Experience: </dt>
+              <dd className="inline">{booking.experience_id}</dd>
+            </div>
+            <div>
+              <dt className="inline font-medium">Guests: </dt>
+              <dd className="inline">
+                {booking.guests} ({booking.adults} adults, {booking.children} children,{" "}
+                {booking.infants} infants)
+              </dd>
+            </div>
+            <div>
+              <dt className="inline font-medium">Meal: </dt>
+              <dd className="inline">{booking.meal_choice || "Not provided"}</dd>
+            </div>
+            <div>
+              <dt className="inline font-medium">Notes: </dt>
+              <dd className="inline">{booking.dietary_needs || "None provided"}</dd>
+            </div>
+            <div>
+              <dt className="inline font-medium">Total: </dt>
+              <dd className="inline">{Number(booking.total_price).toLocaleString()}</dd>
+            </div>
+          </dl>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {booking.status !== "confirmed" && (
+              <Button className="min-h-11" onClick={() => void onStatus(booking, "confirmed")}>
+                Confirm
+              </Button>
+            )}
+            {booking.status !== "cancelled" && (
+              <Button
+                className="min-h-11"
+                variant="outline"
+                onClick={() => void onStatus(booking, "cancelled")}
+              >
+                Cancel
+              </Button>
+            )}
+          </div>
+        </article>
+      ))}
     </div>
   );
 }
@@ -1511,6 +1879,14 @@ function isJson(value: unknown): value is Json {
 function formatAdminPrice(value: number, currency: string): string {
   if (!/^[A-Z]{3}$/.test(currency)) return String(value);
   return new Intl.NumberFormat("en", { style: "currency", currency }).format(value);
+}
+
+function toLocalDateString(date: Date): string {
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0"),
+  ].join("-");
 }
 
 function requiredSettingVisibility(key: string): boolean | null {
