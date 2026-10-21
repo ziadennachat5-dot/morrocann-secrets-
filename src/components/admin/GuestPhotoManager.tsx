@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import type { Json, Tables } from "@/integrations/supabase/types";
+import { syncRootGuestPhotos } from "@/lib/guest-photos.functions";
 
 type GuestPhoto = Tables<"guest_photos">;
 type Language = "en" | "fr" | "ar";
@@ -78,6 +79,8 @@ export function GuestPhotoManager({
 }) {
   const [files, setFiles] = useState<File[]>([]);
   const [busy, setBusy] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState("");
   const [previews, setPreviews] = useState<Record<string, string>>({});
   const [draggedPhotoId, setDraggedPhotoId] = useState<string | null>(null);
   const [altDrafts, setAltDrafts] = useState<Record<string, AltText>>({});
@@ -248,15 +251,61 @@ export function GuestPhotoManager({
     }
   }
 
+  async function handleSyncFolder() {
+    setSyncing(true);
+    setSyncMessage("");
+    try {
+      const res = await syncRootGuestPhotos();
+      setSyncMessage(
+        res.addedCount > 0
+          ? `Synced ${res.addedCount} new photo(s) from project folder.`
+          : `All photos from folder (${res.totalSources}) are already in the manager.`,
+      );
+      await onRefresh();
+    } catch (err) {
+      onError(err instanceof Error ? err.message : "Sync from project folder failed.");
+    } finally {
+      setSyncing(false);
+    }
+  }
+
+  const approvedCount = sortedPhotos.filter((p) => p.guest_consent_confirmed).length;
+  const pendingCount = sortedPhotos.length - approvedCount;
+
   return (
     <section className="mt-8">
-      <h2 className="text-2xl font-semibold">Guest photos</h2>
-      <p className="mt-2 text-sm text-muted-foreground">
-        Photos stay private until you add alt text and confirm that the guest agreed to be shown.
-      </p>
-      <div className="mt-4 rounded-lg border p-4">
-        <label className="block text-sm font-medium">
-          Upload several photos
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-2xl font-bold">Guest Photos</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {sortedPhotos.length} total photos ·{" "}
+            <span className="text-emerald-700 font-semibold">{approvedCount} visible publicly</span>{" "}
+            · <span className="text-amber-800 font-semibold">{pendingCount} pending consent</span>
+          </p>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          className="min-h-12 px-5 font-semibold"
+          disabled={busy || syncing}
+          onClick={() => void handleSyncFolder()}
+        >
+          {syncing ? "Scanning folder…" : "📁 Sync photos from folder"}
+        </Button>
+      </div>
+
+      {syncMessage && (
+        <p
+          role="status"
+          className="mt-3 rounded-lg bg-accent/15 p-3 text-sm font-medium text-accent"
+        >
+          {syncMessage}
+        </p>
+      )}
+
+      <div className="mt-4 rounded-2xl border bg-card p-4 sm:p-5 shadow-sm">
+        <label className="block text-sm font-semibold">
+          Upload new photos (from phone / computer)
           <input
             className={`${inputClass} mt-2`}
             type="file"
@@ -265,14 +314,19 @@ export function GuestPhotoManager({
             onChange={(event) => setFiles(Array.from(event.target.files ?? []))}
           />
         </label>
-        <Button
-          className="mt-3 min-h-11"
-          disabled={!files.length || busy}
-          onClick={() => void uploadSelected()}
-        >
-          {busy ? "Working…" : `Upload ${files.length || ""} photo${files.length === 1 ? "" : "s"}`}
-        </Button>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Button
+            className="min-h-12 px-6 font-semibold"
+            disabled={!files.length || busy || syncing}
+            onClick={() => void uploadSelected()}
+          >
+            {busy
+              ? "Working…"
+              : `Upload ${files.length || ""} photo${files.length === 1 ? "" : "s"}`}
+          </Button>
+        </div>
       </div>
+
       <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {sortedPhotos.map((photo, index) => {
           const alt = altDrafts[photo.id] ?? parseAlt(photo.alt);
@@ -288,72 +342,105 @@ export function GuestPhotoManager({
                 setDraggedPhotoId(null);
               }}
               onDragEnd={() => setDraggedPhotoId(null)}
-              className="rounded-xl border p-4"
+              className="rounded-2xl border bg-card p-4 shadow-sm flex flex-col justify-between"
             >
-              {previews[photo.id] && (
-                <img
-                  src={previews[photo.id]}
-                  alt=""
-                  className="aspect-[4/3] w-full rounded-lg object-cover"
-                />
-              )}
-              <fieldset className="mt-3 space-y-2">
-                <legend className="text-sm font-semibold">Accessible photo description</legend>
-                {languages.map((language) => (
-                  <label key={language} className="block text-sm">
-                    {language.toUpperCase()}
+              <div>
+                {previews[photo.id] && (
+                  <img
+                    src={previews[photo.id]}
+                    alt=""
+                    className="aspect-[4/3] w-full rounded-xl object-cover border"
+                  />
+                )}
+                {photo.source_file && (
+                  <p className="mt-2 text-xs text-muted-foreground font-mono truncate">
+                    {photo.source_file}
+                  </p>
+                )}
+
+                <div className="mt-3 rounded-xl border p-3 bg-background">
+                  <label className="flex items-center gap-3 text-sm font-semibold cursor-pointer min-h-11">
                     <input
-                      className={`${inputClass} mt-1`}
-                      dir={language === "ar" ? "rtl" : "ltr"}
-                      maxLength={500}
-                      value={alt[language]}
-                      onChange={(event) =>
-                        setAltDrafts((current) => ({
-                          ...current,
-                          [photo.id]: { ...alt, [language]: event.target.value },
-                        }))
-                      }
-                      onBlur={(event) =>
-                        void saveAlt(photo, { ...alt, [language]: event.currentTarget.value })
-                      }
+                      type="checkbox"
+                      className="h-5 w-5 rounded accent-primary"
+                      checked={photo.guest_consent_confirmed}
+                      onChange={(event) => void setConsent(photo, event.target.checked, alt)}
                     />
+                    <span>
+                      {photo.guest_consent_confirmed ? (
+                        <span className="text-emerald-700 font-bold">
+                          ✓ Guest agreed to be shown
+                        </span>
+                      ) : (
+                        <span className="text-amber-800 font-medium">Guest agreed to be shown</span>
+                      )}
+                    </span>
                   </label>
-                ))}
-              </fieldset>
-              <label className="mt-3 flex min-h-11 items-center gap-2 text-sm font-medium">
-                <input
-                  type="checkbox"
-                  checked={photo.guest_consent_confirmed}
-                  onChange={(event) => void setConsent(photo, event.target.checked, alt)}
-                />
-                Guest agreed to be shown
-              </label>
-              <div className="mt-3 flex flex-wrap gap-2">
+                  <p className="text-xs text-muted-foreground ps-8">
+                    {photo.guest_consent_confirmed
+                      ? "Visible on public website"
+                      : "Hidden from public website"}
+                  </p>
+                </div>
+
+                <details className="mt-3 rounded-lg border p-2">
+                  <summary className="cursor-pointer text-xs font-semibold text-muted-foreground">
+                    Accessible description (alt text)
+                  </summary>
+                  <fieldset className="mt-2 space-y-2">
+                    {languages.map((language) => (
+                      <label key={language} className="block text-xs">
+                        {language.toUpperCase()}
+                        <input
+                          className={`${inputClass} mt-1 text-xs`}
+                          dir={language === "ar" ? "rtl" : "ltr"}
+                          maxLength={500}
+                          value={alt[language]}
+                          onChange={(event) =>
+                            setAltDrafts((current) => ({
+                              ...current,
+                              [photo.id]: { ...alt, [language]: event.target.value },
+                            }))
+                          }
+                          onBlur={(event) =>
+                            void saveAlt(photo, { ...alt, [language]: event.currentTarget.value })
+                          }
+                        />
+                      </label>
+                    ))}
+                  </fieldset>
+                </details>
+              </div>
+
+              <div className="mt-4 flex flex-wrap gap-2 pt-2 border-t">
                 <Button
                   variant="outline"
                   size="sm"
+                  className="min-h-11 flex-1"
                   disabled={index === 0 || busy}
                   onClick={() => {
                     const previousPhoto = sortedPhotos[index - 1];
                     if (previousPhoto) void reorderPhotos(photo.id, previousPhoto.id);
                   }}
                 >
-                  Move earlier
+                  ← Move earlier
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
+                  className="min-h-11 flex-1"
                   disabled={index === sortedPhotos.length - 1 || busy}
                   onClick={() => {
                     const nextPhoto = sortedPhotos[index + 1];
                     if (nextPhoto) void reorderPhotos(photo.id, nextPhoto.id);
                   }}
                 >
-                  Move later
+                  Move later →
                 </Button>
                 <Button
                   variant="destructive"
                   size="sm"
+                  className="min-h-11"
                   disabled={busy}
                   onClick={() => void deletePhoto(photo)}
                 >

@@ -63,3 +63,98 @@ export const getPublicGuestPhotos = createServerFn({ method: "GET" }).handler(as
   );
   return { photos: photosWithUrls, unavailable: false };
 });
+
+export const syncRootGuestPhotos = createServerFn({ method: "POST" }).handler(async () => {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { readdir } = await import("node:fs/promises");
+  const path = await import("node:path");
+  const sharp = (await import("sharp")).default;
+
+  const root = process.cwd();
+  const allFiles = await readdir(root);
+  const ignoredFiles = new Set([
+    "RIAD.png",
+    "apple-touch-icon.png",
+    "favicon.ico",
+    "favicon-32x32.png",
+    "og-image.png",
+  ]);
+  const sources = allFiles
+    .filter((filename) => /\.(jpe?g|png|webp)$/i.test(filename) && !ignoredFiles.has(filename))
+    .sort((left, right) => {
+      const leftNum = Number.parseInt(left, 10);
+      const rightNum = Number.parseInt(right, 10);
+      if (!Number.isNaN(leftNum) && !Number.isNaN(rightNum)) return leftNum - rightNum;
+      return left.localeCompare(right);
+    });
+
+  let addedCount = 0;
+  for (const sourceFile of sources) {
+    const existing = await supabaseAdmin
+      .from("guest_photos")
+      .select("id")
+      .eq("source_file", sourceFile)
+      .maybeSingle();
+
+    if (existing.data) continue;
+
+    const inputPath = path.join(root, sourceFile);
+    const metadata = await sharp(inputPath).metadata();
+    if (!metadata.width) continue;
+
+    const orientationSwapsAxes = [5, 6, 7, 8].includes(metadata.orientation ?? 0);
+    const sourceWidth = orientationSwapsAxes ? metadata.height : metadata.width;
+    if (!sourceWidth) continue;
+
+    const widths = [
+      ...new Set([320, 640, 960, 1200, 1600].filter((width) => width <= sourceWidth)),
+    ];
+    widths.push(sourceWidth);
+
+    const safeBaseName = path.parse(sourceFile).name.replace(/[^a-zA-Z0-9_-]/g, "_");
+    const fileKey = `seed/${safeBaseName}`;
+    const renditions: { width: number; path: string }[] = [];
+
+    for (const width of [...new Set(widths)].sort((a, b) => a - b)) {
+      const optimized = await sharp(inputPath)
+        .rotate()
+        .resize({ width, withoutEnlargement: true })
+        .webp({ quality: 82, effort: 5 })
+        .toBuffer();
+      const actualWidth = (await sharp(optimized).metadata()).width;
+      if (!actualWidth) continue;
+
+      const objectPath = `${fileKey}/${actualWidth}.webp`;
+      const upload = await supabaseAdmin.storage
+        .from("guest-photos")
+        .upload(objectPath, optimized, { contentType: "image/webp", upsert: true });
+
+      if (upload.error) continue;
+      renditions.push({ width: actualWidth, path: objectPath });
+    }
+
+    const largest = renditions.at(-1);
+    if (!largest) continue;
+
+    const num = Number.parseInt(sourceFile, 10);
+    const sortOrder = !Number.isNaN(num) ? num - 1 : 100 + addedCount;
+    const insert = await supabaseAdmin.from("guest_photos").insert({
+      source_file: sourceFile,
+      storage_path: largest.path,
+      renditions: renditions.map(({ width, path: itemPath }) => ({ width, path: itemPath })),
+      alt: {
+        en: `Moroccan dining photo (${path.parse(sourceFile).name})`,
+        fr: `Photo de repas marocain (${path.parse(sourceFile).name})`,
+        ar: `صورة عشاء مغربي (${path.parse(sourceFile).name})`,
+      },
+      sort_order: sortOrder,
+      guest_consent_confirmed: false,
+    });
+
+    if (!insert.error) {
+      addedCount += 1;
+    }
+  }
+
+  return { addedCount, totalSources: sources.length };
+});

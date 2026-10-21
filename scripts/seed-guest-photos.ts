@@ -80,14 +80,30 @@ async function main() {
     { auth: { persistSession: false, autoRefreshToken: false } },
   );
   const root = process.cwd();
-  const sources = (await readdir(root))
-    .filter((filename) => /^\d+\.jpeg$/i.test(filename))
-    .sort((left, right) => Number.parseInt(left, 10) - Number.parseInt(right, 10));
+  const allFiles = await readdir(root);
+  const ignoredFiles = new Set([
+    "RIAD.png",
+    "apple-touch-icon.png",
+    "favicon.ico",
+    "favicon-32x32.png",
+    "og-image.png",
+  ]);
+  const sources = allFiles
+    .filter((filename) => /\.(jpe?g|png|webp)$/i.test(filename) && !ignoredFiles.has(filename))
+    .sort((left, right) => {
+      const leftNum = Number.parseInt(left, 10);
+      const rightNum = Number.parseInt(right, 10);
+      if (!Number.isNaN(leftNum) && !Number.isNaN(rightNum)) return leftNum - rightNum;
+      return left.localeCompare(right);
+    });
 
+  let nextSortOrder = 100;
   for (const sourceFile of sources) {
-    if (!descriptions[sourceFile]) {
-      throw new Error(`No localized alt text is configured for ${sourceFile}.`);
-    }
+    const alt = descriptions[sourceFile] ?? {
+      en: `Moroccan dining photo (${path.parse(sourceFile).name})`,
+      fr: `Photo de repas marocain (${path.parse(sourceFile).name})`,
+      ar: `صورة عشاء مغربي (${path.parse(sourceFile).name})`,
+    };
     const existing = await supabase
       .from("guest_photos")
       .select("id")
@@ -109,7 +125,8 @@ async function main() {
       ...new Set([320, 640, 960, 1200, 1600].filter((width) => width <= sourceWidth)),
     ];
     widths.push(sourceWidth);
-    const fileKey = `seed/${path.parse(sourceFile).name}`;
+    const safeBaseName = path.parse(sourceFile).name.replace(/[^a-zA-Z0-9_-]/g, "_");
+    const fileKey = `seed/${safeBaseName}`;
     const renditions: { width: number; path: string }[] = [];
     for (const width of [...new Set(widths)].sort((a, b) => a - b)) {
       const optimized = await sharp(inputPath)
@@ -140,12 +157,14 @@ async function main() {
       width,
       path: itemPath,
     }));
+    const num = Number.parseInt(sourceFile, 10);
+    const calculatedSortOrder = !Number.isNaN(num) ? num - 1 : nextSortOrder++;
     const insert = await supabase.from("guest_photos").insert({
       source_file: sourceFile,
       storage_path: largest.path,
       renditions: renditionJson,
-      alt: descriptions[sourceFile],
-      sort_order: Number.parseInt(sourceFile, 10) - 1,
+      alt,
+      sort_order: calculatedSortOrder,
       guest_consent_confirmed: false,
     });
     if (insert.error) {
