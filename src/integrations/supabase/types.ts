@@ -586,6 +586,39 @@ export type Database = {
         };
         Relationships: [];
       };
+      guest_photos: {
+        Row: {
+          id: string;
+          source_file: string | null;
+          storage_path: string;
+          renditions: Json;
+          alt: Json;
+          sort_order: number;
+          guest_consent_confirmed: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          source_file?: string | null;
+          storage_path: string;
+          renditions?: Json;
+          alt?: Json;
+          sort_order: number;
+          guest_consent_confirmed?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          source_file?: string | null;
+          storage_path?: string;
+          renditions?: Json;
+          alt?: Json;
+          sort_order?: number;
+          guest_consent_confirmed?: boolean;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       subscribers: {
         Row: {
           id: string;
