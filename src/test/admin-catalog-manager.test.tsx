@@ -20,24 +20,22 @@ function renderExperienceManager() {
 }
 
 describe("experience catalog form", () => {
-  it("opens only Basics initially and allows groups to be toggled without reopening", async () => {
+  it("opens essential fields initially and keeps More options collapsed", async () => {
     renderExperienceManager();
 
     const basics = screen.getByText("Basics").closest("details");
     const pricing = screen.getByText("Pricing and capacity").closest("details");
-    const content = screen.getByText("Content").closest("details");
+    const content = screen.getByText("More options").closest("details");
     const photo = screen.getByText("Photo").closest("details");
 
     expect(basics?.open).toBe(true);
-    expect(pricing?.open).toBe(false);
+    expect(pricing?.open).toBe(true);
     expect(content?.open).toBe(false);
-    expect(photo?.open).toBe(false);
+    expect(photo?.open).toBe(true);
 
-    fireEvent.click(screen.getByText("Content"));
+    fireEvent.click(screen.getByText("More options"));
     await waitFor(() => expect(content?.open).toBe(true));
-    fireEvent.change(screen.getAllByLabelText("EN", { selector: "input" })[0]!, {
-      target: { value: "Test title" },
-    });
+    expect(screen.getByText("Optional French and Arabic translations")).toBeTruthy();
     expect(content?.open).toBe(true);
   });
 

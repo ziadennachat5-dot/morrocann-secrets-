@@ -47,7 +47,9 @@ export function CatalogManager({
   const [experienceImage, setExperienceImage] = useState<File | null>(null);
   const [duplicatedImageUrl, setDuplicatedImageUrl] = useState("");
   const [experienceErrors, setExperienceErrors] = useState<string[]>([]);
-  const [openExperienceGroups, setOpenExperienceGroups] = useState(() => new Set(["basics"]));
+  const [openExperienceGroups, setOpenExperienceGroups] = useState(
+    () => new Set(["basics", "pricing", "photo"]),
+  );
   const [familyImage, setFamilyImage] = useState<File | null>(null);
   const [currencyDraft, setCurrencyDraft] = useState(currency);
   const [currencyBusy, setCurrencyBusy] = useState(false);
@@ -435,6 +437,7 @@ export function CatalogManager({
                 label="Title"
                 value={experience.title}
                 requiredLanguages={["en"]}
+                languages={["en"]}
                 onChange={(title) => setExperience((current) => ({ ...current, title }))}
               />
               <LocalizedInputs
@@ -442,6 +445,7 @@ export function CatalogManager({
                 value={experience.description}
                 multiline
                 requiredLanguages={["en"]}
+                languages={["en"]}
                 onChange={(description) =>
                   setExperience((current) => ({ ...current, description }))
                 }
@@ -450,6 +454,7 @@ export function CatalogManager({
                 label="Duration"
                 value={experience.duration}
                 requiredLanguages={["en"]}
+                languages={["en"]}
                 onChange={(duration) => setExperience((current) => ({ ...current, duration }))}
               />
               <label className="flex items-center gap-2 text-sm">
@@ -580,8 +585,33 @@ export function CatalogManager({
             onToggle={(event) => setExperienceGroupOpen("content", event.currentTarget.open)}
             className="rounded-md border p-3"
           >
-            <summary className="cursor-pointer font-semibold">Content</summary>
+            <summary className="cursor-pointer font-semibold">More options</summary>
             <div className="mt-4 space-y-3">
+              <h4 className="pt-3 font-semibold">Optional French and Arabic translations</h4>
+              <LocalizedInputs
+                label="Title translations"
+                value={experience.title}
+                required={false}
+                languages={["fr", "ar"]}
+                onChange={(title) => setExperience((current) => ({ ...current, title }))}
+              />
+              <LocalizedInputs
+                label="Description translations"
+                value={experience.description}
+                multiline
+                required={false}
+                languages={["fr", "ar"]}
+                onChange={(description) =>
+                  setExperience((current) => ({ ...current, description }))
+                }
+              />
+              <LocalizedInputs
+                label="Duration translations"
+                value={experience.duration}
+                required={false}
+                languages={["fr", "ar"]}
+                onChange={(duration) => setExperience((current) => ({ ...current, duration }))}
+              />
               <h4 className="pt-3 font-semibold">
                 Meal options (optional, one translated option per line)
               </h4>
@@ -914,6 +944,7 @@ function LocalizedInputs({
   multiline = false,
   required = true,
   requiredLanguages,
+  languages,
 }: {
   label: string;
   value: LocalizedFields;
@@ -921,36 +952,41 @@ function LocalizedInputs({
   multiline?: boolean;
   required?: boolean;
   requiredLanguages?: (keyof LocalizedFields)[];
+  languages?: (keyof LocalizedFields)[];
 }) {
   return (
     <fieldset className="space-y-2">
       <legend className="font-medium">{label}</legend>
-      {(["en", "fr", "ar"] as const).map((language) => (
-        <label key={language} className="block text-sm">
-          {language.toUpperCase()}
-          {requiredLanguages && !requiredLanguages.includes(language) ? " (optional)" : ""}
-          {multiline ? (
-            <textarea
-              dir={language === "ar" ? "rtl" : "ltr"}
-              className={`${inputClass} mt-1`}
-              rows={3}
-              maxLength={5000}
-              required={requiredLanguages ? requiredLanguages.includes(language) : required}
-              value={value[language]}
-              onChange={(event) => onChange({ ...value, [language]: event.target.value })}
-            />
-          ) : (
-            <input
-              dir={language === "ar" ? "rtl" : "ltr"}
-              className={`${inputClass} mt-1`}
-              maxLength={500}
-              required={requiredLanguages ? requiredLanguages.includes(language) : required}
-              value={value[language]}
-              onChange={(event) => onChange({ ...value, [language]: event.target.value })}
-            />
-          )}
-        </label>
-      ))}
+      {(["en", "fr", "ar"] as const)
+        .filter((language) => languages?.includes(language) ?? true)
+        .map((language) => (
+          <label key={language} className="block text-sm">
+            {language.toUpperCase()}
+            {!required || (requiredLanguages && !requiredLanguages.includes(language))
+              ? " (optional)"
+              : ""}
+            {multiline ? (
+              <textarea
+                dir={language === "ar" ? "rtl" : "ltr"}
+                className={`${inputClass} mt-1`}
+                rows={3}
+                maxLength={5000}
+                required={requiredLanguages ? requiredLanguages.includes(language) : required}
+                value={value[language]}
+                onChange={(event) => onChange({ ...value, [language]: event.target.value })}
+              />
+            ) : (
+              <input
+                dir={language === "ar" ? "rtl" : "ltr"}
+                className={`${inputClass} mt-1`}
+                maxLength={500}
+                required={requiredLanguages ? requiredLanguages.includes(language) : required}
+                value={value[language]}
+                onChange={(event) => onChange({ ...value, [language]: event.target.value })}
+              />
+            )}
+          </label>
+        ))}
     </fieldset>
   );
 }
