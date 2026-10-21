@@ -159,3 +159,30 @@ export const photos = {
 export type PhotoId = keyof typeof photos;
 
 export const galleryPhotos = Object.values(photos);
+
+export function parseExperienceImages(imageUrl: string | null | undefined): string[] {
+  if (!imageUrl) return [];
+  const trimmed = imageUrl.trim();
+  if (!trimmed) return [];
+  if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) {
+        const valid = parsed.filter(
+          (item): item is string => typeof item === "string" && Boolean(item.trim()),
+        );
+        if (valid.length > 0) return valid;
+      }
+    } catch {
+      // Fall through to other formats
+    }
+  }
+  if (trimmed.includes(",")) {
+    const list = trimmed
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+    if (list.length > 0) return list;
+  }
+  return [trimmed];
+}

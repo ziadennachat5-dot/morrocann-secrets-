@@ -1,8 +1,91 @@
+import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Check, Clock, Users } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import type { PublishedExperience, PublishedFamily } from "@/lib/public-content.functions";
 import { localizedTextForLanguage } from "@/lib/localized-content";
+import { parseExperienceImages } from "@/lib/photos";
+
+export function ExperienceMediaSlider({
+  imageUrl,
+  alt,
+  aspectClass = "aspect-[4/3]",
+}: {
+  imageUrl?: string | null;
+  alt: string;
+  aspectClass?: string;
+}) {
+  const images = parseExperienceImages(imageUrl);
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  if (images.length === 0) return null;
+
+  if (images.length === 1) {
+    return (
+      <img
+        src={images[0]}
+        alt={alt}
+        loading="lazy"
+        className={`${aspectClass} w-full object-cover`}
+      />
+    );
+  }
+
+  return (
+    <div className="relative group overflow-hidden bg-muted">
+      <img
+        src={images[currentIndex] || images[0]}
+        alt={`${alt} (${currentIndex + 1} / ${images.length})`}
+        loading="lazy"
+        className={`${aspectClass} w-full object-cover transition-opacity duration-200`}
+      />
+      <div className="absolute inset-x-2 bottom-3 flex items-center justify-between pointer-events-none">
+        <button
+          type="button"
+          aria-label="Previous photo"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setCurrentIndex((i) => (i > 0 ? i - 1 : images.length - 1));
+          }}
+          className="pointer-events-auto h-8 w-8 rounded-full bg-black/60 text-white font-bold flex items-center justify-center hover:bg-black/85 transition"
+        >
+          ‹
+        </button>
+        <div className="pointer-events-auto rounded-full bg-black/60 px-2 py-0.5 text-xs text-white backdrop-blur">
+          {currentIndex + 1} / {images.length}
+        </div>
+        <button
+          type="button"
+          aria-label="Next photo"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setCurrentIndex((i) => (i < images.length - 1 ? i + 1 : 0));
+          }}
+          className="pointer-events-auto h-8 w-8 rounded-full bg-black/60 text-white font-bold flex items-center justify-center hover:bg-black/85 transition"
+        >
+          ›
+        </button>
+      </div>
+      <div className="absolute bottom-1 inset-x-0 flex justify-center gap-1.5 p-1">
+        {images.map((_, i) => (
+          <button
+            key={i}
+            type="button"
+            aria-label={`Go to photo ${i + 1}`}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setCurrentIndex(i);
+            }}
+            className={`h-1.5 rounded-full transition-all ${currentIndex === i ? "w-4 bg-white" : "w-1.5 bg-white/60"}`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export function ExperienceRow({
   experience,
@@ -16,20 +99,21 @@ export function ExperienceRow({
   reverse?: boolean;
 }) {
   const { t, lang } = useI18n();
+  const altText = experience.image_alt
+    ? localizedTextForLanguage(experience.image_alt, lang)
+    : localizedTextForLanguage(experience.title, lang);
+
   return (
     <article
       className={`grid items-center gap-8 md:grid-cols-2 md:gap-14 ${reverse ? "md:[&>*:first-child]:order-2" : ""}`}
     >
-      {experience.image_alt && (
-        <img
-          src={experience.image_url}
-          alt={localizedTextForLanguage(experience.image_alt, lang)}
-          width={1200}
-          height={1600}
-          loading="lazy"
-          className="arch aspect-[4/5] w-full object-cover"
+      <div className="overflow-hidden arch aspect-[4/5] w-full">
+        <ExperienceMediaSlider
+          imageUrl={experience.image_url}
+          alt={altText}
+          aspectClass="aspect-[4/5]"
         />
-      )}
+      </div>
       <div>
         <h2 className="text-4xl text-foreground">
           {localizedTextForLanguage(experience.title, lang)}

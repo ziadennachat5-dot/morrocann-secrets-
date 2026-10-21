@@ -14,6 +14,7 @@ import { getHomepageContent } from "@/lib/homepage.functions";
 import { DEFAULT_HOW_STEPS, visibleHomepageSections } from "@/lib/homepage-content";
 import { getPublicGuestPhotos } from "@/lib/guest-photos.functions";
 import { GuestPhotoGallery } from "@/components/site/GuestPhotoGallery";
+import { ExperienceMediaSlider } from "@/components/site/Cards";
 import { HeaderLogo } from "@/components/site/Brand";
 import { getSiteUrl } from "@/lib/seo";
 
@@ -286,18 +287,15 @@ function HomePage() {
                   id={`experience-${experience.id}`}
                   className="overflow-hidden rounded-2xl border border-border bg-background"
                 >
-                  {experience.image_url && (
-                    <img
-                      src={experience.image_url}
-                      alt={
-                        experience.image_alt
-                          ? localized(experience.image_alt, lang)
-                          : localized(experience.title, lang)
-                      }
-                      loading="lazy"
-                      className="aspect-[4/3] w-full object-cover"
-                    />
-                  )}
+                  <ExperienceMediaSlider
+                    imageUrl={experience.image_url}
+                    alt={
+                      experience.image_alt
+                        ? localized(experience.image_alt, lang)
+                        : localized(experience.title, lang)
+                    }
+                    aspectClass="aspect-[4/3]"
+                  />
                   <div className="p-5">
                     <h3 className="font-display text-2xl">{localized(experience.title, lang)}</h3>
                     <p className="mt-3 line-clamp-3 text-foreground/75">

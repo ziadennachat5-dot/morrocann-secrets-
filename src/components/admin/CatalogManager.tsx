@@ -14,6 +14,7 @@ import {
   type FamilyDraft,
   type LocalizedFields,
 } from "@/lib/admin-catalog";
+import { parseExperienceImages } from "@/lib/photos";
 
 type Experience = Tables<"experiences">;
 type Family = Tables<"host_families">;
@@ -45,6 +46,8 @@ export function CatalogManager({
   const [experience, setExperience] = useState<ExperienceDraft>(emptyExperienceDraft);
   const [family, setFamily] = useState<FamilyDraft>(emptyFamilyDraft);
   const [experienceImage, setExperienceImage] = useState<File | null>(null);
+  const [experienceImages, setExperienceImages] = useState<File[]>([]);
+  const [existingImages, setExistingImages] = useState<string[]>([]);
   const [duplicatedImageUrl, setDuplicatedImageUrl] = useState("");
   const [experienceErrors, setExperienceErrors] = useState<string[]>([]);
   const [openExperienceGroups, setOpenExperienceGroups] = useState(
@@ -141,7 +144,13 @@ export function CatalogManager({
     if (optionalLocalized.some((fields) => hasAnyTranslation(fields) && !fields.en.trim()))
       errors.push("Enter each optional content block in English; French and Arabic are optional.");
     const existing = experiences.find((item) => item.id === experience.id);
-    if (!existing && !experienceImage && !duplicatedImageUrl) {
+    const hasImage =
+      existing ||
+      experienceImage ||
+      experienceImages.length > 0 ||
+      duplicatedImageUrl ||
+      existingImages.length > 0;
+    if (!hasImage) {
       errors.push("Upload an experience image before creating it.");
     }
     if (errors.length > 0) {
@@ -150,11 +159,28 @@ export function CatalogManager({
     }
 
     setFormBusy(true);
-    const uploaded = experienceImage ? await uploadMedia(experienceImage, "experiences") : null;
-    if (experienceImage && !uploaded) {
+    const filesToUpload =
+      experienceImages.length > 0 ? experienceImages : experienceImage ? [experienceImage] : [];
+    const uploadedUrls: string[] = [];
+    const uploadedPaths: string[] = [];
+    for (const file of filesToUpload) {
+      const up = await uploadMedia(file, "experiences");
+      if (up) {
+        uploadedUrls.push(up.url);
+        uploadedPaths.push(up.path);
+      }
+    }
+    if (filesToUpload.length > 0 && uploadedUrls.length === 0) {
       setFormBusy(false);
       return;
     }
+
+    const allUrls = [...existingImages, ...uploadedUrls];
+    let finalImageUrl = existing?.image_url ?? duplicatedImageUrl ?? "";
+    if (allUrls.length > 0) {
+      finalImageUrl = allUrls.length === 1 ? allUrls[0]! : JSON.stringify(allUrls);
+    }
+
     const record = {
       id: experience.id,
       title: trimFields(experience.title),
@@ -168,7 +194,7 @@ export function CatalogManager({
       max_guests: maxGuests,
       start_time: experience.startTime || null,
       meal_options: mealOptions,
-      image_url: uploaded?.url ?? existing?.image_url ?? duplicatedImageUrl,
+      image_url: finalImageUrl,
       image_alt: optionalLocalizedFields(experience.imageAlt),
       included,
       why_love: experience.whyLove.filter((bullet) => bullet.en.trim()).map(trimFields),
@@ -185,10 +211,10 @@ export function CatalogManager({
           deposit_amount: 0,
         });
     if (result.error) {
-      const cleanupError = uploaded ? await removeMedia(uploaded.path) : null;
-      onError(
-        `Could not save experience: ${result.error.message}${cleanupError ? ` Image cleanup also failed: ${cleanupError}` : ""}`,
-      );
+      for (const p of uploadedPaths) {
+        await removeMedia(p);
+      }
+      onError(`Could not save experience: ${result.error.message}`);
       setFormBusy(false);
       return;
     }
@@ -259,6 +285,15 @@ export function CatalogManager({
     setFormBusy(false);
   }
 
+  async function togglePublishExperience(item: Experience) {
+    const { error } = await supabase
+      .from("experiences")
+      .update({ is_published: !item.is_published, updated_at: new Date().toISOString() })
+      .eq("id", item.id);
+    if (error) onError(`Could not update experience: ${error.message}`);
+    else await onRefresh();
+  }
+
   async function deleteExperience(item: Experience) {
     if (!window.confirm(`Delete experience "${item.id}"? This cannot be undone.`)) return;
     const { error } = await supabase.from("experiences").delete().eq("id", item.id);
@@ -282,6 +317,8 @@ export function CatalogManager({
   function editExperience(item: Experience) {
     setExperience(experienceDraftFrom(item));
     setExperienceImage(null);
+    setExperienceImages([]);
+    setExistingImages(parseExperienceImages(item.image_url));
     setDuplicatedImageUrl("");
     setExperienceErrors([]);
     setExperienceFileKey((key) => key + 1);
@@ -299,6 +336,8 @@ export function CatalogManager({
       ),
     );
     setExperienceImage(null);
+    setExperienceImages([]);
+    setExistingImages(parseExperienceImages(item.image_url));
     setDuplicatedImageUrl(item.image_url);
     setExperienceErrors([]);
     setExperienceFileKey((key) => key + 1);
@@ -322,6 +361,8 @@ export function CatalogManager({
   function resetExperience() {
     setExperience(emptyExperienceDraft());
     setExperienceImage(null);
+    setExperienceImages([]);
+    setExistingImages([]);
     setDuplicatedImageUrl("");
     setExperienceErrors([]);
     setExperienceFileKey((key) => key + 1);
@@ -377,14 +418,37 @@ export function CatalogManager({
                       {item.is_published ? "Published" : "Draft"}
                     </small>
                   </span>
-                  <span className="flex gap-2">
-                    <Button size="sm" variant="outline" onClick={() => editExperience(item)}>
+                  <span className="flex flex-wrap gap-2">
+                    <Button
+                      size="sm"
+                      variant={item.is_published ? "outline" : "default"}
+                      className="min-h-11"
+                      onClick={() => void togglePublishExperience(item)}
+                    >
+                      {item.is_published ? "Unpublish" : "Publish"}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="min-h-11"
+                      onClick={() => editExperience(item)}
+                    >
                       Edit
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => duplicateExperience(item)}>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="min-h-11"
+                      onClick={() => duplicateExperience(item)}
+                    >
                       Duplicate
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => void deleteExperience(item)}>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="min-h-11 text-destructive"
+                      onClick={() => void deleteExperience(item)}
+                    >
                       Delete
                     </Button>
                   </span>
@@ -690,17 +754,69 @@ export function CatalogManager({
                 onChange={(imageAlt) => setExperience((current) => ({ ...current, imageAlt }))}
               />
               <label className="block text-sm">
-                Image upload (media bucket)
+                Photos upload (upload several)
                 <input
                   key={experienceFileKey}
                   className={`${inputClass} mt-1`}
                   type="file"
+                  multiple
                   accept="image/jpeg,image/png,image/webp,image/gif"
-                  required={!experiences.some((item) => item.id === experience.id)}
-                  onChange={(event) => setExperienceImage(event.target.files?.[0] ?? null)}
+                  required={
+                    !experiences.some((item) => item.id === experience.id) &&
+                    existingImages.length === 0
+                  }
+                  onChange={(event) => {
+                    const files = Array.from(event.target.files ?? []);
+                    setExperienceImages(files);
+                    setExperienceImage(files[0] ?? null);
+                  }}
                 />
               </label>
-              {duplicatedImageUrl && !experienceImage && (
+              {existingImages.length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold uppercase text-muted-foreground">
+                    Current photos ({existingImages.length})
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {existingImages.map((url, idx) => (
+                      <div
+                        key={idx}
+                        className="relative group w-20 h-20 rounded-md overflow-hidden border"
+                      >
+                        <img src={url} alt="" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setExistingImages((prev) => prev.filter((_, i) => i !== idx))
+                          }
+                          className="absolute inset-0 bg-black/60 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center text-xs font-bold transition-opacity"
+                          title="Remove photo"
+                        >
+                          ✕ Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {experienceImages.length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold uppercase text-muted-foreground">
+                    New photos to upload ({experienceImages.length})
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {experienceImages.map((file, idx) => (
+                      <div
+                        key={idx}
+                        className="relative w-20 h-20 rounded-md overflow-hidden border bg-muted flex items-center justify-center text-xs text-center p-1"
+                      >
+                        <span className="line-clamp-2">{file.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {duplicatedImageUrl && !experienceImage && experienceImages.length === 0 && (
                 <p className="text-sm text-muted-foreground">
                   The duplicated experience will reuse its existing photo unless you upload a
                   replacement.
