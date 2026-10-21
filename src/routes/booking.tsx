@@ -13,12 +13,9 @@ import { BRAND_NAME } from "@/lib/brand";
 import { getBookingOptions, submitBooking } from "@/lib/booking.functions";
 import { filterAvailableBookingSlots } from "@/lib/booking-availability";
 import type { BookingRequest } from "@/lib/booking-schema";
-import {
-  calculateBookingTotal,
-  countCapacityGuests,
-  formatCancellationTiers,
-} from "@/lib/booking-pricing";
+import { countCapacityGuests, formatCancellationTiers } from "@/lib/booking-pricing";
 import { localizedTextForLanguage } from "@/lib/localized-content";
+import { MAIN_DISHES } from "@/components/site/ConceptAndMenu";
 
 const stepKeys = ["experience", "date", "guests", "contact", "summary"] as const;
 const progressSchema = z.object({
@@ -226,26 +223,53 @@ export function BookingFlow({
   const waHref = options?.whatsapp
     ? `https://wa.me/${options.whatsapp}?text=${encodeURIComponent(t.booking.whatsappMessage)}`
     : null;
-  const price = selectedExperience
-    ? calculateBookingTotal(
-        selectedExperience.price,
-        selectedExperience.child_price,
-        draft.adults,
-        draft.children,
-      )
-    : null;
-  const deposit =
-    selectedExperience && selectedExperience.deposit_amount > 0
-      ? selectedExperience.deposit_amount
-      : null;
 
   const updateDraft = (values: Partial<BookingDraft>) => {
     setDraft((current) => ({ ...current, ...values }));
     setSubmitError("");
   };
 
+  const selectedDishes = useMemo(() => {
+    if (!draft.mealChoice) return [];
+    return draft.mealChoice
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }, [draft.mealChoice]);
+
+  const isDishSelected = (dish: (typeof MAIN_DISHES)[number]) => {
+    return selectedDishes.some(
+      (d) =>
+        d === dish.label[lang] ||
+        d === dish.label.en ||
+        d === dish.label.fr ||
+        d === dish.label.ar ||
+        d === dish.id,
+    );
+  };
+
+  const toggleDish = (dish: (typeof MAIN_DISHES)[number]) => {
+    const isSelected = isDishSelected(dish);
+    let updated: string[];
+    if (isSelected) {
+      updated = selectedDishes.filter(
+        (d) =>
+          d !== dish.label[lang] &&
+          d !== dish.label.en &&
+          d !== dish.label.fr &&
+          d !== dish.label.ar &&
+          d !== dish.id,
+      );
+    } else if (selectedDishes.length < 2) {
+      updated = [...selectedDishes, dish.label[lang]];
+    } else {
+      updated = [selectedDishes[0]!, dish.label[lang]];
+    }
+    updateDraft({ mealChoice: updated.join(", ") });
+  };
+
   const canContinue = () => {
-    if (!options?.currency || options.cancellationTiers.length === 0) return false;
+    if (options?.cancellationTiers.length === 0) return false;
     if (draft.step === 0) return Boolean(selectedExperience);
     if (draft.step === 1) return Boolean(selectedSlot);
     if (draft.step === 2)
@@ -253,8 +277,6 @@ export function BookingFlow({
         capacityGuests >= (selectedExperience?.min_guests ?? 0) &&
         capacityGuests <= (selectedExperience?.max_guests ?? 0) &&
         Boolean(selectedExperience) &&
-        (draft.children === 0 || selectedExperience?.child_price !== null) &&
-        (!selectedExperience?.meal_options.length || Boolean(draft.mealChoice)) &&
         (!draft.privateGroup || capacityGuests >= 6)
       );
     if (draft.step === 3)
@@ -263,7 +285,7 @@ export function BookingFlow({
         z.string().email().safeParse(draft.email).success &&
         draft.phone.trim().length >= 3
       );
-    return Boolean(options?.cancellationTiers.length && options.currency && selectedSlot);
+    return Boolean(options?.cancellationTiers.length && selectedSlot);
   };
 
   const continueStep = () => {
@@ -272,13 +294,7 @@ export function BookingFlow({
   };
 
   const submit = async () => {
-    if (
-      !selectedExperience ||
-      !selectedSlot ||
-      !options?.cancellationTiers.length ||
-      !options.currency
-    )
-      return;
+    if (!selectedExperience || !selectedSlot || !options?.cancellationTiers.length) return;
     const payload: BookingRequest = {
       name: draft.name,
       email: draft.email,
@@ -429,11 +445,6 @@ export function BookingFlow({
             {t.booking.policyMissing}
           </p>
         )}
-        {!options.currency && (
-          <p role="alert" className="mt-4 text-destructive">
-            {t.booking.currencyMissing}
-          </p>
-        )}
         {draft.step === 0 && (
           <fieldset className="mt-6 space-y-3">
             <legend className="sr-only">{t.booking.chooseExperience}</legend>
@@ -459,26 +470,10 @@ export function BookingFlow({
                   <span className="block text-sm text-muted-foreground">
                     {localizedTextForLanguage(experience.blurb, lang)}
                   </span>
-                  {options.currency && (
-                    <span className="mt-2 block text-sm">
-                      {new Intl.NumberFormat(lang, {
-                        style: "currency",
-                        currency: options.currency,
-                      }).format(experience.price)}{" "}
-                      {t.exp.adultPrice.toLocaleLowerCase()} · {experience.min_guests}–
-                      {experience.max_guests} {t.booking.adultsAndChildren.toLocaleLowerCase()}
-                    </span>
-                  )}
-                  {options.currency && experience.child_price !== null && (
-                    <span className="block text-sm text-muted-foreground">
-                      {new Intl.NumberFormat(lang, {
-                        style: "currency",
-                        currency: options.currency,
-                      }).format(experience.child_price)}{" "}
-                      {t.exp.childPrice.toLocaleLowerCase()}
-                      {experience.child_age_min !== null && experience.child_age_max !== null
-                        ? ` (${experience.child_age_min}–${experience.child_age_max})`
-                        : ""}
+                  {experience.min_guests !== null && experience.max_guests !== null && (
+                    <span className="mt-2 block text-sm text-muted-foreground">
+                      {experience.min_guests}–{experience.max_guests}{" "}
+                      {t.booking.adultsAndChildren.toLocaleLowerCase()}
                     </span>
                   )}
                   {experience.start_time && (
@@ -601,7 +596,6 @@ export function BookingFlow({
                 }
               />
               {selectedExperience &&
-                selectedExperience.child_price !== null &&
                 selectedExperience.child_age_min !== null &&
                 selectedExperience.child_age_max !== null && (
                   <p className="mt-1 text-sm text-muted-foreground">
@@ -622,25 +616,75 @@ export function BookingFlow({
               />
               <p className="mt-1 text-sm text-muted-foreground">{t.booking.infantsFree}</p>
             </div>
-            {selectedExperience && selectedExperience.meal_options.length > 0 && (
-              <div>
-                <Label htmlFor="booking-meal">{t.booking.mealChoice}</Label>
-                <select
-                  id="booking-meal"
-                  value={draft.mealChoice}
-                  onChange={(event) => updateDraft({ mealChoice: event.target.value })}
-                  className="field"
-                  required
-                >
-                  <option value="">{t.booking.chooseMeal}</option>
-                  {selectedExperience.meal_options.map((option) => (
-                    <option key={option.en} value={localizedTextForLanguage(option, lang)}>
-                      {localizedTextForLanguage(option, lang)}
-                    </option>
-                  ))}
-                </select>
+            {/* Main dishes (choose 2) checkboxes */}
+            <fieldset className="space-y-3">
+              <legend className="block text-sm font-semibold text-foreground">
+                {lang === "fr"
+                  ? "Plats principaux (choisissez-en 2)"
+                  : lang === "ar"
+                    ? "الأطباق الرئيسية (اختر 2)"
+                    : "Main dishes (choose 2)"}
+                <span className="ms-2 text-xs font-normal text-muted-foreground">
+                  ({selectedDishes.length} / 2)
+                </span>
+              </legend>
+              <p className="text-xs text-muted-foreground">
+                {lang === "fr"
+                  ? "Cochez jusqu'à 2 plats principaux préparés maison par votre famille d'accueil."
+                  : lang === "ar"
+                    ? "حدد ما يصل إلى طبقين رئيسيين تعدهما العائلة المضيفة خصيصاً لكم."
+                    : "Select up to 2 authentic main dishes prepared fresh by your host family."}
+              </p>
+              <div className="grid gap-2.5 sm:grid-cols-2">
+                {MAIN_DISHES.map((dish) => {
+                  const checked = isDishSelected(dish);
+                  return (
+                    <label
+                      key={dish.id}
+                      className={`flex items-start gap-3 rounded-xl border p-3.5 cursor-pointer transition ${
+                        checked
+                          ? "border-primary bg-primary/5 text-primary font-medium"
+                          : "border-border hover:bg-muted/40 text-foreground"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleDish(dish)}
+                        className="mt-0.5 h-4 w-4 rounded border-gray-300 text-primary accent-primary"
+                      />
+                      <span className="text-sm leading-snug">{dish.label[lang]}</span>
+                    </label>
+                  );
+                })}
               </div>
-            )}
+            </fieldset>
+
+            {/* Allergies or dietary requirements (optional) */}
+            <div>
+              <Label htmlFor="booking-dietary">
+                {lang === "fr"
+                  ? "Allergies ou régimes alimentaires (facultatif)"
+                  : lang === "ar"
+                    ? "أي حساسية أو متطلبات غذائية (اختياري)"
+                    : "Allergies or dietary requirements (optional)"}
+              </Label>
+              <textarea
+                id="booking-dietary"
+                value={draft.dietaryNeeds}
+                maxLength={500}
+                placeholder={
+                  lang === "fr"
+                    ? "Ex. Végétarien, sans gluten, allergie aux fruits à coque..."
+                    : lang === "ar"
+                      ? "مثال: نباتي، خالي من الغلوتين، حساسية من المكسرات..."
+                      : "e.g. Vegetarian, gluten-free, nut allergy..."
+                }
+                onChange={(event) => updateDraft({ dietaryNeeds: event.target.value })}
+                className="field min-h-24 mt-1.5"
+              />
+            </div>
+
             <label className="flex items-start gap-3">
               <input
                 type="checkbox"
@@ -655,16 +699,7 @@ export function BookingFlow({
                 </span>
               </span>
             </label>
-            <div>
-              <Label htmlFor="booking-dietary">{t.booking.dietary}</Label>
-              <textarea
-                id="booking-dietary"
-                value={draft.dietaryNeeds}
-                maxLength={500}
-                onChange={(event) => updateDraft({ dietaryNeeds: event.target.value })}
-                className="field min-h-24"
-              />
-            </div>
+
             <div>
               <Label htmlFor="booking-occasion">{t.booking.specialOccasion}</Label>
               <select
@@ -683,45 +718,6 @@ export function BookingFlow({
                 <option value="honeymoon">{t.booking.honeymoon}</option>
               </select>
             </div>
-            {selectedExperience && options.currency && price !== null && (
-              <div aria-live="polite" className="rounded-lg bg-sand p-4">
-                <p>
-                  {t.booking.adults}: {draft.adults} ×{" "}
-                  {new Intl.NumberFormat(lang, {
-                    style: "currency",
-                    currency: options.currency,
-                  }).format(selectedExperience.price)}
-                </p>
-                {draft.children > 0 && selectedExperience.child_price !== null && (
-                  <p>
-                    {t.booking.children}: {draft.children} ×{" "}
-                    {new Intl.NumberFormat(lang, {
-                      style: "currency",
-                      currency: options.currency,
-                    }).format(selectedExperience.child_price)}
-                  </p>
-                )}
-                <p>
-                  {t.booking.infants}: {draft.infants} · {t.booking.infantsFree}
-                </p>
-                <p className="mt-1 font-semibold">
-                  {t.booking.estimatedTotal}:{" "}
-                  {new Intl.NumberFormat(lang, {
-                    style: "currency",
-                    currency: options.currency,
-                  }).format(price)}
-                </p>
-                {deposit !== null && (
-                  <p className="mt-1">
-                    {t.booking.deposit}:{" "}
-                    {new Intl.NumberFormat(lang, {
-                      style: "currency",
-                      currency: options.currency,
-                    }).format(deposit)}
-                  </p>
-                )}
-              </div>
-            )}
           </div>
         )}
 
@@ -790,9 +786,15 @@ export function BookingFlow({
                   </dd>
                 </div>
                 {draft.mealChoice && (
-                  <div>
-                    <dt className="font-semibold">{t.booking.mealChoice}</dt>
-                    <dd>{draft.mealChoice}</dd>
+                  <div className="sm:col-span-2">
+                    <dt className="font-semibold">
+                      {lang === "fr"
+                        ? "Plats principaux (choix de 2)"
+                        : lang === "ar"
+                          ? "الأطباق الرئيسية (2)"
+                          : "Main dishes (choose 2)"}
+                    </dt>
+                    <dd className="font-medium text-foreground">{draft.mealChoice}</dd>
                   </div>
                 )}
                 <div>
@@ -809,8 +811,14 @@ export function BookingFlow({
                 </div>
                 {draft.dietaryNeeds && (
                   <div className="sm:col-span-2">
-                    <dt className="font-semibold">{t.booking.dietary}</dt>
-                    <dd>{draft.dietaryNeeds}</dd>
+                    <dt className="font-semibold">
+                      {lang === "fr"
+                        ? "Allergies ou régimes alimentaires"
+                        : lang === "ar"
+                          ? "الحساسية أو المتطلبات الغذائية"
+                          : "Allergies or dietary requirements"}
+                    </dt>
+                    <dd className="font-medium text-foreground">{draft.dietaryNeeds}</dd>
                   </div>
                 )}
                 {draft.specialOccasion && (
@@ -820,45 +828,6 @@ export function BookingFlow({
                   </div>
                 )}
               </dl>
-            )}
-            {selectedExperience && options.currency && price !== null && (
-              <div className="text-lg">
-                <p>
-                  {t.booking.adults}: {draft.adults} ×{" "}
-                  {new Intl.NumberFormat(lang, {
-                    style: "currency",
-                    currency: options.currency,
-                  }).format(selectedExperience.price)}
-                </p>
-                {draft.children > 0 && selectedExperience.child_price !== null && (
-                  <p>
-                    {t.booking.children}: {draft.children} ×{" "}
-                    {new Intl.NumberFormat(lang, {
-                      style: "currency",
-                      currency: options.currency,
-                    }).format(selectedExperience.child_price)}
-                  </p>
-                )}
-                <p>
-                  {t.booking.infants}: {draft.infants} · {t.booking.infantsFree}
-                </p>
-                <p className="mt-1 font-semibold">
-                  {t.booking.estimatedTotal}:{" "}
-                  {new Intl.NumberFormat(lang, {
-                    style: "currency",
-                    currency: options.currency,
-                  }).format(price)}
-                </p>
-                {deposit !== null && (
-                  <p className="mt-1 text-base font-normal">
-                    {t.booking.deposit}:{" "}
-                    {new Intl.NumberFormat(lang, {
-                      style: "currency",
-                      currency: options.currency,
-                    }).format(deposit)}
-                  </p>
-                )}
-              </div>
             )}
             {options.cancellationTiers.length > 0 && (
               <div className="rounded-xl border border-border p-4">

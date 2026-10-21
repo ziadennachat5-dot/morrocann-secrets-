@@ -142,34 +142,6 @@ export function ExperienceRow({
               <dd>{experience.start_time.slice(0, 5)}</dd>
             </div>
           )}
-          {currency && (
-            <div className="flex items-baseline gap-1.5">
-              <dt className="sr-only">{t.booking.pricePerPerson}</dt>
-              <dd>
-                <span>{t.exp.adultPrice}: </span>
-                <strong className="font-display text-2xl text-primary">
-                  {new Intl.NumberFormat(lang, { style: "currency", currency }).format(
-                    experience.price,
-                  )}
-                </strong>
-                <span className="ms-2 text-muted-foreground">{t.exp.perPerson}</span>
-              </dd>
-            </div>
-          )}
-          {currency && experience.child_price !== null && (
-            <div>
-              <dt>{t.exp.childPrice}:</dt>
-              <dd>
-                {new Intl.NumberFormat(lang, { style: "currency", currency }).format(
-                  experience.child_price,
-                )}{" "}
-                {t.exp.perPerson}
-                {experience.child_age_min !== null && experience.child_age_max !== null
-                  ? ` · ${experience.child_age_min}–${experience.child_age_max}`
-                  : ""}
-              </dd>
-            </div>
-          )}
         </dl>
         {meetingArea && localizedTextForLanguage(meetingArea, lang) && (
           <p className="mt-4 text-sm">

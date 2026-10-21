@@ -15,6 +15,7 @@ import { DEFAULT_HOW_STEPS, visibleHomepageSections } from "@/lib/homepage-conte
 import { getPublicGuestPhotos } from "@/lib/guest-photos.functions";
 import { GuestPhotoGallery } from "@/components/site/GuestPhotoGallery";
 import { ExperienceMediaSlider } from "@/components/site/Cards";
+import { ConceptSection, MenuSection } from "@/components/site/ConceptAndMenu";
 import { HeaderLogo } from "@/components/site/Brand";
 import { getSiteUrl } from "@/lib/seo";
 
@@ -38,15 +39,6 @@ export const Route = createFileRoute("/")({
       name: experience.title.en,
       ...(experience.blurb.en ? { description: experience.blurb.en } : {}),
       url: `${siteUrl}/#experience-${encodeURIComponent(experience.id)}`,
-      ...(loaderData?.currency
-        ? {
-            offers: {
-              "@type": "Offer",
-              price: experience.price,
-              priceCurrency: loaderData.currency,
-            },
-          }
-        : {}),
     }));
     return {
       meta: [
@@ -96,6 +88,8 @@ function localized(
 }
 
 const sectionLabels = {
+  concept: { en: "The Experience", fr: "L'expérience", ar: "التجربة" },
+  menu: { en: "Menu", fr: "Menu", ar: "قائمة الطعام" },
   idea: { en: "The idea", fr: "L'idée", ar: "الفكرة" },
   reasons: { en: "Why try it", fr: "Pourquoi essayer", ar: "لماذا التجربة؟" },
   how: { en: "How it works", fr: "Comment ça marche", ar: "كيف تسير الأمسية" },
@@ -133,8 +127,10 @@ function HomePage() {
   const steps = (data.homepage.steps.length ? data.homepage.steps : DEFAULT_HOW_STEPS).filter(
     (step) => localized(step, lang),
   );
-  const visibleSectionIds = new Set(
-    visibleHomepageSections({
+  const visibleSectionIds = new Set([
+    "concept",
+    "menu",
+    ...visibleHomepageSections({
       hasIdea: Boolean(data.homepage.idea && localized(data.homepage.idea, lang)),
       reasonCount: data.homepage.reasons.filter((reason) => localized(reason, lang)).length,
       experienceCount: data.experiences.length,
@@ -145,9 +141,10 @@ function HomePage() {
       faqCount: data.faqs.length,
       hasContact: Boolean(data.contact.whatsapp || data.contact.email),
     }),
-  );
+  ]);
   const sectionEntries = [
-    ["idea", sectionLabels.idea],
+    ["concept", sectionLabels.concept],
+    ["menu", sectionLabels.menu],
     ["why", sectionLabels.reasons],
     ["how", sectionLabels.how],
     ["experiences", sectionLabels.experiences],
@@ -214,14 +211,11 @@ function HomePage() {
         </section>
       )}
 
-      {data.homepage.idea && localized(data.homepage.idea, lang) && (
-        <section id="idea" className="mx-auto max-w-5xl px-5 py-16 sm:py-24">
-          <h2 className="font-display text-3xl sm:text-5xl">{sectionLabels.idea[lang]}</h2>
-          <p className="mt-6 max-w-3xl text-lg leading-8 text-foreground/80">
-            {localized(data.homepage.idea, lang)}
-          </p>
-        </section>
-      )}
+      {/* Concept Section (hardcoded in EN/FR/AR, never hidden) */}
+      <ConceptSection />
+
+      {/* Menu Section (hardcoded in EN/FR/AR, right after concept) */}
+      <MenuSection />
 
       {reasons.length > 0 && (
         <section id="why" className="bg-secondary/10 px-5 py-16 sm:py-24">
@@ -358,12 +352,7 @@ function HomePage() {
                         {localized(experience.host_languages, lang)}
                       </p>
                     )}
-                    <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-sm">
-                      {data.currency && (
-                        <span>
-                          {experience.price} {data.currency}
-                        </span>
-                      )}
+                    <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-sm text-foreground/75">
                       <span>{localized(experience.duration, lang)}</span>
                     </div>
                     {data.bookingOptions.experiences.some(

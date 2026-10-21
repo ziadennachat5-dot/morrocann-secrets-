@@ -40,6 +40,8 @@ const ADMIN_I18N = {
     status: "Status",
     phone: "Phone",
     email: "Email",
+    mainDishes: "Main dishes (choose 2)",
+    allergiesDietary: "Allergies or dietary requirements",
     noBookings: "No booking requests yet.",
     calendarTitle: "Availability calendar",
     calendarDesc:
@@ -83,6 +85,8 @@ const ADMIN_I18N = {
     status: "Statut",
     phone: "Téléphone",
     email: "E-mail",
+    mainDishes: "Plats principaux (choix de 2)",
+    allergiesDietary: "Allergies ou régimes alimentaires",
     noBookings: "Aucune demande de réservation pour le moment.",
     calendarTitle: "Calendrier des disponibilités",
     calendarDesc:
@@ -126,6 +130,8 @@ const ADMIN_I18N = {
     status: "الحالة",
     phone: "الهاتف",
     email: "البريد الإلكتروني",
+    mainDishes: "الأطباق الرئيسية (اختر 2)",
+    allergiesDietary: "أي حساسية أو متطلبات غذائية",
     noBookings: "لا توجد طلبات حجز بعد.",
     calendarTitle: "تقويم المواعيد المتاحة",
     calendarDesc:
@@ -347,6 +353,8 @@ function AdminPage() {
       "adults",
       "children",
       "infants",
+      "meal_choice",
+      "dietary_needs",
       "adult_unit_price",
       "child_unit_price",
       "status",
@@ -711,6 +719,26 @@ function AdminPage() {
                           {t.experience}
                         </span>
                         <span className="font-medium text-foreground">{titleText}</span>
+                      </div>
+                    </div>
+
+                    {/* Main dishes & Allergies row */}
+                    <div className="mt-3 grid grid-cols-1 gap-2.5 rounded-xl border border-border/70 bg-muted/30 p-3 text-sm sm:grid-cols-2">
+                      <div>
+                        <span className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                          {t.mainDishes}
+                        </span>
+                        <span className="font-medium text-foreground">
+                          {booking.meal_choice || "—"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                          {t.allergiesDietary}
+                        </span>
+                        <span className="font-medium text-foreground">
+                          {booking.dietary_needs || "—"}
+                        </span>
                       </div>
                     </div>
                   </article>
