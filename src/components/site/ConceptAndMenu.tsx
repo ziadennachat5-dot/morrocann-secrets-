@@ -174,135 +174,111 @@ export function ConceptSection({
       style={{ paddingBlock: "var(--section-pad-v-mobile)" }}
     >
       <div className="ms-container" style={{ paddingBottom: "var(--section-pad-v)" }}>
-        {/* Main two-column layout */}
-        <div
-          className={`grid items-start gap-12 ${secondPhotoUrl ? "lg:grid-cols-12 lg:gap-16" : "lg:grid-cols-12 lg:gap-16"}`}
-        >
-          {/* Left: title + ornament + intro */}
-          <div className={secondPhotoUrl ? "lg:col-span-7" : "lg:col-span-7"}>
-            <h2 className="text-primary">{CONCEPT_TEXT.title[lang]}</h2>
-            <OrnamentDivider className="mt-5 mb-8" />
-            <p style={{ fontSize: "1.2rem", lineHeight: "1.7", maxWidth: "60ch" }}>
-              {/* First sentence emphasized */}
-              <strong
-                style={{
-                  display: "block",
-                  fontSize: "1.35rem",
-                  color: "var(--primary)",
-                  fontWeight: 600,
-                  marginBottom: "0.75rem",
-                  lineHeight: "1.4",
-                }}
-              >
-                {CONCEPT_TEXT.pullQuote[lang]}
-              </strong>
-              {/* Rest of paragraph (skip first sentence) */}
-              {CONCEPT_TEXT.intro[lang]
-                .replace(CONCEPT_TEXT.pullQuote[lang], "")
-                .replace(/^\s*/, "")}
-            </p>
+        {/* Concept Bento Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
+          {/* Bento Item 1: Main Story Card */}
+          <div className="md:col-span-7 lg:col-span-8 rounded-3xl bg-white/95 backdrop-blur-md border border-stone-200/80 p-8 sm:p-10 shadow-card hover:shadow-xl hover:border-gold/40 transition-all duration-300 flex flex-col justify-between group">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full bg-accent/10 border border-accent/25 px-3.5 py-1 text-xs font-bold text-accent mb-4">
+                <Heart className="h-3.5 w-3.5" />
+                <span>
+                  {lang === "fr"
+                    ? "L'Esprit de la Maison"
+                    : lang === "ar"
+                      ? "جوهر التجربة"
+                      : "The Experience"}
+                </span>
+              </div>
+              <h2 className="text-primary">{CONCEPT_TEXT.title[lang]}</h2>
+              <OrnamentDivider className="mt-4 mb-6" />
+              <div className="text-foreground/85 leading-relaxed text-base sm:text-lg space-y-4">
+                <p
+                  className="font-display text-xl sm:text-2xl font-bold text-primary leading-snug"
+                  dir={lang === "ar" ? "rtl" : "ltr"}
+                >
+                  {CONCEPT_TEXT.pullQuote[lang]}
+                </p>
+                <p dir={lang === "ar" ? "rtl" : "ltr"}>
+                  {CONCEPT_TEXT.intro[lang]
+                    .replace(CONCEPT_TEXT.pullQuote[lang], "")
+                    .replace(/^\s*/, "")}
+                </p>
+              </div>
+            </div>
+            <div className="mt-8 pt-5 border-t border-border/60 flex flex-wrap items-center justify-between gap-3 text-xs font-semibold text-muted-foreground">
+              <span className="flex items-center gap-1.5 text-accent font-bold">
+                <Utensils className="h-4 w-4" />
+                {lang === "fr"
+                  ? "Cuisine familiale marocaine"
+                  : lang === "ar"
+                    ? "مطبخ عائلي مغربي أصيل"
+                    : "Authentic family cooking"}
+              </span>
+              <span className="text-gold">&bull;</span>
+              <span>Marrakech</span>
+            </div>
           </div>
 
-          {/* Right: photo OR pull-quote burgundy panel */}
-          <div className="lg:col-span-5">
+          {/* Bento Item 2: Pull Quote or Arch Photo */}
+          <div className="md:col-span-5 lg:col-span-4 flex flex-col">
             {secondPhotoUrl ? (
               <div
-                style={{
-                  borderRadius: "9999px 9999px 24px 24px",
-                  overflow: "hidden",
-                  border: "2px solid rgba(201,162,75,0.4)",
-                  boxShadow: "var(--shadow-photo)",
-                  aspectRatio: "4/5",
-                }}
+                className="h-full rounded-3xl overflow-hidden border-2 border-gold/40 shadow-card hover:shadow-xl transition-all duration-300"
+                style={{ aspectRatio: "4/5" }}
               >
                 <img
                   src={secondPhotoUrl}
                   alt={CONCEPT_TEXT.title[lang]}
                   loading="lazy"
-                  className="h-full w-full object-cover"
+                  className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
                 />
               </div>
             ) : (
-              /* Pull-quote burgundy panel with zellige */
               <div
-                className="zellige-burgundy"
-                style={{
-                  background: "var(--primary)",
-                  borderRadius: "24px",
-                  padding: "clamp(32px, 5vw, 52px)",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  minHeight: "340px",
-                  position: "relative",
-                  overflow: "hidden",
-                }}
+                className="zellige-burgundy h-full min-h-[340px] rounded-3xl p-8 sm:p-10 flex flex-col justify-between items-center text-center relative overflow-hidden shadow-card hover:shadow-xl transition-all duration-300 group"
+                style={{ background: "var(--primary)" }}
               >
-                {/* Gold ornament top */}
-                <OrnamentDivider center light className="mb-8" />
-                {/* Pull quote */}
+                <OrnamentDivider center light className="mb-4" />
                 <blockquote
-                  className="font-display text-white text-center"
+                  className="font-display text-white text-center my-auto px-2 group-hover:scale-102 transition-transform duration-300"
                   style={{
-                    fontSize: "clamp(1.4rem, 3vw, 1.8rem)",
+                    fontSize: "clamp(1.35rem, 2.5vw, 1.75rem)",
                     fontWeight: 600,
-                    lineHeight: lang === "ar" ? "1.9" : "1.4",
+                    lineHeight: lang === "ar" ? "1.9" : "1.45",
                     maxWidth: "28ch",
                   }}
                 >
                   &ldquo;{CONCEPT_TEXT.pullQuote[lang]}&rdquo;
                 </blockquote>
-                {/* Gold ornament bottom */}
-                <OrnamentDivider center light className="mt-8" />
+                <OrnamentDivider center light className="mt-4" />
               </div>
             )}
           </div>
-        </div>
 
-        {/* Facts row — 4 large figures */}
-        {conceptFacts && conceptFacts.length > 0 && (
-          <div
-            className="mt-16 grid grid-cols-2 gap-6 sm:grid-cols-4"
-            role="list"
-            aria-label={
-              lang === "ar" ? "أرقام التجربة" : lang === "fr" ? "Chiffres clés" : "Experience facts"
-            }
-          >
-            {conceptFacts.map((fact) => (
-              <div
-                key={fact.num}
-                role="listitem"
-                className="text-center"
+          {/* Bento Facts Row (4 cards spanning 3 cols on md/lg) */}
+          {conceptFacts?.map((fact) => (
+            <div
+              key={fact.num}
+              role="listitem"
+              className="col-span-6 md:col-span-3 rounded-2xl bg-white/90 backdrop-blur-md border border-stone-200/80 p-6 text-center shadow-xs hover:shadow-card hover:-translate-y-1 hover:border-gold/50 transition-all duration-300 group cursor-default"
+            >
+              <p
+                className="font-display text-primary group-hover:scale-110 transition-transform duration-300"
                 style={{
-                  padding: "24px 12px",
-                  background: "#fff",
-                  borderRadius: "16px",
-                  border: "1px solid rgba(232,222,212,0.6)",
-                  boxShadow: "var(--shadow-card)",
+                  fontSize: "clamp(2.5rem, 5vw, 3.6rem)",
+                  lineHeight: 1,
+                  fontWeight: 700,
+                  marginBottom: "8px",
                 }}
               >
-                <p
-                  className="font-display text-primary"
-                  style={{
-                    fontSize: "clamp(2.8rem, 6vw, 4rem)",
-                    lineHeight: 1,
-                    fontWeight: 700,
-                    marginBottom: "8px",
-                  }}
-                >
-                  {fact.num}
-                </p>
-                <p
-                  className="text-foreground/70 text-sm font-medium"
-                  style={{ maxWidth: "16ch", margin: "0 auto" }}
-                >
-                  {fact.label[lang]}
-                </p>
-              </div>
-            ))}
-          </div>
-        )}
+                {fact.num}
+              </p>
+              <p className="text-foreground/75 text-sm font-semibold max-w-[16ch] mx-auto leading-snug">
+                {fact.label[lang]}
+              </p>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -473,34 +449,37 @@ export function MenuSection() {
         </div>
       </section>
 
-      {/* Experience highlights — clean white strip right after the red section */}
+      {/* Experience highlights — Bento Feature Cards */}
       <section
-        className="bg-white border-b border-border/40"
-        style={{ paddingBlock: "clamp(40px, 5vw, 64px)" }}
+        className="bg-offwhite/50 border-b border-border/40"
+        style={{ paddingBlock: "clamp(48px, 6vw, 72px)" }}
         aria-label={MENU_TEXT.highlightsTitle[lang]}
       >
         <div className="ms-container">
-          <h3 className="text-center text-foreground mb-8 text-2xl sm:text-3xl">
-            {MENU_TEXT.highlightsTitle[lang]}
-          </h3>
-          <ul className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-5 text-center">
+          <div className="text-center mb-10">
+            <h3 className="font-display text-primary text-2xl sm:text-3xl font-bold mb-3">
+              {MENU_TEXT.highlightsTitle[lang]}
+            </h3>
+            <OrnamentDivider center />
+          </div>
+          <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5 text-center">
             {MENU_TEXT.highlights.map((item, idx) => {
               const Icon = item.icon;
               return (
-                <li key={idx} className="flex flex-col items-center gap-3">
+                <li
+                  key={idx}
+                  className="group flex flex-col items-center text-center rounded-2xl bg-white/90 backdrop-blur-sm border border-stone-200/80 p-5 sm:p-6 shadow-xs hover:shadow-card hover:-translate-y-1.5 hover:border-accent/40 transition-all duration-300 cursor-default"
+                >
                   <span
-                    className="flex h-14 w-14 items-center justify-center rounded-full transition-transform hover:scale-105"
+                    className="flex h-14 w-14 items-center justify-center rounded-full mb-3.5 transition-all duration-300 group-hover:scale-110 group-hover:bg-accent/15 group-hover:border-accent shadow-2xs"
                     style={{
-                      border: "1.5px solid rgba(47,93,52,0.35)",
-                      background: "rgba(47,93,52,0.05)",
+                      border: "1.5px solid rgba(47,93,52,0.3)",
+                      background: "rgba(47,93,52,0.06)",
                     }}
                   >
                     <Icon className="h-6 w-6 text-accent stroke-[2]" aria-hidden />
                   </span>
-                  <span
-                    className="text-sm font-semibold text-foreground/85"
-                    style={{ maxWidth: "16ch" }}
-                  >
+                  <span className="text-sm font-bold text-foreground/85 leading-snug max-w-[15ch]">
                     {item.label[lang]}
                   </span>
                 </li>

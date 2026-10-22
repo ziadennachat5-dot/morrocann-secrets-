@@ -279,20 +279,17 @@ function HomePage() {
                 </a>
               </div>
 
-              {/* Reassurance row */}
+              {/* Reassurance row with interactive pills */}
               <ul
-                className="mt-8 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-x-6"
+                className="mt-8 flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:gap-x-3.5"
                 role="list"
               >
                 {reassurances.map((r, i) => (
                   <li
                     key={i}
-                    className="flex items-center gap-2 text-sm font-medium text-foreground/80"
+                    className="inline-flex items-center gap-2.5 rounded-full bg-offwhite/90 backdrop-blur-xs border border-stone-200/80 px-4 py-2 text-sm font-semibold text-foreground/85 shadow-2xs hover:bg-white hover:border-accent/40 hover:shadow-xs hover:-translate-y-0.5 transition-all duration-200 cursor-default"
                   >
-                    <span
-                      className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full"
-                      style={{ background: "rgba(47,93,52,0.12)" }}
-                    >
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/15">
                       <Check className="h-3 w-3 text-accent" aria-hidden strokeWidth={3} />
                     </span>
                     {r[lang]}
@@ -332,31 +329,40 @@ function HomePage() {
                   <img
                     src={heroImageUrl}
                     alt={heroHeadline[lang]}
-                    className="h-full w-full object-cover object-center"
+                    className="h-full w-full object-cover object-center transition-transform duration-700 hover:scale-105"
                     loading="eager"
                     fetchPriority="high"
                     decoding="async"
                   />
                 </div>
 
-                {/* Floating card */}
+                {/* Floating card with modern glassmorphism */}
                 <div
+                  className="group transition-all duration-300 hover:scale-105"
                   style={{
                     position: "absolute",
                     bottom: "20px",
                     insetInlineStart: "-20px",
                     zIndex: 2,
-                    background: "#fff",
-                    borderRadius: "14px",
-                    padding: "10px 16px",
-                    boxShadow: "0 8px 32px -4px rgba(42,32,32,0.18)",
-                    border: "1px solid rgba(232,222,212,0.8)",
-                    maxWidth: "180px",
+                    background: "rgba(255, 255, 255, 0.9)",
+                    backdropFilter: "blur(16px)",
+                    WebkitBackdropFilter: "blur(16px)",
+                    borderRadius: "16px",
+                    padding: "12px 18px",
+                    boxShadow: "0 12px 36px -4px rgba(42,32,32,0.18)",
+                    border: "1px solid rgba(255,255,255,0.75)",
+                    maxWidth: "205px",
                   }}
                 >
+                  <div className="flex items-center gap-1.5 mb-1 text-accent">
+                    <span className="h-2 w-2 rounded-full bg-accent animate-pulse" />
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-accent">
+                      Marrakech
+                    </span>
+                  </div>
                   <p
                     className="font-display text-foreground"
-                    style={{ fontSize: "0.9rem", lineHeight: "1.35", fontWeight: 600 }}
+                    style={{ fontSize: "0.9375rem", lineHeight: "1.35", fontWeight: 700 }}
                   >
                     {floatingCardText[lang]}
                   </p>
@@ -368,7 +374,7 @@ function HomePage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════
-          2. CONCEPT (off-white, left text + right photo or quote panel)
+          2. CONCEPT (off-white, Bento Grid)
       ═══════════════════════════════════════════════════════════ */}
       <ConceptSection secondPhotoUrl={null} conceptFacts={conceptFacts} />
 
@@ -395,7 +401,7 @@ function HomePage() {
       )}
 
       {/* ═══════════════════════════════════════════════════════════
-          5. HOW IT WORKS (three columns, gold dotted connector)
+          5. HOW IT WORKS (Bento Timeline Cards)
       ═══════════════════════════════════════════════════════════ */}
       <section
         id="how"
@@ -403,22 +409,34 @@ function HomePage() {
         style={{ paddingBlock: "var(--section-pad-v-mobile)" }}
       >
         <div className="ms-container" style={{ paddingBottom: "var(--section-pad-v)" }}>
-          <h2 className="text-center text-primary mb-4">{howTitle[lang]}</h2>
-          <OrnamentDivider center className="mb-16" />
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 rounded-full bg-accent/10 border border-accent/25 px-4 py-1.5 text-xs font-bold text-accent mb-4">
+              <span>
+                {lang === "fr"
+                  ? "Simple & Clair"
+                  : lang === "ar"
+                    ? "بكل بساطة"
+                    : "Simple & Seamless"}
+              </span>
+            </div>
+            <h2 className="text-primary text-center mb-4">{howTitle[lang]}</h2>
+            <OrnamentDivider center />
+          </div>
 
-          {/* Steps grid with dotted connector (horizontal on desktop, vertical timeline on mobile) */}
-          <div className="relative grid gap-10 lg:grid-cols-3 lg:gap-0">
-            {/* Horizontal dotted gold line connecting numerals — desktop only */}
+          {/* Steps grid: horizontal Bento cards on desktop, vertical timeline on mobile */}
+          <div className="relative grid gap-8 lg:grid-cols-3 lg:gap-8">
+            {/* Horizontal dotted gold connector line — desktop only */}
             <div
               aria-hidden="true"
               style={{
                 position: "absolute",
-                top: "28px",
+                top: "36px",
                 insetInlineStart: "calc(16.67% + 28px)",
                 insetInlineEnd: "calc(16.67% + 28px)",
                 height: "2px",
                 borderTop: "2px dashed rgba(201,162,75,0.45)",
                 display: "none",
+                zIndex: 0,
               }}
               className="lg:block"
             />
@@ -426,26 +444,26 @@ function HomePage() {
             {/* Vertical timeline line on phones (left in LTR, right in Arabic) */}
             <div
               aria-hidden="true"
-              className="absolute top-7 bottom-7 start-7 -translate-x-1/2 rtl:translate-x-1/2 w-0.5 border-s-2 border-dashed border-gold/45 lg:hidden"
+              className="absolute top-7 bottom-7 start-7 -translate-x-1/2 rtl:translate-x-1/2 w-0.5 border-s-2 border-dashed border-gold/45 lg:hidden z-0"
             />
 
             {HOW_IT_WORKS_STEPS.map((item) => (
               <div
                 key={item.num}
-                className="relative flex items-start gap-5 lg:flex-col lg:items-center lg:text-center px-0 lg:px-8"
+                className="relative flex items-start gap-5 lg:flex-col lg:items-center lg:text-center ps-16 lg:ps-0"
                 dir={lang === "ar" ? "rtl" : "ltr"}
               >
-                {/* Numbered circle */}
+                {/* Numbered circle (absolute on mobile start-0, relative centered on desktop) */}
                 <div
-                  className="relative flex items-center justify-center shrink-0 mb-0 lg:mb-5"
+                  className="absolute start-0 top-0 lg:relative lg:start-auto lg:top-auto flex items-center justify-center shrink-0 mb-0 lg:mb-6 transition-all duration-300 group-hover:scale-105"
                   style={{
                     width: "56px",
                     height: "56px",
                     borderRadius: "50%",
                     background: "#fff",
                     border: "2.5px solid var(--primary)",
-                    zIndex: 1,
-                    boxShadow: "0 2px 8px rgba(139,26,26,0.1)",
+                    zIndex: 2,
+                    boxShadow: "0 4px 14px rgba(139,26,26,0.14)",
                   }}
                 >
                   <span
@@ -456,14 +474,14 @@ function HomePage() {
                   </span>
                 </div>
 
-                {/* Content */}
-                <div className="flex-1 flex flex-col items-start lg:items-center">
-                  {/* Green icon */}
+                {/* Bento Card container */}
+                <div className="flex-1 w-full rounded-2xl lg:rounded-3xl bg-white/95 backdrop-blur-md border border-stone-200/80 p-6 lg:p-8 shadow-xs hover:shadow-card hover:-translate-y-1.5 hover:border-gold/50 transition-all duration-300 flex flex-col items-start lg:items-center group">
+                  {/* Green icon container */}
                   <div
-                    className="flex items-center justify-center mb-3 lg:mb-4"
+                    className="flex items-center justify-center mb-4 transition-all duration-300 group-hover:scale-110 group-hover:bg-accent/15 group-hover:border-accent"
                     style={{
-                      width: "42px",
-                      height: "42px",
+                      width: "44px",
+                      height: "44px",
                       borderRadius: "50%",
                       border: "1.5px solid rgba(47,93,52,0.3)",
                       background: "rgba(47,93,52,0.06)",
@@ -479,10 +497,10 @@ function HomePage() {
                     </svg>
                   </div>
 
-                  <h3 className="text-foreground mb-2 lg:mb-3 text-xl font-bold">
+                  <h3 className="text-foreground mb-2 text-xl font-bold font-display">
                     {item.title[lang]}
                   </h3>
-                  <p className="text-foreground/75 leading-relaxed" style={{ maxWidth: "32ch" }}>
+                  <p className="text-foreground/75 leading-relaxed text-sm sm:text-base max-w-[32ch]">
                     {item.desc[lang]}
                   </p>
                 </div>
