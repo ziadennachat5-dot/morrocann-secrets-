@@ -13,6 +13,10 @@ type Availability = Tables<"availability">;
 type SiteSetting = Tables<"site_settings">;
 type AdminLang = "en" | "fr" | "ar";
 
+if (typeof window !== "undefined") {
+  (window as unknown as { __supabase?: typeof supabase }).__supabase = supabase;
+}
+
 const inputClass =
   "w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-h-12";
 
@@ -30,6 +34,7 @@ const ADMIN_I18N = {
     exportCsv: "Export CSV",
     confirm: "Confirm",
     decline: "Decline",
+    delete: "Delete",
     confirmed: "Confirmed",
     cancelled: "Declined / Cancelled",
     pending: "Pending",
@@ -75,6 +80,7 @@ const ADMIN_I18N = {
     exportCsv: "Exporter CSV",
     confirm: "Confirmer",
     decline: "Refuser",
+    delete: "Supprimer",
     confirmed: "Confirmée",
     cancelled: "Refusée / Annulée",
     pending: "En attente",
@@ -120,6 +126,7 @@ const ADMIN_I18N = {
     exportCsv: "تصدير CSV",
     confirm: "تأكيد",
     decline: "رفض",
+    delete: "حذف",
     confirmed: "مؤكد",
     cancelled: "مرفوض / ملغى",
     pending: "قيد الانتظار",
@@ -337,6 +344,14 @@ function AdminPage() {
       p_status: status,
     });
     if (updateError) setError(`Could not update booking: ${updateError.message}`);
+    else await refresh();
+  }
+
+  async function deleteBooking(booking: Booking) {
+    if (!window.confirm(`Delete booking for ${booking.name}?`)) return;
+    setError("");
+    const { error: delError } = await supabase.from("bookings").delete().eq("id", booking.id);
+    if (delError) setError(`Could not delete booking: ${delError.message}`);
     else await refresh();
   }
 
@@ -696,6 +711,14 @@ function AdminPage() {
                             {t.decline}
                           </Button>
                         )}
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => void deleteBooking(booking)}
+                          className="flex-1 sm:flex-none min-h-12 px-4 font-bold border-red-200 text-red-600 hover:bg-red-50 hover:text-red-800"
+                        >
+                          {t.delete}
+                        </Button>
                       </div>
                     </div>
 
@@ -741,6 +764,18 @@ function AdminPage() {
                         </span>
                       </div>
                     </div>
+
+                    {/* Guest message (if any) */}
+                    {booking.message && (
+                      <div className="mt-2.5 rounded-xl border border-border/70 bg-muted/20 p-3 text-sm">
+                        <span className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                          Message
+                        </span>
+                        <p className="mt-1 text-foreground whitespace-pre-wrap">
+                          {booking.message}
+                        </p>
+                      </div>
+                    )}
                   </article>
                 );
               })

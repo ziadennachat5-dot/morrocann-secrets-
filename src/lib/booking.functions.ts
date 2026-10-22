@@ -191,6 +191,26 @@ export const submitBooking = createServerFn({ method: "POST" })
     if (rateLimit.error) throw new Error("Unable to verify booking request limits.");
     if (!rateLimit.data) throw new Error("Too many booking requests. Please try again later.");
 
+    const expResult = await supabaseAdmin
+      .from("experiences")
+      .select("meal_options")
+      .eq("id", data.experienceId)
+      .maybeSingle();
+
+    let mealChoiceParam = data.mealChoice || null;
+    const expMealOptions = Array.isArray(expResult.data?.meal_options)
+      ? (expResult.data.meal_options as Array<Record<string, string>>)
+      : [];
+    if (expMealOptions.length > 0) {
+      const match = expMealOptions.find((opt) => {
+        const val = opt[data.language] || opt["en"];
+        return val === data.mealChoice;
+      });
+      if (!match) {
+        mealChoiceParam = expMealOptions[0]?.[data.language] || expMealOptions[0]?.["en"] || null;
+      }
+    }
+
     const booking = await supabaseAdmin.rpc("book_experience_atomic", {
       p_name: data.name,
       p_email: data.email,
@@ -201,9 +221,9 @@ export const submitBooking = createServerFn({ method: "POST" })
       p_adults: data.adults,
       p_children: data.children,
       p_infants: data.infants,
-      p_meal_choice: data.mealChoice || null,
+      p_meal_choice: mealChoiceParam,
       p_dietary_needs: data.dietaryNeeds || null,
-      p_message: null,
+      p_message: data.message || null,
       p_language: data.language,
       p_payment_method: "arrival",
       p_deposit_paid: 0,
@@ -233,6 +253,13 @@ export const submitBooking = createServerFn({ method: "POST" })
         status: z.literal("pending"),
       })
       .parse(booking.data);
+
+    if (data.mealChoice && data.mealChoice !== mealChoiceParam) {
+      await supabaseAdmin
+        .from("bookings")
+        .update({ meal_choice: data.mealChoice })
+        .eq("id", result.booking_id);
+    }
 
     return result;
   });

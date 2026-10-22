@@ -14,6 +14,7 @@ export const bookingRequestSchema = z
     privateGroup: z.boolean(),
     dietaryNeeds: z.string().trim().max(500),
     specialOccasion: z.enum(["", "birthday", "anniversary", "honeymoon"]),
+    message: z.string().trim().max(1000).optional().default(""),
     language: z.enum(["en", "fr", "ar"]),
     honeypot: z.string().max(0),
   })
