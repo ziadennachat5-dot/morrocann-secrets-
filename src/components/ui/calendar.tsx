@@ -149,6 +149,12 @@ function CalendarDayButton({
     if (modifiers["focused"]) ref.current?.focus();
   }, [modifiers]);
 
+  const isSelected = Boolean(modifiers["selected"]);
+  const isAvailable = Boolean(modifiers["available"]) && !isSelected;
+  const isFullyBooked = Boolean(modifiers["fullyBooked"]) && !isSelected;
+  const isClosed =
+    (Boolean(modifiers["closed"]) || Boolean(modifiers["disabled"])) && !isAvailable && !isSelected;
+
   return (
     <Button
       ref={ref}
@@ -165,7 +171,15 @@ function CalendarDayButton({
       data-range-end={modifiers["range_end"]}
       data-range-middle={modifiers["range_middle"]}
       className={cn(
-        "data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground data-[range-middle=true]:bg-accent data-[range-middle=true]:text-accent-foreground data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground data-[range-end=true]:bg-primary data-[range-end=true]:text-primary-foreground group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-ring/50 flex aspect-square h-auto w-full min-w-(--cell-size) flex-col gap-1 font-normal leading-none data-[range-end=true]:rounded-md data-[range-middle=true]:rounded-none data-[range-start=true]:rounded-md group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:ring-[3px] [&>span]:text-xs [&>span]:opacity-70",
+        "flex aspect-square h-auto w-full min-w-(--cell-size) min-h-(--cell-size) flex-col gap-1 text-sm font-semibold leading-none rounded-xl transition-all",
+        isAvailable &&
+          "bg-white border-2 border-accent text-accent font-bold hover:bg-accent/15 cursor-pointer shadow-2xs",
+        isSelected &&
+          "!bg-primary !text-white !border-2 !border-primary font-bold shadow-sm scale-[1.02]",
+        isFullyBooked &&
+          "bg-red-50 text-red-700/80 border border-red-200/80 relative line-through cursor-not-allowed opacity-75",
+        isClosed &&
+          "bg-stone-100 text-stone-400 border border-stone-200/60 cursor-not-allowed opacity-60",
         defaultClassNames.day,
         className,
       )}

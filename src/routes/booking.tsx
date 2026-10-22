@@ -1,41 +1,20 @@
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { z } from "zod";
-import { CalendarDays, Check, ChevronLeft, ChevronRight, MessageCircle } from "lucide-react";
+import { CalendarDays, Check, MessageCircle, AlertCircle, Users } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { SectionHead } from "@/components/site/Brand";
 import { useI18n, type Lang } from "@/lib/i18n";
 import { pageHead } from "@/lib/seo";
 import { BRAND_NAME } from "@/lib/brand";
 import { getBookingOptions, submitBooking } from "@/lib/booking.functions";
-import { filterAvailableBookingSlots } from "@/lib/booking-availability";
 import type { BookingRequest } from "@/lib/booking-schema";
-import { countCapacityGuests, formatCancellationTiers } from "@/lib/booking-pricing";
-import { localizedTextForLanguage } from "@/lib/localized-content";
 import { MAIN_DISHES } from "@/components/site/ConceptAndMenu";
 
-const stepKeys = ["experience", "date", "guests", "contact", "summary"] as const;
-const progressSchema = z.object({
-  step: z.number().int().min(0).max(4),
-  experienceId: z.string(),
-  date: z.string(),
-  adults: z.number().int().min(0),
-  children: z.number().int().min(0),
-  infants: z.number().int().min(0),
-  mealChoice: z.string().max(200),
-  privateGroup: z.boolean(),
-  dietaryNeeds: z.string().max(500),
-  specialOccasion: z.enum(["", "birthday", "anniversary", "honeymoon"]),
-  name: z.string().max(100),
-  email: z.string().max(255),
-  phone: z.string().max(30),
-});
-
-type BookingDraft = z.infer<typeof progressSchema>;
 type BookingOptions = Awaited<ReturnType<typeof getBookingOptions>>;
+
 const confirmationSchema = z.object({
   success: z.literal(true),
   booking_id: z.string().uuid(),
@@ -52,65 +31,6 @@ const confirmationSchema = z.object({
 });
 type Confirmation = z.infer<typeof confirmationSchema>;
 
-const storageKey = "moroccan-secrets-booking-progress";
-
-function emptyDraft(): BookingDraft {
-  return {
-    step: 0,
-    experienceId: "",
-    date: "",
-    adults: 1,
-    children: 0,
-    infants: 0,
-    mealChoice: "",
-    privateGroup: false,
-    dietaryNeeds: "",
-    specialOccasion: "",
-    name: "",
-    email: "",
-    phone: "",
-  };
-}
-
-function saveConfirmationCalendarFile(
-  confirmation: Confirmation,
-  title: string,
-  brandName: string,
-) {
-  const escapeText = (value: string) => value.replace(/[\\,;]/g, "\\$&").replace(/\n/g, "\\n");
-  const eventDate = confirmation.date.replaceAll("-", "");
-  const nextDate = new Date(`${confirmation.date}T12:00:00`);
-  nextDate.setDate(nextDate.getDate() + 1);
-  const endDate = [
-    nextDate.getFullYear(),
-    String(nextDate.getMonth() + 1).padStart(2, "0"),
-    String(nextDate.getDate()).padStart(2, "0"),
-  ].join("");
-  const event = [
-    "BEGIN:VCALENDAR",
-    "VERSION:2.0",
-    "PRODID:-//Moroccan Secrets//Booking//EN",
-    "BEGIN:VEVENT",
-    `UID:${confirmation.booking_id}@moroccansecrets.com`,
-    `DTSTAMP:${new Date()
-      .toISOString()
-      .replace(/[-:]/g, "")
-      .replace(/\.\d{3}/, "")}`,
-    `DTSTART;VALUE=DATE:${eventDate}`,
-    `DTEND;VALUE=DATE:${endDate}`,
-    `SUMMARY:${escapeText(`${title} — ${brandName}`)}`,
-    `DESCRIPTION:${escapeText(`${confirmation.guests} guests. Booking reference: ${confirmation.booking_id}`)}`,
-    "END:VEVENT",
-    "END:VCALENDAR",
-  ].join("\r\n");
-  const url = URL.createObjectURL(new Blob([event], { type: "text/calendar;charset=utf-8" }));
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = `moroccan-secrets-${confirmation.date}.ics`;
-  anchor.click();
-  URL.revokeObjectURL(url);
-}
-
 export const Route = createFileRoute("/booking")({
   beforeLoad: () => {
     throw redirect({ to: "/", hash: "booking" });
@@ -119,13 +39,30 @@ export const Route = createFileRoute("/booking")({
     pageHead(
       "/booking",
       `Booking — ${BRAND_NAME}`,
-      "Choose a published experience and an available date to request a booking.",
+      "Reserve your authentic Moroccan dinner experience with a local family.",
     ),
   component: BookingPage,
 });
 
 function BookingPage() {
   return <BookingFlow />;
+}
+
+function formatDateInWords(dateStr: string, lang: Lang): string {
+  if (!dateStr) return "";
+  try {
+    const [y, m, d] = dateStr.split("-").map(Number);
+    const dateObj = new Date(y!, m! - 1, d!);
+    const locale = lang === "ar" ? "ar-MA" : lang === "fr" ? "fr-FR" : "en-US";
+    return new Intl.DateTimeFormat(locale, {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    }).format(dateObj);
+  } catch {
+    return dateStr;
+  }
 }
 
 export function BookingFlow({
@@ -135,25 +72,32 @@ export function BookingFlow({
   initialExperienceId?: string;
   initialOptions?: BookingOptions;
 }) {
-  const { t, l, lang } = useI18n();
+  const { lang } = useI18n();
   const [options, setOptions] = useState<BookingOptions | null>(initialOptions ?? null);
   const [loadError, setLoadError] = useState(false);
-  const [draft, setDraft] = useState<BookingDraft>(emptyDraft);
-  const [confirmation, setConfirmation] = useState<Confirmation | null>(null);
-  const [submitError, setSubmitError] = useState("");
+
+  // Form state
+  const [date, setDate] = useState<string>("");
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [guests, setGuests] = useState<number>(2);
+  const [selectedDishes, setSelectedDishes] = useState<string[]>([]);
+  const [allergies, setAllergies] = useState("");
+  const [message, setMessage] = useState("");
+  type TouchedState = {
+    name?: boolean;
+    phone?: boolean;
+    email?: boolean;
+    dishes?: boolean;
+    date?: boolean;
+  };
+  const [touched, setTouched] = useState<TouchedState>({});
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [confirmation, setConfirmation] = useState<Confirmation | null>(null);
 
   useEffect(() => {
-    try {
-      const storedDraft = localStorage.getItem(storageKey);
-      if (storedDraft) {
-        const parsed = progressSchema.safeParse(JSON.parse(storedDraft));
-        if (parsed.success) setDraft(parsed.data);
-        else localStorage.removeItem(storageKey);
-      }
-    } catch (error) {
-      console.error("Unable to restore booking progress:", error);
-    }
     if (!initialOptions) {
       getBookingOptions()
         .then(setOptions)
@@ -164,78 +108,51 @@ export function BookingFlow({
     }
   }, [initialOptions]);
 
-  useEffect(() => {
-    if (initialExperienceId) {
-      setDraft((current) => ({
-        ...current,
-        experienceId: initialExperienceId,
-        date: "",
-        step: 0,
-      }));
-    }
-  }, [initialExperienceId]);
+  const targetExperience = options?.experiences[0] ?? null;
+  const targetExperienceId =
+    initialExperienceId || targetExperience?.id || "family-dinner-marrakech";
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(storageKey, JSON.stringify(draft));
-    } catch (error) {
-      console.error("Unable to save booking progress:", error);
-    }
-  }, [draft]);
-
-  const selectedExperience = options?.experiences.find(
-    (experience) => experience.id === draft.experienceId,
-  );
-  const capacityGuests = countCapacityGuests(draft.adults, draft.children);
-  const guestsTotal = capacityGuests + draft.infants;
+  // Filter slots for availability
   const relevantSlots = useMemo(
     () =>
       options
-        ? filterAvailableBookingSlots(
-            options.availability,
-            draft.experienceId,
-            capacityGuests,
-            new Date().toISOString().slice(0, 10),
-            draft.privateGroup,
+        ? options.availability.filter(
+            (slot) => slot.experienceId === targetExperienceId && slot.remaining >= guests,
           )
         : [],
-    [options, draft.experienceId, capacityGuests, draft.privateGroup],
+    [options, targetExperienceId, guests],
   );
+
   const availableDates = useMemo(
     () => relevantSlots.map((slot) => new Date(`${slot.date}T12:00:00`)),
     [relevantSlots],
   );
+
   const fullyBookedDates = useMemo(
     () =>
       options?.calendarStatuses
-        .filter((slot) => slot.experienceId === draft.experienceId && slot.state === "full")
+        .filter((slot) => slot.experienceId === targetExperienceId && slot.state === "full")
         .map((slot) => new Date(`${slot.date}T12:00:00`)) ?? [],
-    [options, draft.experienceId],
+    [options, targetExperienceId],
   );
+
   const closedDates = useMemo(
     () =>
       options?.calendarStatuses
-        .filter((slot) => slot.experienceId === draft.experienceId && slot.state === "closed")
+        .filter((slot) => slot.experienceId === targetExperienceId && slot.state === "closed")
         .map((slot) => new Date(`${slot.date}T12:00:00`)) ?? [],
-    [options, draft.experienceId],
+    [options, targetExperienceId],
   );
-  const selectedSlot = relevantSlots.find((slot) => slot.date === draft.date);
+
   const waHref = options?.whatsapp
-    ? `https://wa.me/${options.whatsapp}?text=${encodeURIComponent(t.booking.whatsappMessage)}`
+    ? `https://wa.me/${options.whatsapp}?text=${encodeURIComponent(
+        lang === "fr"
+          ? "Bonjour, je souhaite réserver un dîner en famille marocaine."
+          : lang === "ar"
+            ? "مرحباً، أود حجز عشاء مع عائلة مغربية."
+            : "Hello, I would like to book a dinner with a Moroccan family.",
+      )}`
     : null;
-
-  const updateDraft = (values: Partial<BookingDraft>) => {
-    setDraft((current) => ({ ...current, ...values }));
-    setSubmitError("");
-  };
-
-  const selectedDishes = useMemo(() => {
-    if (!draft.mealChoice) return [];
-    return draft.mealChoice
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
-  }, [draft.mealChoice]);
 
   const isDishSelected = (dish: (typeof MAIN_DISHES)[number]) => {
     return selectedDishes.some(
@@ -249,6 +166,7 @@ export function BookingFlow({
   };
 
   const toggleDish = (dish: (typeof MAIN_DISHES)[number]) => {
+    setTouched((prev) => ({ ...prev, dishes: true }));
     const isSelected = isDishSelected(dish);
     let updated: string[];
     if (isSelected) {
@@ -265,65 +183,57 @@ export function BookingFlow({
     } else {
       updated = [selectedDishes[0]!, dish.label[lang]];
     }
-    updateDraft({ mealChoice: updated.join(", ") });
+    setSelectedDishes(updated);
   };
 
-  const canContinue = () => {
-    if (options?.cancellationTiers.length === 0) return false;
-    if (draft.step === 0) return Boolean(selectedExperience);
-    if (draft.step === 1) return Boolean(selectedSlot);
-    if (draft.step === 2)
-      return (
-        capacityGuests >= (selectedExperience?.min_guests ?? 0) &&
-        capacityGuests <= (selectedExperience?.max_guests ?? 0) &&
-        Boolean(selectedExperience) &&
-        (!draft.privateGroup || capacityGuests >= 6)
-      );
-    if (draft.step === 3)
-      return (
-        draft.name.trim().length >= 2 &&
-        z.string().email().safeParse(draft.email).success &&
-        draft.phone.trim().length >= 3
-      );
-    return Boolean(options?.cancellationTiers.length && selectedSlot);
-  };
+  const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  const isNameValid = name.trim().length >= 2;
+  const isPhoneValid = phone.trim().length >= 3;
+  const isDishesValid = selectedDishes.length === 2;
+  const isDateValid = Boolean(date);
 
-  const continueStep = () => {
-    if (!canContinue()) return;
-    if (draft.step < 4) updateDraft({ step: draft.step + 1 });
-  };
+  const canSubmit =
+    isDateValid && isNameValid && isPhoneValid && isEmailValid && guests >= 1 && isDishesValid;
 
-  const submit = async () => {
-    if (!selectedExperience || !selectedSlot || !options?.cancellationTiers.length) return;
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setTouched({ name: true, phone: true, email: true, dishes: true, date: true });
+
+    if (!canSubmit) return;
+
+    setSubmitting(true);
+    setSubmitError("");
+
     const payload: BookingRequest = {
-      name: draft.name,
-      email: draft.email,
-      phone: draft.phone,
-      experienceId: draft.experienceId,
-      date: draft.date,
-      adults: draft.adults,
-      children: draft.children,
-      infants: draft.infants,
-      mealChoice: draft.mealChoice,
-      privateGroup: draft.privateGroup,
-      dietaryNeeds: draft.dietaryNeeds,
-      specialOccasion: draft.specialOccasion,
+      experienceId: targetExperienceId,
+      date,
+      name: name.trim(),
+      email: email.trim(),
+      phone: phone.trim(),
+      adults: guests,
+      children: 0,
+      infants: 0,
+      mealChoice: selectedDishes.join(", "),
+      privateGroup: false,
+      dietaryNeeds: allergies.trim(),
+      message: message.trim(),
+      specialOccasion: "",
       language: lang,
       honeypot: "",
     };
-    setSubmitting(true);
-    setSubmitError("");
+
     try {
       const result = confirmationSchema.parse(await submitBooking({ data: payload }));
       setConfirmation(result);
-      try {
-        localStorage.removeItem(storageKey);
-      } catch (error) {
-        console.error("Unable to clear saved booking progress:", error);
-      }
     } catch (error) {
-      console.error("Booking could not be submitted:", error);
-      setSubmitError(t.booking.submitError);
+      console.error("Booking submission failed:", error);
+      setSubmitError(
+        lang === "fr"
+          ? "Impossible d'enregistrer la réservation. Veuillez vérifier vos informations ou nous contacter sur WhatsApp."
+          : lang === "ar"
+            ? "تعذر إرسال طلب الحجز. يرجى التحقق من المعلومات أو التواصل معنا عبر واتساب."
+            : "Unable to submit booking request. Please check your details or contact us on WhatsApp.",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -332,7 +242,13 @@ export function BookingFlow({
   if (loadError) {
     return (
       <BookingFrame>
-        <p role="alert">{t.booking.unavailable}</p>
+        <p role="alert" className="text-destructive text-center py-8">
+          {lang === "fr"
+            ? "Le calendrier de réservation est temporairement indisponible."
+            : lang === "ar"
+              ? "نظام الحجز غير متاح مؤقتاً."
+              : "Booking is temporarily unavailable."}
+        </p>
       </BookingFrame>
     );
   }
@@ -340,329 +256,533 @@ export function BookingFlow({
   if (!options) {
     return (
       <BookingFrame>
-        <p role="status">{t.booking.loading}</p>
+        <p role="status" className="text-center py-8 text-muted-foreground animate-pulse">
+          {lang === "fr"
+            ? "Chargement des disponibilités..."
+            : lang === "ar"
+              ? "جاري تحميل المواعيد..."
+              : "Loading availability..."}
+        </p>
       </BookingFrame>
     );
   }
 
-  if (confirmation && selectedExperience) {
+  // Confirmation view
+  if (confirmation) {
     return (
       <BookingFrame>
-        <div className="rounded-2xl border border-border bg-card p-6 sm:p-10">
-          <Check className="h-10 w-10 text-accent" aria-hidden />
-          <h2 className="mt-4 text-3xl">{t.booking.confirmationTitle}</h2>
-          <p className="mt-2 text-muted-foreground">{t.booking.confirmationNext}</p>
-          <dl className="mt-6 grid gap-3 sm:grid-cols-2">
-            <div>
-              <dt className="font-semibold">{t.booking.experienceLabel}</dt>
-              <dd>{localizedTextForLanguage(selectedExperience.title, lang)}</dd>
-            </div>
-            <div>
-              <dt className="font-semibold">{t.booking.dateLabel}</dt>
-              <dd>
-                {confirmation.date} · {confirmation.start_time.slice(0, 5)}
-              </dd>
-            </div>
-            <div>
-              <dt className="font-semibold">{t.booking.guestsLabel}</dt>
-              <dd>
-                {confirmation.adults} {t.booking.adults.toLocaleLowerCase()} ·{" "}
-                {confirmation.children} {t.booking.children.toLocaleLowerCase()} ·{" "}
-                {confirmation.infants} {t.booking.infants.toLocaleLowerCase()}
-              </dd>
-            </div>
-            <div>
-              <dt className="font-semibold">{t.booking.reference}</dt>
-              <dd className="break-all">{confirmation.booking_id}</dd>
-            </div>
-          </dl>
-          <div className="mt-8 flex flex-wrap gap-3">
+        <div className="rounded-3xl border border-emerald-300 bg-emerald-50/70 p-6 sm:p-12 text-center shadow-card">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 shadow-xs">
+            <Check className="h-9 w-9 stroke-[2.5]" aria-hidden />
+          </div>
+          <h2 className="mt-6 font-display text-3xl font-bold text-emerald-950 sm:text-4xl">
+            {lang === "fr"
+              ? "Demande de réservation reçue !"
+              : lang === "ar"
+                ? "تم استلام طلب الحجز بنجاح!"
+                : "Booking Request Received!"}
+          </h2>
+          <p className="mt-3 text-base text-emerald-900/80 max-w-xl mx-auto leading-relaxed">
+            {lang === "fr"
+              ? `Merci ${name} ! Nous vous contacterons rapidement par WhatsApp ou email pour confirmer votre table et vous communiquer l'adresse de la maison.`
+              : lang === "ar"
+                ? `شكراً لك ${name}! سنتواصل معك قريباً عبر واتساب أو البريد الإلكتروني لتأكيد طاولتك ومشاركتك عنوان البيت.`
+                : `Thank you, ${name}! We will contact you shortly via WhatsApp or email to confirm your table and share the exact house address.`}
+          </p>
+
+          <div className="mt-8 mx-auto max-w-lg rounded-2xl border border-emerald-200/90 bg-white/95 p-6 text-start shadow-sm">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              {lang === "fr"
+                ? "Récapitulatif de votre demande"
+                : lang === "ar"
+                  ? "تفاصيل الطلب"
+                  : "Booking details"}
+            </h3>
+            <dl className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 text-sm">
+              <div>
+                <dt className="text-xs text-muted-foreground">
+                  {lang === "fr" ? "Date" : lang === "ar" ? "التاريخ" : "Date"}
+                </dt>
+                <dd className="font-semibold text-foreground capitalize">
+                  {formatDateInWords(confirmation.date, lang)}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs text-muted-foreground">
+                  {lang === "fr" ? "Personnes" : lang === "ar" ? "الضيوف" : "Guests"}
+                </dt>
+                <dd className="font-semibold text-foreground">
+                  {confirmation.guests}{" "}
+                  {confirmation.guests === 1
+                    ? lang === "fr"
+                      ? "personne"
+                      : lang === "ar"
+                        ? "ضيف"
+                        : "guest"
+                    : lang === "fr"
+                      ? "personnes"
+                      : lang === "ar"
+                        ? "ضيوف"
+                        : "guests"}
+                </dd>
+              </div>
+              <div className="sm:col-span-2">
+                <dt className="text-xs text-muted-foreground">
+                  {lang === "fr"
+                    ? "Plats choisis"
+                    : lang === "ar"
+                      ? "الأطباق المختارة"
+                      : "Selected dishes"}
+                </dt>
+                <dd className="font-semibold text-foreground">
+                  {selectedDishes.join(", ") || "—"}
+                </dd>
+              </div>
+              {allergies && (
+                <div className="sm:col-span-2">
+                  <dt className="text-xs text-muted-foreground">
+                    {lang === "fr"
+                      ? "Allergies / régimes"
+                      : lang === "ar"
+                        ? "الحساسية"
+                        : "Allergies"}
+                  </dt>
+                  <dd className="font-medium text-foreground">{allergies}</dd>
+                </div>
+              )}
+              {message && (
+                <div className="sm:col-span-2">
+                  <dt className="text-xs text-muted-foreground">
+                    {lang === "fr" ? "Message" : lang === "ar" ? "رسالة" : "Message"}
+                  </dt>
+                  <dd className="font-medium text-foreground">{message}</dd>
+                </div>
+              )}
+            </dl>
+          </div>
+
+          <div className="mt-8 flex flex-wrap justify-center gap-4">
             <Button
               type="button"
-              onClick={() =>
-                saveConfirmationCalendarFile(
-                  confirmation,
-                  localizedTextForLanguage(selectedExperience.title, lang) || BRAND_NAME,
-                  BRAND_NAME,
-                )
-              }
+              variant="outline"
+              onClick={() => {
+                setConfirmation(null);
+                setDate("");
+                setSelectedDishes([]);
+                setAllergies("");
+                setMessage("");
+                setTouched({});
+              }}
+              className="border-emerald-700/30 text-emerald-900 hover:bg-emerald-100/60 h-12 px-6"
             >
-              <CalendarDays aria-hidden /> {t.booking.addToCalendar}
+              {lang === "fr"
+                ? "Faire une autre réservation"
+                : lang === "ar"
+                  ? "حجز موعد آخر"
+                  : "Book another date"}
             </Button>
             {waHref && (
-              <a className="btn btn-ghost" href={waHref} target="_blank" rel="noreferrer">
-                <MessageCircle aria-hidden /> WhatsApp
+              <a
+                href={waHref}
+                target="_blank"
+                rel="noreferrer"
+                className="btn btn-primary inline-flex items-center gap-2 h-12 px-6"
+              >
+                <MessageCircle className="h-4 w-4" />
+                WhatsApp
               </a>
             )}
-            {options.meetingArea && localizedTextForLanguage(options.meetingArea, lang) && (
-              <div className="sm:col-span-2">
-                <dt className="font-semibold">{t.booking.meetingArea}</dt>
-                <dd>{localizedTextForLanguage(options.meetingArea, lang)}</dd>
-              </div>
-            )}
-            <Link to="/" className="btn btn-ghost">
-              {t.booking.home}
-            </Link>
           </div>
         </div>
       </BookingFrame>
     );
   }
 
-  const goBack = () => updateDraft({ step: Math.max(0, draft.step - 1) });
-
   return (
     <BookingFrame>
-      <ol
-        aria-label={t.booking.progress}
-        className="mb-8 grid grid-cols-5 gap-2 text-center text-xs sm:text-sm"
+      <form
+        onSubmit={(e) => void handleSubmit(e)}
+        noValidate
+        className="w-full rounded-3xl border border-border/80 bg-white p-6 sm:p-10 lg:p-12 shadow-card"
       >
-        {stepKeys.map((step, index) => (
-          <li
-            key={step}
-            aria-current={draft.step === index ? "step" : undefined}
-            className={
-              draft.step >= index
-                ? "border-b-2 border-primary pb-2 text-primary"
-                : "border-b-2 border-border pb-2 text-muted-foreground"
-            }
-          >
-            <span className="hidden sm:inline">{index + 1}. </span>
-            {t.booking.steps[step]}
-          </li>
-        ))}
-      </ol>
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-12">
+          {/* =========================================================
+              LEFT COLUMN: CALENDAR (lg:col-span-5)
+          ========================================================= */}
+          <div className="lg:col-span-5 flex flex-col items-center">
+            {/* Step 1 header with numbered circle */}
+            <div className="w-full flex items-center gap-3.5 mb-5 text-start">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-white font-bold text-sm shadow-xs">
+                1
+              </span>
+              <h3 className="font-display text-2xl font-bold text-foreground">
+                {lang === "fr"
+                  ? "Choisissez un jour"
+                  : lang === "ar"
+                    ? "اختر التاريخ"
+                    : "Pick a day"}
+              </h3>
+            </div>
 
-      <section
-        aria-labelledby="booking-step-title"
-        className="rounded-2xl border border-border bg-card p-5 sm:p-8"
-      >
-        <h2 id="booking-step-title" className="text-3xl">
-          {t.booking.steps[stepKeys[draft.step] ?? "experience"]}
-        </h2>
-        {options.cancellationTiers.length === 0 && (
-          <p role="alert" className="mt-4 text-destructive">
-            {t.booking.policyMissing}
-          </p>
-        )}
-        {draft.step === 0 && (
-          <fieldset className="mt-6 space-y-3">
-            <legend className="sr-only">{t.booking.chooseExperience}</legend>
-            {options.experiences.map((experience) => (
-              <label
-                key={experience.id}
-                className="flex cursor-pointer items-start gap-3 rounded-xl border border-border p-4 has-[:checked]:border-primary"
-              >
-                <input
-                  type="radio"
-                  name="experience"
-                  value={experience.id}
-                  checked={draft.experienceId === experience.id}
-                  onChange={() =>
-                    updateDraft({ experienceId: experience.id, date: "", mealChoice: "" })
-                  }
-                  className="mt-1 accent-primary"
-                />
-                <span>
-                  <span className="block font-semibold">
-                    {localizedTextForLanguage(experience.title, lang) || experience.id}
-                  </span>
-                  <span className="block text-sm text-muted-foreground">
-                    {localizedTextForLanguage(experience.blurb, lang)}
-                  </span>
-                  {experience.min_guests !== null && experience.max_guests !== null && (
-                    <span className="mt-2 block text-sm text-muted-foreground">
-                      {experience.min_guests}–{experience.max_guests}{" "}
-                      {t.booking.adultsAndChildren.toLocaleLowerCase()}
-                    </span>
-                  )}
-                  {experience.start_time && (
-                    <span className="block text-sm text-muted-foreground">
-                      {t.booking.startTime}: {experience.start_time.slice(0, 5)}
-                    </span>
-                  )}
-                  {options.meetingArea && localizedTextForLanguage(options.meetingArea, lang) && (
-                    <span className="block text-sm text-muted-foreground">
-                      {t.booking.meetingArea}: {localizedTextForLanguage(options.meetingArea, lang)}
-                    </span>
-                  )}
+            <Calendar
+              mode="single"
+              selected={date ? new Date(`${date}T12:00:00`) : undefined}
+              onSelect={(selected) => {
+                setTouched((prev) => ({ ...prev, date: true }));
+                if (selected) {
+                  const y = selected.getFullYear();
+                  const m = String(selected.getMonth() + 1).padStart(2, "0");
+                  const d = String(selected.getDate()).padStart(2, "0");
+                  setDate(`${y}-${m}-${d}`);
+                } else {
+                  setDate("");
+                }
+              }}
+              disabled={(d) => !availableDates.some((a) => a.toDateString() === d.toDateString())}
+              modifiers={{
+                available: availableDates,
+                fullyBooked: fullyBookedDates,
+                closed: closedDates,
+              }}
+              className="w-full max-w-lg rounded-2xl border border-border p-3 sm:p-5 bg-background shadow-xs booking-calendar [--cell-size:48px] sm:[--cell-size:56px]"
+              classNames={{
+                caption_label:
+                  "font-display text-xl sm:text-2xl font-bold text-primary tracking-wide",
+                button_previous:
+                  "h-10 w-10 sm:h-12 sm:w-12 rounded-full border border-border/80 hover:bg-muted text-primary flex items-center justify-center transition-colors",
+                button_next:
+                  "h-10 w-10 sm:h-12 sm:w-12 rounded-full border border-border/80 hover:bg-muted text-primary flex items-center justify-center transition-colors",
+                weekday: "text-foreground/85 font-bold text-xs sm:text-sm py-2",
+              }}
+            />
+
+            {/* Calendar Legend — larger, placed under the calendar */}
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-sm text-foreground/85">
+              <span className="inline-flex items-center gap-2 font-medium">
+                <span className="h-4 w-4 rounded-md border-2 border-accent bg-white shadow-2xs" />
+                {lang === "fr" ? "Disponible" : lang === "ar" ? "متاح" : "Available"}
+              </span>
+              <span className="inline-flex items-center gap-2 font-medium">
+                <span className="h-4 w-4 rounded-md bg-primary shadow-2xs" />
+                {lang === "fr" ? "Sélectionné" : lang === "ar" ? "المحدد" : "Selected"}
+              </span>
+              <span className="inline-flex items-center gap-2 font-medium">
+                <span className="relative flex h-4 w-4 items-center justify-center rounded-md border border-red-300 bg-red-100">
+                  <span className="absolute h-0.5 w-4 rotate-45 bg-red-600" />
                 </span>
-              </label>
-            ))}
-            {options.experiences.length === 0 && <p>{t.booking.noExperiences}</p>}
-          </fieldset>
-        )}
+                {lang === "fr" ? "Complet" : lang === "ar" ? "محجوز بالكامل" : "Fully booked"}
+              </span>
+              <span className="inline-flex items-center gap-2 font-medium">
+                <span className="h-4 w-4 rounded-md border border-stone-300 bg-stone-200" />
+                {lang === "fr" ? "Fermé / Passé" : lang === "ar" ? "مغلق / ماضٍ" : "Closed / Past"}
+              </span>
+            </div>
 
-        {draft.step === 1 && (
-          <div className="mt-6">
-            {selectedExperience && (
-              <>
-                <Calendar
-                  mode="single"
-                  selected={draft.date ? new Date(`${draft.date}T12:00:00`) : undefined}
-                  onSelect={(date) =>
-                    updateDraft({
-                      date: date
-                        ? [
-                            date.getFullYear(),
-                            String(date.getMonth() + 1).padStart(2, "0"),
-                            String(date.getDate()).padStart(2, "0"),
-                          ].join("-")
-                        : "",
-                    })
-                  }
-                  disabled={(date) =>
-                    !availableDates.some(
-                      (available) => available.toDateString() === date.toDateString(),
-                    )
-                  }
-                  modifiers={{
-                    available: availableDates,
-                    fullyBooked: fullyBookedDates,
-                    unavailable: closedDates,
-                  }}
-                  modifiersClassNames={{
-                    available:
-                      "!bg-emerald-100 !text-emerald-950 font-bold border border-emerald-500",
-                    fullyBooked:
-                      "!bg-amber-100 !text-amber-950 border border-amber-400 line-through opacity-80 cursor-not-allowed",
-                    unavailable:
-                      "!bg-stone-200 !text-stone-500 border border-stone-300 opacity-60 cursor-not-allowed",
-                  }}
-                  aria-label={t.booking.availableDates}
-                />
-                <ul className="mt-3 flex flex-wrap gap-4 text-sm">
-                  <li className="flex items-center gap-2">
-                    <span
-                      aria-hidden
-                      className="h-4 w-4 rounded border-2 border-emerald-500 bg-emerald-100"
-                    />
-                    {t.booking.spotsRemaining}
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span
-                      aria-hidden
-                      className="h-4 w-4 rounded border border-amber-400 bg-amber-100"
-                    />
-                    {t.booking.fullyBooked}
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span
-                      aria-hidden
-                      className="h-4 w-4 rounded border border-stone-300 bg-stone-200"
-                    />
-                    {t.booking.closed}
-                  </li>
-                </ul>
-                {relevantSlots.length === 0 && (
-                  <p className="mt-3 text-muted-foreground">{t.booking.noDates}</p>
-                )}
-                {selectedSlot && (
-                  <p className="mt-3 text-sm text-muted-foreground">
-                    {t.booking.spotsRemaining}: {selectedSlot.remaining}
-                    {selectedExperience.start_time
-                      ? ` · ${t.booking.startTime}: ${selectedExperience.start_time.slice(0, 5)}`
-                      : ""}
+            {/* Selected Date Summary Box — appears once a day is chosen */}
+            {date ? (
+              <div className="mt-5 w-full max-w-lg rounded-2xl border-2 border-accent/40 bg-accent/5 p-4 text-start shadow-xs animate-in fade-up">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-wider text-accent">
+                      {lang === "fr"
+                        ? "Date sélectionnée"
+                        : lang === "ar"
+                          ? "التاريخ المختار"
+                          : "Selected date"}
+                    </p>
+                    <p className="mt-1 font-display text-lg font-bold text-foreground capitalize">
+                      {formatDateInWords(date, lang)}
+                    </p>
+                  </div>
+                  <div className="text-end shrink-0">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-accent/15 px-3.5 py-1.5 text-xs font-bold text-accent">
+                      <Users className="h-3.5 w-3.5" />
+                      {guests}{" "}
+                      {guests === 1
+                        ? lang === "fr"
+                          ? "personne"
+                          : lang === "ar"
+                            ? "ضيف"
+                            : "guest"
+                        : lang === "fr"
+                          ? "personnes"
+                          : lang === "ar"
+                            ? "ضيوف"
+                            : "guests"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="mt-5 w-full max-w-lg rounded-xl border border-border/80 bg-muted/30 p-3 text-center">
+                <p className="text-xs text-muted-foreground flex items-center justify-center gap-1.5">
+                  <CalendarDays className="h-4 w-4" />
+                  {lang === "fr"
+                    ? "Cliquez sur une date verte disponible"
+                    : lang === "ar"
+                      ? "انقر على تاريخ متاح بالأخضر"
+                      : "Click on an available green date"}
+                </p>
+                {touched.date && !date && (
+                  <p className="mt-1.5 text-xs font-semibold text-destructive">
+                    {lang === "fr"
+                      ? "Veuillez sélectionner un jour sur le calendrier."
+                      : lang === "ar"
+                        ? "يرجى تحديد تاريخ على التقويم."
+                        : "Please choose a day on the calendar."}
                   </p>
                 )}
-              </>
+              </div>
             )}
           </div>
-        )}
 
-        {draft.step === 2 && (
-          <div className="mt-6 space-y-5">
-            <div>
-              <Label htmlFor="booking-adults">{t.booking.adults}</Label>
-              <Input
-                id="booking-adults"
-                type="number"
-                min={0}
-                max={selectedExperience?.max_guests ?? 25}
-                value={draft.adults}
-                onChange={(event) => updateDraft({ adults: Number(event.target.value), date: "" })}
-              />
+          {/* =========================================================
+              RIGHT COLUMN: GUEST DETAILS & DISHES (lg:col-span-7)
+          ========================================================= */}
+          <div className="lg:col-span-7 space-y-6">
+            {/* Step 2 header with numbered circle */}
+            <div className="flex items-center gap-3.5 pb-3 border-b border-border/70 text-start">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-white font-bold text-sm shadow-xs">
+                2
+              </span>
+              <h3 className="font-display text-2xl font-bold text-foreground">
+                {lang === "fr"
+                  ? "Vos informations"
+                  : lang === "ar"
+                    ? "معلومات الحجز"
+                    : "Your details"}
+              </h3>
             </div>
+
+            {/* Number of guests */}
             <div>
-              <Label htmlFor="booking-children">{t.booking.children}</Label>
-              <Input
-                id="booking-children"
-                type="number"
-                min={0}
-                max={selectedExperience?.max_guests ?? 25}
-                value={draft.children}
-                onChange={(event) =>
-                  updateDraft({ children: Number(event.target.value), date: "" })
-                }
-              />
-              {selectedExperience &&
-                selectedExperience.child_age_min !== null &&
-                selectedExperience.child_age_max !== null && (
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {t.booking.childAgeRange}: {selectedExperience.child_age_min}–
-                    {selectedExperience.child_age_max}
+              <Label
+                htmlFor="booking-guests"
+                className="text-sm font-semibold text-foreground mb-1.5 block"
+              >
+                {lang === "fr"
+                  ? "Nombre de personnes"
+                  : lang === "ar"
+                    ? "عدد الضيوف"
+                    : "Number of guests"}{" "}
+                *
+              </Label>
+              <div className="flex items-center gap-3">
+                <Input
+                  id="booking-guests"
+                  type="number"
+                  min={1}
+                  max={8}
+                  value={guests}
+                  onChange={(e) => setGuests(Math.max(1, Math.min(8, Number(e.target.value) || 1)))}
+                  className="max-w-[130px] h-[52px] text-base font-semibold rounded-xl border-input focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary"
+                  required
+                />
+                <span className="text-sm text-muted-foreground">
+                  {lang === "fr"
+                    ? "(1 à 8 personnes)"
+                    : lang === "ar"
+                      ? "(من 1 إلى 8 ضيوف)"
+                      : "(1 to 8 guests)"}
+                </span>
+              </div>
+            </div>
+
+            {/* Name, Phone, Email */}
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+              <div className="sm:col-span-2">
+                <Label
+                  htmlFor="booking-name"
+                  className="text-sm font-semibold text-foreground mb-1.5 block"
+                >
+                  {lang === "fr" ? "Nom complet" : lang === "ar" ? "الاسم الكامل" : "Full name"} *
+                </Label>
+                <Input
+                  id="booking-name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  onBlur={() => setTouched((prev) => ({ ...prev, name: true }))}
+                  placeholder={
+                    lang === "fr"
+                      ? "Ex. Sophie Martin"
+                      : lang === "ar"
+                        ? "مثال: محمد العلوي"
+                        : "e.g. John Smith"
+                  }
+                  required
+                  className={`h-[52px] text-base rounded-xl border px-4 focus-visible:ring-2 ${
+                    touched.name && !isNameValid
+                      ? "border-destructive focus-visible:ring-destructive"
+                      : "border-input focus-visible:ring-primary focus-visible:border-primary"
+                  }`}
+                />
+                {touched.name && !isNameValid && (
+                  <p className="mt-1 text-xs font-semibold text-destructive">
+                    {lang === "fr"
+                      ? "Veuillez indiquer votre nom complet (au moins 2 caractères)."
+                      : lang === "ar"
+                        ? "يرجى إدخال اسمك الكامل (حرفين على الأقل)."
+                        : "Please enter your full name (at least 2 characters)."}
                   </p>
                 )}
+              </div>
+
+              <div>
+                <Label
+                  htmlFor="booking-phone"
+                  className="text-sm font-semibold text-foreground mb-1.5 block"
+                >
+                  {lang === "fr"
+                    ? "Téléphone (avec WhatsApp)"
+                    : lang === "ar"
+                      ? "رقم الهاتف (مع واتساب)"
+                      : "Phone number (WhatsApp)"}{" "}
+                  *
+                </Label>
+                <Input
+                  id="booking-phone"
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  onBlur={() => setTouched((prev) => ({ ...prev, phone: true }))}
+                  placeholder="+212 600..."
+                  required
+                  className={`h-[52px] text-base rounded-xl border px-4 focus-visible:ring-2 ${
+                    touched.phone && !isPhoneValid
+                      ? "border-destructive focus-visible:ring-destructive"
+                      : "border-input focus-visible:ring-primary focus-visible:border-primary"
+                  }`}
+                />
+                {touched.phone && !isPhoneValid && (
+                  <p className="mt-1 text-xs font-semibold text-destructive">
+                    {lang === "fr"
+                      ? "Veuillez entrer un numéro de téléphone valide."
+                      : lang === "ar"
+                        ? "يرجى إدخال رقم هاتف صحيح."
+                        : "Please enter a valid phone number."}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label
+                  htmlFor="booking-email"
+                  className="text-sm font-semibold text-foreground mb-1.5 block"
+                >
+                  {lang === "fr"
+                    ? "Adresse email"
+                    : lang === "ar"
+                      ? "البريد الإلكتروني"
+                      : "Email address"}{" "}
+                  *
+                </Label>
+                <Input
+                  id="booking-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onBlur={() => setTouched((prev) => ({ ...prev, email: true }))}
+                  placeholder="contact@example.com"
+                  required
+                  className={`h-[52px] text-base rounded-xl border px-4 focus-visible:ring-2 ${
+                    touched.email && !isEmailValid
+                      ? "border-destructive focus-visible:ring-destructive"
+                      : "border-input focus-visible:ring-primary focus-visible:border-primary"
+                  }`}
+                />
+                {touched.email && !isEmailValid && (
+                  <p className="mt-1 text-xs font-semibold text-destructive">
+                    {lang === "fr"
+                      ? "Veuillez entrer une adresse email valide."
+                      : lang === "ar"
+                        ? "يرجى إدخال بريد إلكتروني صحيح."
+                        : "Please enter a valid email address."}
+                  </p>
+                )}
+              </div>
             </div>
-            <div>
-              <Label htmlFor="booking-infants">{t.booking.infants}</Label>
-              <Input
-                id="booking-infants"
-                type="number"
-                min={0}
-                max={2147483647}
-                value={draft.infants}
-                onChange={(event) => updateDraft({ infants: Number(event.target.value), date: "" })}
-              />
-              <p className="mt-1 text-sm text-muted-foreground">{t.booking.infantsFree}</p>
-            </div>
-            {/* Main dishes (choose 2) checkboxes */}
-            <fieldset className="space-y-3">
-              <legend className="block text-sm font-semibold text-foreground">
-                {lang === "fr"
-                  ? "Plats principaux (choisissez-en 2)"
-                  : lang === "ar"
-                    ? "الأطباق الرئيسية (اختر 2)"
-                    : "Main dishes (choose 2)"}
-                <span className="ms-2 text-xs font-normal text-muted-foreground">
-                  ({selectedDishes.length} / 2)
+
+            {/* Main dishes — two-column tappable cards with green check and 0/2 counter */}
+            <div className="pt-2">
+              <div className="flex items-center justify-between gap-2">
+                <Label className="text-sm font-semibold text-foreground">
+                  {lang === "fr"
+                    ? "Plats principaux (choix de 2)"
+                    : lang === "ar"
+                      ? "الأطباق الرئيسية (اختر طبقين)"
+                      : "Main dishes (choose 2)"}{" "}
+                  *
+                </Label>
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-bold transition-colors ${
+                    selectedDishes.length === 2
+                      ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                      : "bg-amber-100 text-amber-900 border border-amber-300"
+                  }`}
+                >
+                  {selectedDishes.length}/2
                 </span>
-              </legend>
-              <p className="text-xs text-muted-foreground">
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
                 {lang === "fr"
-                  ? "Cochez jusqu'à 2 plats principaux préparés maison par votre famille d'accueil."
+                  ? "Cochez exactement 2 plats principaux que vous partagerez."
                   : lang === "ar"
-                    ? "حدد ما يصل إلى طبقين رئيسيين تعدهما العائلة المضيفة خصيصاً لكم."
-                    : "Select up to 2 authentic main dishes prepared fresh by your host family."}
+                    ? "يرجى تحديد طبقين رئيسيين للمائدة."
+                    : "Check exactly 2 main dishes for your table."}
               </p>
-              <div className="grid gap-2.5 sm:grid-cols-2">
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mt-3">
                 {MAIN_DISHES.map((dish) => {
                   const checked = isDishSelected(dish);
                   return (
-                    <label
+                    <button
                       key={dish.id}
-                      className={`flex items-start gap-3 rounded-xl border p-3.5 cursor-pointer transition ${
+                      type="button"
+                      onClick={() => toggleDish(dish)}
+                      className={`group relative flex items-center justify-between gap-3 rounded-xl border p-3.5 text-start transition-all cursor-pointer ${
                         checked
-                          ? "border-primary bg-primary/5 text-primary font-medium"
-                          : "border-border hover:bg-muted/40 text-foreground"
+                          ? "border-primary bg-primary/5 shadow-xs ring-1 ring-primary"
+                          : "border-border/80 bg-white hover:border-primary/50 hover:bg-offwhite/50"
                       }`}
                     >
-                      <input
-                        type="checkbox"
-                        checked={checked}
-                        onChange={() => toggleDish(dish)}
-                        className="mt-0.5 h-4 w-4 rounded border-gray-300 text-primary accent-primary"
-                      />
-                      <span className="text-sm leading-snug">{dish.label[lang]}</span>
-                    </label>
+                      <span
+                        className={`text-sm leading-snug ${
+                          checked ? "font-bold text-primary" : "font-medium text-foreground"
+                        }`}
+                      >
+                        {dish.label[lang]}
+                      </span>
+                      <span
+                        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition-all ${
+                          checked
+                            ? "bg-accent text-white"
+                            : "border border-border/80 bg-stone-50 group-hover:border-primary/40"
+                        }`}
+                      >
+                        {checked && <Check className="h-3.5 w-3.5 stroke-[3]" />}
+                      </span>
+                    </button>
                   );
                 })}
               </div>
-            </fieldset>
+              {touched.dishes && !isDishesValid && (
+                <p className="mt-2 text-xs font-semibold text-destructive">
+                  {lang === "fr"
+                    ? "Veuillez choisir exactement 2 plats principaux."
+                    : lang === "ar"
+                      ? "يرجى اختيار طبقين رئيسيين بالضبط."
+                      : "Please choose exactly 2 main dishes."}
+                </p>
+              )}
+            </div>
 
-            {/* Allergies or dietary requirements (optional) */}
+            {/* Allergies (optional) */}
             <div>
-              <Label htmlFor="booking-dietary">
+              <Label
+                htmlFor="booking-dietary"
+                className="text-sm font-semibold text-foreground mb-1.5 block"
+              >
                 {lang === "fr"
                   ? "Allergies ou régimes alimentaires (facultatif)"
                   : lang === "ar"
@@ -671,240 +791,129 @@ export function BookingFlow({
               </Label>
               <textarea
                 id="booking-dietary"
-                value={draft.dietaryNeeds}
-                maxLength={500}
+                rows={2}
+                value={allergies}
+                onChange={(e) => setAllergies(e.target.value)}
                 placeholder={
                   lang === "fr"
-                    ? "Ex. Végétarien, sans gluten, allergie aux fruits à coque..."
+                    ? "Ex. Végétarien, sans gluten, allergie aux noix..."
                     : lang === "ar"
-                      ? "مثال: نباتي، خالي من الغلوتين، حساسية من المكسرات..."
+                      ? "مثال: نباتي، بدون غلوتين، حساسية من المكسرات..."
                       : "e.g. Vegetarian, gluten-free, nut allergy..."
                 }
-                onChange={(event) => updateDraft({ dietaryNeeds: event.target.value })}
-                className="field min-h-24 mt-1.5"
+                className="w-full rounded-xl border border-input bg-transparent px-4 py-2.5 text-sm shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary"
               />
             </div>
 
-            <label className="flex items-start gap-3">
-              <input
-                type="checkbox"
-                checked={draft.privateGroup}
-                onChange={(event) => updateDraft({ privateGroup: event.target.checked, date: "" })}
-                className="mt-1 accent-primary"
-              />
-              <span>
-                {t.booking.privateGroup}{" "}
-                <span className="block text-sm text-muted-foreground">
-                  {t.booking.privateGroupNote}
-                </span>
-              </span>
-            </label>
-
+            {/* Message (optional) */}
             <div>
-              <Label htmlFor="booking-occasion">{t.booking.specialOccasion}</Label>
-              <select
-                id="booking-occasion"
-                value={draft.specialOccasion}
-                onChange={(event) =>
-                  updateDraft({
-                    specialOccasion: event.target.value as BookingDraft["specialOccasion"],
-                  })
-                }
-                className="field"
+              <Label
+                htmlFor="booking-message"
+                className="text-sm font-semibold text-foreground mb-1.5 block"
               >
-                <option value="">{t.booking.noOccasion}</option>
-                <option value="birthday">{t.booking.birthday}</option>
-                <option value="anniversary">{t.booking.anniversary}</option>
-                <option value="honeymoon">{t.booking.honeymoon}</option>
-              </select>
+                {lang === "fr"
+                  ? "Message ou demandes particulières (facultatif)"
+                  : lang === "ar"
+                    ? "رسالة أو طلبات خاصة (اختياري)"
+                    : "Message or special requests (optional)"}
+              </Label>
+              <textarea
+                id="booking-message"
+                rows={2}
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder={
+                  lang === "fr"
+                    ? "Une question ou une occasion spéciale ?"
+                    : lang === "ar"
+                      ? "هل لديك أي استفسار أو مناسبة خاصة؟"
+                      : "Any questions or special occasion?"
+                }
+                className="w-full rounded-xl border border-input bg-transparent px-4 py-2.5 text-sm shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary"
+              />
             </div>
-          </div>
-        )}
 
-        {draft.step === 3 && (
-          <div className="mt-6 grid gap-5">
-            <div>
-              <Label htmlFor="booking-name">{t.booking.name}</Label>
-              <Input
-                id="booking-name"
-                autoComplete="name"
-                value={draft.name}
-                onChange={(event) => updateDraft({ name: event.target.value })}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="booking-email">{t.booking.email}</Label>
-              <Input
-                id="booking-email"
-                type="email"
-                autoComplete="email"
-                value={draft.email}
-                onChange={(event) => updateDraft({ email: event.target.value })}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="booking-phone">{t.booking.phone}</Label>
-              <Input
-                id="booking-phone"
-                type="tel"
-                autoComplete="tel"
-                value={draft.phone}
-                onChange={(event) => updateDraft({ phone: event.target.value })}
-                required
-              />
-            </div>
-          </div>
-        )}
-
-        {draft.step === 4 && (
-          <div className="mt-6 space-y-6">
-            {selectedExperience && (
-              <dl className="grid gap-3 sm:grid-cols-2">
-                <div>
-                  <dt className="font-semibold">{t.booking.experienceLabel}</dt>
-                  <dd>{localizedTextForLanguage(selectedExperience.title, lang)}</dd>
-                </div>
-                <div>
-                  <dt className="font-semibold">{t.booking.dateLabel}</dt>
-                  <dd>{draft.date}</dd>
-                </div>
-                <div>
-                  <dt className="font-semibold">{t.booking.startTime}</dt>
-                  <dd>{selectedExperience.start_time?.slice(0, 5)}</dd>
-                </div>
-                <div>
-                  <dt className="font-semibold">{t.booking.guestsLabel}</dt>
-                  <dd>
-                    {draft.adults} {t.booking.adults.toLocaleLowerCase()} · {draft.children}{" "}
-                    {t.booking.children.toLocaleLowerCase()} · {draft.infants}{" "}
-                    {t.booking.infants.toLocaleLowerCase()}
-                    {" · "}
-                    {guestsTotal} {t.booking.guestsLabel.toLocaleLowerCase()}
-                    {draft.privateGroup ? ` · ${t.booking.privateGroup}` : ""}
-                  </dd>
-                </div>
-                {draft.mealChoice && (
-                  <div className="sm:col-span-2">
-                    <dt className="font-semibold">
-                      {lang === "fr"
-                        ? "Plats principaux (choix de 2)"
-                        : lang === "ar"
-                          ? "الأطباق الرئيسية (2)"
-                          : "Main dishes (choose 2)"}
-                    </dt>
-                    <dd className="font-medium text-foreground">{draft.mealChoice}</dd>
-                  </div>
-                )}
-                <div>
-                  <dt className="font-semibold">{t.booking.name}</dt>
-                  <dd>{draft.name}</dd>
-                </div>
-                <div>
-                  <dt className="font-semibold">{t.booking.email}</dt>
-                  <dd>{draft.email}</dd>
-                </div>
-                <div>
-                  <dt className="font-semibold">{t.booking.phone}</dt>
-                  <dd>{draft.phone}</dd>
-                </div>
-                {draft.dietaryNeeds && (
-                  <div className="sm:col-span-2">
-                    <dt className="font-semibold">
-                      {lang === "fr"
-                        ? "Allergies ou régimes alimentaires"
-                        : lang === "ar"
-                          ? "الحساسية أو المتطلبات الغذائية"
-                          : "Allergies or dietary requirements"}
-                    </dt>
-                    <dd className="font-medium text-foreground">{draft.dietaryNeeds}</dd>
-                  </div>
-                )}
-                {draft.specialOccasion && (
-                  <div>
-                    <dt className="font-semibold">{t.booking.specialOccasion}</dt>
-                    <dd>{t.booking[draft.specialOccasion]}</dd>
-                  </div>
-                )}
-              </dl>
+            {submitError && (
+              <div
+                role="alert"
+                className="flex items-center gap-2 rounded-xl bg-destructive/10 p-4 text-sm text-destructive font-medium border border-destructive/20"
+              >
+                <AlertCircle className="h-5 w-5 shrink-0" />
+                <span>{submitError}</span>
+              </div>
             )}
-            {options.cancellationTiers.length > 0 && (
-              <div className="rounded-xl border border-border p-4">
-                <h3 className="font-semibold">{t.booking.cancellationPolicy}</h3>
-                <ul className="mt-2 list-disc space-y-1 ps-5">
-                  {formatCancellationTiers(options.cancellationTiers, lang).map((tier) => (
-                    <li key={tier}>{tier}</li>
-                  ))}
-                </ul>
+
+            {/* Send button — full width burgundy */}
+            <div className="pt-2">
+              <Button
+                type="submit"
+                size="lg"
+                disabled={submitting}
+                className="btn btn-primary w-full h-[54px] text-base font-bold shadow-md cursor-pointer"
+              >
+                {submitting
+                  ? lang === "fr"
+                    ? "Envoi en cours..."
+                    : lang === "ar"
+                      ? "جاري الإرسال..."
+                      : "Sending request..."
+                  : lang === "fr"
+                    ? "Envoyer la demande de réservation"
+                    : lang === "ar"
+                      ? "إرسال طلب الحجز"
+                      : "Send booking request"}
+              </Button>
+
+              {!canSubmit && touched.name && (
+                <p className="mt-2 text-center text-xs text-muted-foreground">
+                  {!date
+                    ? lang === "fr"
+                      ? "Veuillez choisir un jour disponible sur le calendrier."
+                      : lang === "ar"
+                        ? "يرجى اختيار تاريخ متاح على التقويم."
+                        : "Please select an available date on the calendar."
+                    : selectedDishes.length !== 2
+                      ? lang === "fr"
+                        ? "Veuillez choisir exactement 2 plats principaux."
+                        : lang === "ar"
+                          ? "يرجى اختيار طبقين رئيسيين."
+                          : "Please choose exactly 2 main dishes."
+                      : lang === "fr"
+                        ? "Veuillez remplir vos coordonnées complètes."
+                        : lang === "ar"
+                          ? "يرجى ملء جميع البيانات المطلوبة."
+                          : "Please fill in all required contact fields."}
+                </p>
+              )}
+            </div>
+
+            {/* Prefer to book via WhatsApp — secondary outlined button */}
+            {waHref && (
+              <div className="pt-2">
+                <a
+                  href={waHref}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="btn btn-secondary w-full inline-flex items-center justify-center gap-2.5 h-[52px] text-sm sm:text-base font-semibold"
+                >
+                  <MessageCircle className="h-5 w-5 text-accent" />
+                  <span>
+                    {lang === "fr"
+                      ? "Préférer réserver via WhatsApp ?"
+                      : lang === "ar"
+                        ? "تفضل الحجز عبر واتساب؟"
+                        : "Prefer to book via WhatsApp?"}
+                  </span>
+                </a>
               </div>
             )}
           </div>
-        )}
-
-        {submitError && (
-          <p role="alert" className="mt-5 text-destructive">
-            {submitError}
-          </p>
-        )}
-        <div className="mt-8 flex flex-wrap justify-between gap-3">
-          <Button
-            variant="outline"
-            type="button"
-            disabled={draft.step === 0 || submitting}
-            onClick={goBack}
-          >
-            <ChevronLeft aria-hidden />
-            {t.booking.back}
-          </Button>
-          {draft.step < 4 ? (
-            <Button type="button" disabled={!canContinue()} onClick={continueStep}>
-              {t.booking.continue}
-              <ChevronRight aria-hidden />
-            </Button>
-          ) : (
-            <Button type="button" disabled={!canContinue() || submitting} onClick={submit}>
-              {submitting ? t.booking.sending : t.booking.submit}
-            </Button>
-          )}
         </div>
-      </section>
-
-      {waHref && (
-        <a
-          href={waHref}
-          target="_blank"
-          rel="noreferrer"
-          className="mt-5 inline-flex items-center gap-2 text-primary underline"
-        >
-          <MessageCircle aria-hidden className="h-4 w-4" />
-          {t.booking.whatsappAlternative}
-        </a>
-      )}
-
-      <div className="fixed inset-x-0 bottom-0 z-30 flex items-center justify-between border-t border-border bg-background/95 p-3 shadow-lg backdrop-blur sm:hidden">
-        <span className="text-sm">{t.booking.steps[stepKeys[draft.step] ?? "experience"]}</span>
-        {draft.step < 4 ? (
-          <Button type="button" size="sm" disabled={!canContinue()} onClick={continueStep}>
-            {t.booking.continue}
-          </Button>
-        ) : (
-          <Button type="button" size="sm" disabled={!canContinue() || submitting} onClick={submit}>
-            {submitting ? t.booking.sending : t.booking.submit}
-          </Button>
-        )}
-      </div>
+      </form>
     </BookingFrame>
   );
 }
 
-function BookingFrame({ children }: { children: React.ReactNode }) {
-  const { t } = useI18n();
-  return (
-    <div className="mx-auto max-w-3xl px-5 py-16 pb-28 sm:pb-16">
-      <SectionHead eyebrow={t.booking.eyebrow} title={t.booking.title} sub={t.booking.subtitle} />
-      {children}
-      <p className="mt-8 text-sm text-muted-foreground">{t.booking.bookingRequestOnly}</p>
-    </div>
-  );
+function BookingFrame({ children }: { children: ReactNode }) {
+  return <div className="mx-auto w-full max-w-[1100px] px-0 sm:px-2 py-4 sm:py-6">{children}</div>;
 }
