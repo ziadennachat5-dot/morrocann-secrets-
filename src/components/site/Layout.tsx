@@ -1,13 +1,11 @@
-import { Link, useLocation } from "@tanstack/react-router";
-import { useEffect, useState, type FormEvent, type ReactNode } from "react";
-import { Menu, X, MessageCircle, Mail, Instagram } from "lucide-react";
+﻿import { Link, useLocation } from "@tanstack/react-router";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Menu, X, MessageCircle } from "lucide-react";
 import { useI18n, LANGS } from "@/lib/i18n";
 import { BRAND_NAME } from "@/lib/brand";
-import { HeaderLogo, FooterLogo, StarDivider } from "./Brand";
+import { HeaderLogo, FooterLogo, StarDivider, OrnamentDivider } from "./Brand";
 import { getPublicContactLinks } from "@/lib/public-contact.functions";
-import { CookieConsent, CookieSettingsButton } from "./CookieConsent";
-import { Button } from "@/components/ui/button";
-import { requestNewsletterSubscription } from "@/lib/newsletter.functions";
+import { CookieConsent } from "./CookieConsent";
 
 type PublicContactLinks = Awaited<ReturnType<typeof getPublicContactLinks>>;
 
@@ -25,13 +23,12 @@ function useContactLinks() {
   return { links, error };
 }
 
-const navItems = [
-  { to: "/", key: "home" },
-  { to: "/experiences", key: "experiences" },
-  { to: "/families", key: "families" },
-  { to: "/faq", key: "faq" },
-  { to: "/blog", key: "blog" },
-] as const;
+const siteNavItems = [
+  { href: "/#concept", label: { en: "Concept", fr: "Concept", ar: "التجربة" } },
+  { href: "/#menu", label: { en: "Menu", fr: "Menu", ar: "قائمة الطعام" } },
+  { href: "/#photos", label: { en: "Photos", fr: "Photos", ar: "الصور" } },
+  { href: "/#booking", label: { en: "Book", fr: "Réserver", ar: "احجز" }, isBook: true },
+];
 
 function LangSwitch() {
   const { lang, setLang, t } = useI18n();
@@ -39,7 +36,7 @@ function LangSwitch() {
     <div
       role="group"
       aria-label={t.language}
-      className="flex rounded-full border border-border p-0.5 text-xs font-semibold"
+      className="flex rounded-full border border-border bg-offwhite p-0.5 text-xs font-semibold"
     >
       {LANGS.map((l) => (
         <button
@@ -47,7 +44,11 @@ function LangSwitch() {
           type="button"
           onClick={() => setLang(l)}
           aria-pressed={lang === l}
-          className={`rounded-full px-2.5 py-1 uppercase transition-colors ${lang === l ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-muted"}`}
+          className={`rounded-full px-2.5 py-1 uppercase transition-colors ${
+            lang === l
+              ? "bg-primary text-white font-bold shadow-xs"
+              : "text-foreground/80 hover:bg-muted"
+          }`}
         >
           {l === "ar" ? (
             <span lang="ar" style={{ fontFamily: "system-ui, sans-serif" }}>
@@ -63,255 +64,238 @@ function LangSwitch() {
 }
 
 function Header() {
-  const { t } = useI18n();
-  const pathname = useLocation({ select: (location) => location.pathname });
-  const isHomepage = pathname === "/";
+  const { lang, t } = useI18n();
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const menuRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Close mobile menu on Escape
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open]);
+
   return (
     <header
-      className={`${isHomepage ? "relative" : "sticky top-0"} z-40 border-b border-border/70 bg-background/90 backdrop-blur`}
+      className={`sticky top-0 z-50 bg-white border-b border-border/60 transition-shadow duration-200 ${scrolled ? "header-scrolled" : ""}`}
     >
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-3">
-        <Link
-          to="/"
-          className="flex items-center"
+      {/* Skip to content */}
+      <div className="mx-auto flex max-w-[1200px] items-center justify-between gap-4 px-5 py-3 sm:px-10">
+        {/* Logo */}
+        <a
+          href="/"
+          className="flex items-center shrink-0 min-w-0"
           onClick={() => setOpen(false)}
           aria-label={BRAND_NAME}
         >
           <HeaderLogo />
-        </Link>
-        {!isHomepage && (
-          <nav aria-label="Main" className="hidden items-center gap-7 lg:flex">
-            {navItems.map((n) => (
-              <Link
-                key={n.to}
-                to={n.to}
-                className="text-sm font-medium text-foreground/80 hover:text-primary"
-                activeProps={{ className: "text-primary" }}
-                activeOptions={{ exact: true }}
+        </a>
+
+        {/* Desktop Nav — centred */}
+        <nav aria-label="Main" className="hidden items-center gap-8 md:flex flex-1 justify-center">
+          {siteNavItems
+            .filter((item) => !item.isBook)
+            .map((item) => (
+              <a
+                key={item.href}
+                href={item.href}
+                className="nav-link transition-colors hover:text-primary"
               >
-                {t.nav[n.key]}
-              </Link>
+                {item.label[lang]}
+              </a>
             ))}
-          </nav>
-        )}
-        <div className="flex items-center gap-3">
+        </nav>
+
+        {/* Right: lang switch + Book button */}
+        <div className="flex items-center gap-3 shrink-0">
           <LangSwitch />
-          {!isHomepage && (
-            <Link to="/booking" className="btn btn-primary hidden !py-2.5 sm:inline-flex">
-              {t.nav.book}
-            </Link>
-          )}
-          {!isHomepage && (
-            <button
-              type="button"
-              className="rounded-md p-2 lg:hidden"
-              aria-label="Menu"
-              aria-expanded={open}
-              onClick={() => setOpen(!open)}
-            >
-              {open ? <X /> : <Menu />}
-            </button>
-          )}
+          <a
+            href="/#booking"
+            className="btn btn-primary hidden md:inline-flex !h-10 !text-sm !px-5"
+          >
+            {t.nav.book}
+          </a>
+          {/* Mobile hamburger */}
+          <button
+            type="button"
+            className="rounded-md p-2 text-foreground hover:bg-muted md:hidden"
+            aria-label={open ? "Close menu" : "Open menu"}
+            aria-expanded={open}
+            aria-controls="mobile-nav"
+            onClick={() => setOpen(!open)}
+          >
+            {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
         </div>
       </div>
-      {!isHomepage && open && (
+
+      {/* Mobile full-width panel */}
+      {open && (
         <nav
-          aria-label="Mobile"
-          className="border-t border-border bg-background px-5 py-4 lg:hidden"
+          id="mobile-nav"
+          ref={menuRef}
+          aria-label="Mobile Navigation"
+          className="border-t border-border bg-white shadow-lg md:hidden"
         >
-          <ul className="flex flex-col gap-1">
-            {navItems.map((n) => (
-              <li key={n.to}>
-                <Link
-                  to={n.to}
+          <ul className="flex flex-col px-5 py-4 gap-1">
+            {siteNavItems.map((item) => (
+              <li key={item.href}>
+                <a
+                  href={item.href}
                   onClick={() => setOpen(false)}
-                  className="block rounded-md px-2 py-3 font-display text-2xl text-foreground hover:bg-muted"
+                  className={`block rounded-xl px-4 py-4 text-lg font-semibold transition-colors ${
+                    item.isBook
+                      ? "btn btn-primary mt-3 text-center justify-center w-full"
+                      : "text-foreground hover:bg-offwhite hover:text-primary"
+                  }`}
                 >
-                  {t.nav[n.key]}
-                </Link>
+                  {item.isBook ? t.nav.book : item.label[lang]}
+                </a>
               </li>
             ))}
           </ul>
-          <Link
-            to="/booking"
-            onClick={() => setOpen(false)}
-            className="btn btn-primary mt-4 w-full"
-          >
-            {t.nav.book}
-          </Link>
         </nav>
       )}
     </header>
   );
 }
 
-function Footer() {
-  const { t } = useI18n();
-  const { links, error } = useContactLinks();
+function ContactBand() {
+  const { lang } = useI18n();
+  const { links } = useContactLinks();
+
+  const questionsTitle = {
+    en: "Any questions?",
+    fr: "Des questions\u00a0?",
+    ar: "هل لديك سؤال؟",
+  };
+
+  const contactSubtitle = {
+    en: "We are happy to answer you on WhatsApp or by email.",
+    fr: "Nous serons ravis de vous répondre sur WhatsApp ou par email.",
+    ar: "يسعدنا الإجابة عليك عبر واتساب أو البريد الإلكتروني.",
+  };
+
+  if (!links?.whatsapp && !links?.email) return null;
+
   return (
-    <footer className="bg-ink text-ink-foreground">
-      <div className="zellige-bg">
-        <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 md:grid-cols-4">
-          <div>
-            <div className="flex items-center">
-              <FooterLogo />
-            </div>
-          </div>
-          <ul className="space-y-2">
-            {navItems.map((n) => (
-              <li key={n.to}>
-                <Link to={n.to} className="hover:text-gold">
-                  {t.nav[n.key]}
-                </Link>
-              </li>
-            ))}
-            <li>
-              <Link to="/booking" className="hover:text-gold">
-                {t.nav.book}
-              </Link>
-            </li>
-            <li>
-              <Link to="/private-events" className="hover:text-gold">
-                {t.inquiry.privateEvents.title}
-              </Link>
-            </li>
-            <li>
-              <Link to="/gift" className="hover:text-gold">
-                {t.inquiry.gift.title}
-              </Link>
-            </li>
-            <li>
-              <Link to="/partners" className="hover:text-gold">
-                {t.inquiry.partners.title}
-              </Link>
-            </li>
-            <li>
-              <Link to="/privacy" className="hover:text-gold">
-                {t.legal.privacyTitle}
-              </Link>
-            </li>
-            <li>
-              <Link to="/terms" className="hover:text-gold">
-                {t.legal.termsTitle}
-              </Link>
-            </li>
-            <li>
-              <Link to="/cancellation-policy" className="hover:text-gold">
-                {t.legal.cancellationTitle}
-              </Link>
-            </li>
-          </ul>
-          <ul className="space-y-3">
-            {error && <li role="alert">{t.contact.unavailable}</li>}
-            {links?.whatsapp && (
-              <li>
-                <a
-                  className="inline-flex items-center gap-2 hover:text-gold"
-                  href={`https://wa.me/${links.whatsapp}`}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  <MessageCircle className="h-4 w-4" />
-                  WhatsApp
-                </a>
-              </li>
-            )}
-            {links?.email && (
-              <li>
-                <a
-                  className="inline-flex items-center gap-2 hover:text-gold"
-                  href={`mailto:${links.email}`}
-                >
-                  <Mail className="h-4 w-4" />
-                  {links.email}
-                </a>
-              </li>
-            )}
-            {links?.instagram && (
-              <li>
-                <a
-                  className="inline-flex items-center gap-2 hover:text-gold"
-                  href={links.instagram}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  <Instagram className="h-4 w-4" />
-                  Instagram
-                </a>
-              </li>
-            )}
-            <li>
-              <CookieSettingsButton />
-            </li>
-          </ul>
-          <NewsletterSignup />
-        </div>
-        <StarDivider />
-        <p className="py-6 text-center text-xs text-ink-foreground/60">
-          © {new Date().getFullYear()} {BRAND_NAME}. {t.footer.rights}
+    <section
+      id="contact"
+      className="scroll-mt-20 zellige-burgundy bg-primary px-5 py-16 text-white sm:py-20"
+    >
+      <div className="mx-auto max-w-2xl text-center">
+        <OrnamentDivider center light />
+        <h2
+          className="mt-6 font-display text-white"
+          style={{ fontSize: "clamp(2.2rem,4.5vw,3.8rem)" }}
+        >
+          {questionsTitle[lang]}
+        </h2>
+        <p className="mt-4 text-white/90 mx-auto" style={{ maxWidth: "50ch", lineHeight: "1.75" }}>
+          {contactSubtitle[lang]}
         </p>
+
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+          {links?.whatsapp && (
+            <a
+              className="inline-flex items-center gap-2.5 rounded-full bg-white px-7 py-3.5 text-base font-bold text-primary shadow-md transition hover:bg-offwhite"
+              style={{ minHeight: "52px" }}
+              href={`https://wa.me/${links.whatsapp}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <MessageCircle className="h-5 w-5 text-accent" aria-hidden />
+              WhatsApp
+            </a>
+          )}
+          {links?.email && (
+            <a
+              className="inline-flex items-center gap-2 rounded-full border-2 border-white/60 px-6 py-3 text-base font-medium text-white transition hover:bg-white/10"
+              style={{ minHeight: "52px" }}
+              href={`mailto:${links.email}`}
+            >
+              {links.email}
+            </a>
+          )}
+        </div>
       </div>
-    </footer>
+    </section>
   );
 }
 
-function NewsletterSignup() {
-  const { t, lang } = useI18n();
-  const [email, setEmail] = useState("");
-  const [honeypot, setHoneypot] = useState("");
-  const [status, setStatus] = useState<"idle" | "submitting" | "submitted" | "error">("idle");
-
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setStatus("submitting");
-    try {
-      await requestNewsletterSubscription({ data: { email, language: lang, honeypot } });
-      setStatus("submitted");
-      setEmail("");
-    } catch (error) {
-      console.error("Newsletter subscription request failed:", error);
-      setStatus("error");
-    }
-  }
+function Footer() {
+  const { lang, t } = useI18n();
+  const { links } = useContactLinks();
 
   return (
-    <section aria-labelledby="newsletter-heading">
-      <h2 id="newsletter-heading" className="font-display text-2xl text-gold">
-        {t.consent.newsletterTitle}
-      </h2>
-      <p className="mt-2 text-sm text-ink-foreground/75">{t.consent.newsletterBody}</p>
-      <form className="mt-4 space-y-3" onSubmit={(event) => void submit(event)}>
-        <label className="block text-sm">
-          {t.consent.email}
-          <input
-            className="mt-1 w-full rounded-md border border-ink-foreground/30 bg-background px-3 py-2 text-foreground"
-            type="email"
-            autoComplete="email"
-            maxLength={255}
-            required
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-          />
-        </label>
-        <label aria-hidden="true" className="sr-only">
-          Leave this field empty
-          <input
-            tabIndex={-1}
-            autoComplete="off"
-            value={honeypot}
-            onChange={(event) => setHoneypot(event.target.value)}
-          />
-        </label>
-        <Button type="submit" variant="secondary" size="sm" disabled={status === "submitting"}>
-          {status === "submitting" ? "…" : t.consent.subscribe}
-        </Button>
-        <p role="status" aria-live="polite" className="text-sm">
-          {status === "submitted" && t.consent.subscriptionPending}
-          {status === "error" && t.consent.subscriptionError}
-        </p>
-      </form>
-    </section>
+    <footer className="bg-primary-dark text-white" style={{ paddingBottom: "40px" }}>
+      <div className="mx-auto max-w-[1200px] px-5 pt-10 pb-2 sm:px-10">
+        {/* Top row: logo + nav */}
+        <div className="flex flex-col items-center gap-8 md:flex-row md:items-start md:justify-between">
+          {/* Logo — light version, never cropped */}
+          <a href="/" aria-label={BRAND_NAME} className="flex items-center shrink-0">
+            <FooterLogo className="h-20 w-auto object-contain" />
+          </a>
+
+          {/* Nav links */}
+          <nav
+            aria-label="Footer"
+            className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 md:justify-end"
+          >
+            {siteNavItems.map((item) => (
+              <a
+                key={item.href}
+                href={item.href}
+                className="text-sm font-medium text-white/80 transition-colors hover:text-gold"
+              >
+                {item.isBook ? t.nav.book : item.label[lang]}
+              </a>
+            ))}
+          </nav>
+        </div>
+
+        {/* Divider */}
+        <div className="my-8 h-px bg-white/10" />
+
+        {/* Bottom row: contact + copyright */}
+        <div className="flex flex-col items-center gap-4 text-center md:flex-row md:justify-between md:text-start">
+          <div className="flex flex-wrap items-center justify-center gap-4 md:justify-start">
+            {links?.whatsapp && (
+              <a
+                href={`https://wa.me/${links.whatsapp}`}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 text-sm text-white/70 hover:text-white transition-colors"
+              >
+                <MessageCircle className="h-4 w-4" aria-hidden />
+                WhatsApp
+              </a>
+            )}
+            {links?.email && (
+              <a
+                href={`mailto:${links.email}`}
+                className="text-sm text-white/70 hover:text-white transition-colors"
+              >
+                {links.email}
+              </a>
+            )}
+          </div>
+          <p className="text-xs text-white/50">
+            &copy; {new Date().getFullYear()} {BRAND_NAME}. {t.footer.rights}
+          </p>
+        </div>
+      </div>
+    </footer>
   );
 }
 
@@ -325,7 +309,7 @@ function WhatsAppFab() {
       target="_blank"
       rel="noopener noreferrer"
       aria-label={t.whatsappLabel}
-      className="fixed bottom-20 end-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-whatsapp text-primary-foreground shadow-xl transition-transform hover:scale-105 sm:bottom-5"
+      className="fixed bottom-20 end-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-accent text-white shadow-xl transition-transform hover:scale-105 sm:bottom-5"
     >
       <MessageCircle className="h-7 w-7" />
     </a>
@@ -338,7 +322,7 @@ function MobileBookingBar() {
   if (pathname === "/booking" || pathname === "/") return null;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 p-3 shadow-lg backdrop-blur sm:hidden">
+    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-white/95 p-3 shadow-lg backdrop-blur sm:hidden">
       <Link to="/booking" className="btn btn-primary w-full">
         {t.nav.book}
       </Link>
@@ -363,7 +347,7 @@ export function SiteLayout({ children }: { children: ReactNode }) {
     );
   }
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-background">
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:absolute focus:start-4 focus:top-4 focus:z-50 focus:bg-background focus:p-2"
@@ -374,6 +358,7 @@ export function SiteLayout({ children }: { children: ReactNode }) {
       <main id="main" className="flex-1">
         {children}
       </main>
+      <ContactBand />
       <Footer />
       <WhatsAppFab />
       <MobileBookingBar />
