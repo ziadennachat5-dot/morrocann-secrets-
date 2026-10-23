@@ -24,7 +24,7 @@ function useContactLinks() {
 }
 
 const siteNavItems = [
-  { href: "/#concept", label: { en: "Concept", fr: "Concept", ar: "التجربة" } },
+  { href: "/#concept", label: { en: "What is it?", fr: "Le concept", ar: "الفكرة" } },
   { href: "/#menu", label: { en: "Menu", fr: "Menu", ar: "قائمة الطعام" } },
   { href: "/#photos", label: { en: "Photos", fr: "Photos", ar: "الصور" } },
   { href: "/#booking", label: { en: "Book", fr: "Réserver", ar: "احجز" }, isBook: true },

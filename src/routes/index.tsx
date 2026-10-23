@@ -33,11 +33,11 @@ export const Route = createFileRoute("/")({
     const siteUrl = getSiteUrl();
     return {
       meta: [
-        { title: "Moroccan Secrets | Eat with a local Moroccan family" },
+        { title: "Moroccan Secrets | Dinner with a local Moroccan family in Marrakech" },
         {
           name: "description",
           content:
-            "Share an authentic Moroccan family dinner in Marrakech. Homemade cuisine, warm hospitality, traditional music and cultural exchange.",
+            "Share an authentic dinner with a local Moroccan family in Marrakech. Homemade cuisine, warm hospitality, traditional music and cultural exchange.",
         },
         { property: "og:title", content: "Moroccan Secrets" },
         { property: "og:type", content: "website" },
@@ -161,19 +161,6 @@ function HomePage() {
     ar: "كيف تسير الأمسية",
   };
 
-  const conceptFacts = [
-    {
-      num: "2",
-      label: {
-        en: "main dishes of your choice",
-        fr: "plats principaux au choix",
-        ar: "طبقان رئيسيان باختيارك",
-      },
-    },
-    { num: "3", label: { en: "courses included", fr: "plats inclus", ar: "أطباق مشمولة" } },
-    { num: "8", label: { en: "guests maximum", fr: "personnes maximum", ar: "ضيوف كحد أقصى" } },
-    { num: "3h", label: { en: "of shared time", fr: "de temps partagé", ar: "من الوقت المشترك" } },
-  ];
 
   return (
     <div>
@@ -390,9 +377,9 @@ function HomePage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════
-          2. CONCEPT (off-white, Bento Grid)
+          2. WHAT IS IT? (off-white, 4 pillars, timeline, good to know)
       ═══════════════════════════════════════════════════════════ */}
-      <ConceptSection secondPhotoUrl={null} conceptFacts={conceptFacts} />
+      <ConceptSection />
 
       {/* ═══════════════════════════════════════════════════════════
           3. MENU (full-width burgundy)
