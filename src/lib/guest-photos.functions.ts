@@ -118,6 +118,7 @@ export const syncRootGuestPhotos = createServerFn({ method: "POST" }).handler(as
     "favicon.ico",
     "favicon-32x32.png",
     "og-image.png",
+    "design-reference.png",
   ]);
   const sources = allFiles
     .filter((filename) => /\.(jpe?g|png|webp)$/i.test(filename) && !ignoredFiles.has(filename))

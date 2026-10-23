@@ -178,9 +178,9 @@ function BookingBandArchPhoto({
   }>;
   lang: "en" | "fr" | "ar";
 }) {
-  const photo4 = photos.find(
-    (p) => p.source_file === "4.jpeg" && p.guest_consent_confirmed,
-  );
+  const photo4 =
+    photos.find((p) => p.source_file === "4.png" && p.guest_consent_confirmed) ??
+    photos.find((p) => p.source_file === "4.jpeg" && p.guest_consent_confirmed);
 
   if (photo4?.url) {
     const alt = photo4.alt[lang] || photo4.alt.en || "Moroccan family dinner";
@@ -201,7 +201,7 @@ function BookingBandArchPhoto({
   return (
     <div
       className="w-full max-w-[260px] sm:max-w-[280px] h-[340px] sm:h-[400px] arch-frame overflow-hidden bg-oxblood zellige-burgundy flex flex-col items-center justify-center p-6 text-center shadow-soft relative"
-      aria-label="Photo (4.jpeg) pending consent"
+      aria-label="Photo (4.png) pending consent"
     >
       <ZelligeStarSvg className="w-12 h-12 text-gold/40 mb-3" />
       <span className="text-xs font-medium text-white/60 tracking-widest uppercase">
@@ -270,7 +270,16 @@ function HomePage() {
     ar: "احجز عشاءك",
   };
 
-  const assignedFiles = new Set(["10.jpeg", "4.jpeg", "11.jpeg", "5.jpeg"]);
+  const assignedFiles = new Set([
+    "10.png",
+    "4.png",
+    "11.png",
+    "5.png",
+    "10.jpeg",
+    "4.jpeg",
+    "11.jpeg",
+    "5.jpeg",
+  ]);
   const remainingApprovedPhotos = data.photos.photos.filter(
     (p) => !assignedFiles.has(p.source_file ?? "") && p.guest_consent_confirmed,
   );

@@ -347,7 +347,8 @@ const EXPERIENCE_TEXT = {
   },
   cards: [
     {
-      sourceFile: "10.jpeg",
+      sourceFile: "10.png",
+      fallbackFile: "10.jpeg",
       icon: IconLocalFamilies,
       title: {
         en: "Meet your hosts",
@@ -361,7 +362,8 @@ const EXPERIENCE_TEXT = {
       },
     },
     {
-      sourceFile: "4.jpeg",
+      sourceFile: "4.png",
+      fallbackFile: "4.jpeg",
       icon: IconHomeCooked,
       title: {
         en: "Taste family recipes",
@@ -375,7 +377,8 @@ const EXPERIENCE_TEXT = {
       },
     },
     {
-      sourceFile: "11.jpeg",
+      sourceFile: "11.png",
+      fallbackFile: "11.jpeg",
       icon: ZelligeStarSvg,
       title: {
         en: "Discover local traditions",
@@ -518,9 +521,13 @@ export function ConceptSection({
             <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 -mx-5 px-5 scrollbar-none md:grid md:grid-cols-3 md:gap-6 md:mx-0 md:px-0">
               {EXPERIENCE_TEXT.cards.map((card, idx) => {
                 const Icon = card.icon;
-                const matchedPhoto = photos.find(
-                  (p) => p.source_file === card.sourceFile && p.guest_consent_confirmed,
-                );
+                const matchedPhoto =
+                  photos.find(
+                    (p) => p.source_file === card.sourceFile && p.guest_consent_confirmed,
+                  ) ??
+                  photos.find(
+                    (p) => p.source_file === card.fallbackFile && p.guest_consent_confirmed,
+                  );
                 return (
                   <div
                     key={idx}
@@ -631,7 +638,9 @@ export function MenuSection({
   }> | undefined;
 }) {
   const { lang } = useI18n();
-  const photo5 = photos?.find((p) => p.source_file === "5.jpeg" && p.guest_consent_confirmed);
+  const photo5 =
+    photos?.find((p) => p.source_file === "5.png" && p.guest_consent_confirmed) ??
+    photos?.find((p) => p.source_file === "5.jpeg" && p.guest_consent_confirmed);
 
   const menuHeadings = {
     eyebrow: { en: "THE MENU", fr: "LE MENU", ar: "قائمة الطعام" },
