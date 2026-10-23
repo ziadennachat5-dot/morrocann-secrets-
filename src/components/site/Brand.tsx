@@ -16,7 +16,7 @@ export function HeaderLogo({ className = "" }: { className?: string }) {
           alt={BRAND_NAME}
           width={120}
           height={75}
-          className="h-10 sm:h-12 w-auto object-contain"
+          className="h-9 sm:h-12 w-auto object-contain max-w-[85px] sm:max-w-none"
         />
       </picture>
     </div>
@@ -38,7 +38,7 @@ export function HeaderLogoLight({ className = "" }: { className?: string }) {
           alt={BRAND_NAME}
           width={120}
           height={75}
-          className="h-10 sm:h-12 w-auto object-contain"
+          className="h-9 sm:h-12 w-auto object-contain max-w-[85px] sm:max-w-none"
         />
       </picture>
     </div>

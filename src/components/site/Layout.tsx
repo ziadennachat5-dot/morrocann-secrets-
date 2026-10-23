@@ -40,13 +40,14 @@ function useContactLinks() {
   return { links, error };
 }
 
-function LangSwitch({ light = false }: { light?: boolean }) {
+export function LangSwitch({ light = false }: { light?: boolean }) {
   const { lang, setLang, t } = useI18n();
   return (
     <div
       role="group"
       aria-label={t.language}
-      className={`flex shrink-0 items-center rounded-full p-0.5 text-xs font-semibold transition-colors duration-300 ${
+      dir="ltr"
+      className={`flex shrink-0 flex-shrink-0 items-center rounded-full p-0.5 text-xs font-semibold transition-colors duration-300 ${
         light
           ? "border border-white/30 bg-black/25 backdrop-blur-xs text-white"
           : "border border-stone-300/80 bg-sand/60 text-ink/80"
@@ -58,7 +59,7 @@ function LangSwitch({ light = false }: { light?: boolean }) {
           type="button"
           onClick={() => setLang(l)}
           aria-pressed={lang === l}
-          className={`flex h-[32px] min-w-[30px] sm:min-w-[34px] items-center justify-center rounded-full px-2 uppercase transition-all text-[11px] sm:text-[12px] font-semibold shrink-0 cursor-pointer ${
+          className={`flex h-[36px] min-w-[34px] sm:min-w-[36px] items-center justify-center rounded-full px-2 sm:px-2.5 uppercase transition-all text-[11px] sm:text-[12px] font-semibold shrink-0 flex-shrink-0 cursor-pointer ${
             lang === l
               ? light
                 ? "bg-gold text-oxblood font-bold shadow-2xs"
@@ -92,7 +93,7 @@ export function getNavLinks(hasGallery: boolean) {
   ];
 }
 
-function Header() {
+export function Header() {
   const location = useLocation();
   const isHomePage = location.pathname === "/" || location.pathname === "";
   const { lang, t } = useI18n();
@@ -175,7 +176,7 @@ function Header() {
             : "bg-[#F6F0E6]/90 backdrop-blur-md border-b border-stone-300/70 shadow-xs header-scrolled"
         }`}
       >
-        <div className="ms-container flex items-center justify-between gap-2 sm:gap-4 h-full">
+        <div className="ms-container px-3 sm:px-6 flex items-center justify-between gap-1.5 sm:gap-4 h-full">
           {/* Logo left */}
           <a
             href="/"
@@ -184,9 +185,9 @@ function Header() {
             aria-label={BRAND_NAME}
           >
             {isHeroTransparent ? (
-              <HeaderLogoLight className="h-10 sm:h-12 w-auto object-contain" />
+              <HeaderLogoLight className="h-9 sm:h-12 w-auto object-contain shrink-0 max-w-[85px] sm:max-w-none" />
             ) : (
-              <HeaderLogo className="h-10 sm:h-12 w-auto object-contain" />
+              <HeaderLogo className="h-9 sm:h-12 w-auto object-contain shrink-0 max-w-[85px] sm:max-w-none" />
             )}
           </a>
 
@@ -214,7 +215,7 @@ function Header() {
           </nav>
 
           {/* Right: compact EN / FR / ع switcher and pill button "Book a dinner" */}
-          <div className="flex items-center gap-2 sm:gap-3.5 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-3.5 shrink-0 flex-shrink-0">
             <LangSwitch light={isHeroTransparent} />
             <a
               href="/#booking"
@@ -230,7 +231,7 @@ function Header() {
             {/* Mobile menu trigger */}
             <button
               type="button"
-              className={`flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full lg:hidden transition-colors shrink-0 cursor-pointer ${
+              className={`flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full lg:hidden transition-colors shrink-0 cursor-pointer ${
                 isHeroTransparent ? "text-white hover:bg-white/10" : "text-ink hover:bg-sand/60"
               }`}
               aria-label={open ? "Close menu" : "Open menu"}
@@ -238,7 +239,11 @@ function Header() {
               aria-controls="mobile-nav"
               onClick={() => setOpen(!open)}
             >
-              {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              {open ? (
+                <X className="h-5 w-5 sm:h-6 sm:w-6" />
+              ) : (
+                <Menu className="h-5 w-5 sm:h-6 sm:w-6" />
+              )}
             </button>
           </div>
         </div>
@@ -478,20 +483,6 @@ function WhatsAppFab() {
   );
 }
 
-function MobileBookingBar() {
-  const { t } = useI18n();
-  const pathname = useLocation({ select: (location) => location.pathname });
-  if (pathname === "/booking" || pathname === "/") return null;
-
-  return (
-    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-white/95 p-3 shadow-lg backdrop-blur sm:hidden">
-      <Link to="/booking" className="btn btn-primary w-full">
-        {t.nav.book}
-      </Link>
-    </div>
-  );
-}
-
 export function SiteLayout({ children }: { children: ReactNode }) {
   const [hasGallery, setHasGallery] = useState(false);
   const pathname = useLocation({ select: (location) => location.pathname });
@@ -526,7 +517,6 @@ export function SiteLayout({ children }: { children: ReactNode }) {
         <ClosingBand />
         <Footer />
         <WhatsAppFab />
-        <MobileBookingBar />
         <CookieConsent />
       </div>
     </GalleryContext.Provider>
