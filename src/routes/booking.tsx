@@ -78,6 +78,28 @@ function formatDateInWords(dateStr: string, lang: Lang): string {
   }
 }
 
+function formatShortDateInWords(dateStr: string, lang: Lang): string {
+  if (!dateStr) return "";
+  try {
+    const [y, m, d] = dateStr.split("-").map(Number);
+    const dateObj = new Date(y!, m! - 1, d!);
+    const locale = lang === "ar" ? "ar-MA" : lang === "fr" ? "fr-FR" : "en-US";
+    return new Intl.DateTimeFormat(locale, {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+    }).format(dateObj);
+  } catch {
+    return dateStr;
+  }
+}
+
+const WEEKDAY_NAMES: Record<Lang, string[]> = {
+  en: ["SU", "MO", "TU", "WE", "TH", "FR", "SA"],
+  fr: ["DI", "LU", "MA", "ME", "JE", "VE", "SA"],
+  ar: ["أحد", "إثن", "ثلا", "أرب", "خمي", "جمع", "سبت"],
+};
+
 export function BookingFlow({
   initialExperienceId,
   initialOptions,
@@ -315,11 +337,11 @@ export function BookingFlow({
     return (
       <BookingFrame>
         <div
-          className="rounded-3xl border border-stone-200/90 bg-white p-6 sm:p-10 lg:p-12 text-center shadow-card max-w-3xl mx-auto"
+          className="rounded-[28px] border border-stone-200/90 bg-white p-6 sm:p-10 lg:p-12 text-center shadow-soft max-w-3xl mx-auto"
           dir={lang === "ar" ? "rtl" : "ltr"}
         >
           {/* Large green check */}
-          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-emerald-50 text-accent border-2 border-emerald-200/80 shadow-xs">
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-emerald-50 text-accent border-2 border-emerald-200/80 shadow-soft">
             <Check className="h-10 w-10 stroke-[2.5]" aria-hidden />
           </div>
 
@@ -336,7 +358,7 @@ export function BookingFlow({
           </p>
 
           {/* Recap card */}
-          <div className="mt-8 rounded-2xl border border-stone-200 bg-stone-50/70 p-6 sm:p-7 text-start shadow-2xs">
+          <div className="mt-8 rounded-[20px] border border-stone-200 bg-stone-50/70 p-6 sm:p-7 text-start shadow-soft">
             <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground border-b border-stone-200 pb-3">
               {lang === "fr"
                 ? "Récapitulatif de votre demande"
@@ -422,7 +444,7 @@ export function BookingFlow({
           </div>
 
           {/* What happens next 1-2-3 list */}
-          <div className="mt-6 rounded-2xl border border-stone-200 bg-stone-50/50 p-6 text-start">
+          <div className="mt-6 rounded-[20px] border border-stone-200 bg-stone-50/50 p-6 text-start">
             <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
               {lang === "fr"
                 ? "Comment ça se passe ensuite :"
@@ -542,30 +564,30 @@ export function BookingFlow({
       <form
         onSubmit={(e) => void handleSubmit(e)}
         noValidate
-        className="w-full rounded-3xl border border-border/80 bg-white p-6 sm:p-10 lg:p-12 shadow-card pb-28 lg:pb-12"
+        className="w-full rounded-[28px] border border-stone-200/80 bg-white p-3.5 sm:p-10 lg:p-12 shadow-soft pb-36 lg:pb-12"
       >
         {/* =========================================================
-            SLIM PROGRESS STEPPER AT TOP
+            SLIM PROGRESS STEPPER AT TOP (32px circles, 12-13px labels, RTL-correct)
         ========================================================= */}
         <div
-          className="w-full pb-8 sm:pb-10 border-b border-border/70 mb-8 sm:mb-10"
+          className="w-full pb-6 sm:pb-8 border-b border-border/70 mb-6 sm:mb-8"
           dir={lang === "ar" ? "rtl" : "ltr"}
           aria-label="Booking steps"
         >
-          <div className="flex items-center justify-between max-w-2xl mx-auto px-2">
+          <div className="flex items-center justify-between max-w-2xl mx-auto px-1 sm:px-2">
             {/* Step 1: Date */}
-            <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
               <div
-                className={`flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold transition-all ${
+                className={`flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-full text-xs sm:text-sm font-bold transition-all ${
                   step1Complete
                     ? "bg-accent text-white shadow-xs"
                     : "bg-primary text-white shadow-xs ring-4 ring-primary/10"
                 }`}
               >
-                {step1Complete ? <Check className="h-5 w-5 stroke-[3]" /> : "1"}
+                {step1Complete ? <Check className="h-4 w-4 stroke-[3]" /> : "1"}
               </div>
               <span
-                className={`text-xs sm:text-sm font-semibold ${
+                className={`text-[12px] sm:text-[13px] leading-tight font-semibold max-w-[65px] sm:max-w-none text-start break-words ${
                   step1Complete ? "text-accent" : "text-foreground"
                 }`}
               >
@@ -575,15 +597,15 @@ export function BookingFlow({
 
             {/* Connecting line 1 -> 2 */}
             <div
-              className={`h-0.5 flex-1 mx-2 sm:mx-4 transition-colors ${
+              className={`h-0.5 flex-1 min-w-[8px] sm:min-w-[16px] mx-1 sm:mx-3 transition-colors ${
                 step1Complete ? "bg-accent" : "bg-stone-200"
               }`}
             />
 
             {/* Step 2: Guests & dishes */}
-            <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
               <div
-                className={`flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold transition-all ${
+                className={`flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-full text-xs sm:text-sm font-bold transition-all ${
                   step2Complete
                     ? "bg-accent text-white shadow-xs"
                     : step1Complete
@@ -591,10 +613,10 @@ export function BookingFlow({
                       : "bg-stone-100 text-stone-500 border border-stone-300"
                 }`}
               >
-                {step2Complete ? <Check className="h-5 w-5 stroke-[3]" /> : "2"}
+                {step2Complete ? <Check className="h-4 w-4 stroke-[3]" /> : "2"}
               </div>
               <span
-                className={`text-xs sm:text-sm font-semibold ${
+                className={`text-[12px] sm:text-[13px] leading-tight font-semibold max-w-[80px] sm:max-w-none text-start break-words ${
                   step2Complete
                     ? "text-accent"
                     : step1Complete
@@ -612,15 +634,15 @@ export function BookingFlow({
 
             {/* Connecting line 2 -> 3 */}
             <div
-              className={`h-0.5 flex-1 mx-2 sm:mx-4 transition-colors ${
+              className={`h-0.5 flex-1 min-w-[8px] sm:min-w-[16px] mx-1 sm:mx-3 transition-colors ${
                 step2Complete ? "bg-accent" : "bg-stone-200"
               }`}
             />
 
             {/* Step 3: Your details */}
-            <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
               <div
-                className={`flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold transition-all ${
+                className={`flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-full text-xs sm:text-sm font-bold transition-all ${
                   step3Complete
                     ? "bg-accent text-white shadow-xs"
                     : step2Complete
@@ -628,10 +650,10 @@ export function BookingFlow({
                       : "bg-stone-100 text-stone-500 border border-stone-300"
                 }`}
               >
-                {step3Complete ? <Check className="h-5 w-5 stroke-[3]" /> : "3"}
+                {step3Complete ? <Check className="h-4 w-4 stroke-[3]" /> : "3"}
               </div>
               <span
-                className={`text-xs sm:text-sm font-semibold ${
+                className={`text-[12px] sm:text-[13px] leading-tight font-semibold max-w-[75px] sm:max-w-none text-start break-words ${
                   step3Complete
                     ? "text-accent"
                     : step2Complete
@@ -674,6 +696,7 @@ export function BookingFlow({
                 <Calendar
                   mode="single"
                   startMonth={new Date()}
+                  dir={lang === "ar" ? "rtl" : "ltr"}
                   selected={date ? new Date(`${date}T12:00:00`) : undefined}
                   onSelect={(selected) => {
                     setTouched((prev) => ({ ...prev, date: true }));
@@ -694,7 +717,13 @@ export function BookingFlow({
                     fullyBooked: fullyBookedDates,
                     closed: closedDates,
                   }}
-                  className="w-full max-w-lg rounded-2xl border border-border p-3 sm:p-5 bg-background shadow-xs booking-calendar [--cell-size:48px] lg:[--cell-size:56px]"
+                  formatters={{
+                    formatWeekdayName: (dayDate) => {
+                      const dayIdx = dayDate.getDay();
+                      return WEEKDAY_NAMES[lang]?.[dayIdx] ?? "";
+                    },
+                  }}
+                  className="w-full max-w-lg rounded-2xl border border-border p-3 sm:p-5 bg-background shadow-xs booking-calendar overflow-hidden"
                   classNames={{
                     caption_label:
                       "font-display text-xl sm:text-2xl font-bold text-primary tracking-wide",
@@ -702,7 +731,8 @@ export function BookingFlow({
                       "h-10 w-10 sm:h-12 sm:w-12 rounded-full border border-border/80 hover:bg-muted text-primary flex items-center justify-center transition-colors disabled:opacity-30 disabled:pointer-events-none aria-disabled:opacity-30 aria-disabled:pointer-events-none",
                     button_next:
                       "h-10 w-10 sm:h-12 sm:w-12 rounded-full border border-border/80 hover:bg-muted text-primary flex items-center justify-center transition-colors",
-                    weekday: "text-foreground/85 font-bold text-xs sm:text-sm py-2",
+                    weekday:
+                      "flex items-center justify-center text-center text-[12px] sm:text-[13px] uppercase text-stone-500 font-semibold py-1 select-none min-w-0",
                   }}
                 />
 
@@ -1289,7 +1319,7 @@ export function BookingFlow({
               RIGHT COLUMN: STICKY "YOUR BOOKING" SUMMARY PANEL (lg:col-span-5)
           ========================================================= */}
           <div className="hidden lg:block lg:col-span-5">
-            <div className="sticky top-28 rounded-2xl border border-stone-200 bg-stone-50/80 p-6 sm:p-7 shadow-xs space-y-6">
+            <div className="sticky top-28 rounded-[28px] border border-stone-200/80 bg-paper p-6 sm:p-7 shadow-soft space-y-6">
               <div className="border-b border-stone-200/80 pb-4">
                 <h3 className="font-display text-2xl font-bold text-foreground">
                   {lang === "fr"
@@ -1506,50 +1536,94 @@ export function BookingFlow({
 
       {/* =========================================================
           STICKY BOTTOM BAR ON PHONES (<1024px)
+          Row 1 = summary at 14px, allowed to wrap to 2 lines + disabled reason
+          Row 2 = full-width 52px Send button with full label, never truncated
       ========================================================= */}
-      <div className="fixed inset-x-0 bottom-0 z-40 bg-white/95 backdrop-blur-md border-t border-stone-200/90 p-3 sm:p-4 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] lg:hidden">
-        <div className="max-w-md mx-auto flex items-center justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-semibold text-foreground truncate">
+      <div
+        className="fixed inset-x-0 bottom-0 z-40 bg-white/95 backdrop-blur-md border-t border-stone-200/90 p-3 sm:p-4 pb-[max(12px,env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgba(0,0,0,0.08)] lg:hidden booking-sticky-bar"
+        dir={lang === "ar" ? "rtl" : "ltr"}
+      >
+        <div className="max-w-md mx-auto space-y-2">
+          {/* Row 1: Summary at 14px, allowed to wrap to two lines */}
+          <div className="flex flex-col gap-0.5">
+            <p className="text-[14px] leading-snug font-semibold text-foreground">
               {date ? (
-                formatDateInWords(date, lang)
+                formatShortDateInWords(date, lang)
               ) : (
-                <span className="text-muted-foreground">
-                  {lang === "fr"
-                    ? "Date non choisie"
-                    : lang === "ar"
-                      ? "حدد التاريخ"
-                      : "Select date"}
+                <span className="text-muted-foreground italic font-normal">
+                  {lang === "fr" ? "Date à choisir" : lang === "ar" ? "حدد التاريخ" : "Pick a date"}
                 </span>
               )}
-            </p>
-            <p className="text-[11px] text-muted-foreground truncate">
+              {", 19:00"}
+              {" · "}
               {guests}{" "}
               {guests === 1
                 ? lang === "fr"
-                  ? "pers."
+                  ? "personne"
                   : lang === "ar"
                     ? "ضيف"
                     : "guest"
                 : lang === "fr"
-                  ? "pers."
+                  ? "personnes"
                   : lang === "ar"
                     ? "ضيوف"
-                    : "guests"}{" "}
-              · {selectedDishes.length}/2{" "}
-              {lang === "fr" ? "plats" : lang === "ar" ? "أطباق" : "dishes"} · 19:00
+                    : "guests"}
+              {" · "}
+              {selectedDishes.length}/2 {lang === "fr" ? "plats" : lang === "ar" ? "أطباق" : "dishes"}
             </p>
+
+            {/* Disabled state reason */}
+            {!canSubmit && (
+              <p className="text-[12px] font-medium text-amber-800">
+                {!date
+                  ? lang === "fr"
+                    ? "Choisissez un jour sur le calendrier"
+                    : lang === "ar"
+                      ? "اختر يوماً من التقويم"
+                      : "Pick a day on the calendar"
+                  : selectedDishes.length !== 2
+                    ? lang === "fr"
+                      ? "Choisissez 2 plats principaux"
+                      : lang === "ar"
+                        ? "اختر طبقين رئيسيين"
+                        : "Choose 2 main dishes"
+                    : !isNameValid || !isPhoneValid || !isEmailValid
+                      ? lang === "fr"
+                        ? "Remplissez vos coordonnées ci-dessus"
+                        : lang === "ar"
+                          ? "أكمل بياناتك الشخصية أعلاه"
+                          : "Fill in your details above"
+                      : ""}
+              </p>
+            )}
           </div>
+
+          {/* Row 2: Full-width 52px Send button with full label */}
           <Button
             type="button"
             onClick={() => void handleSubmit()}
-            disabled={submitting}
-            className="btn btn-primary h-[50px] sm:h-[56px] px-5 sm:px-6 text-sm sm:text-base font-bold shrink-0 shadow-md cursor-pointer"
+            disabled={submitting || !canSubmit}
+            className="btn btn-primary w-full h-[52px] text-base font-bold shadow-md cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {submitting ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
+              <>
+                <Loader2 className="h-5 w-5 animate-spin" />
+                <span>
+                  {lang === "fr"
+                    ? "Envoi en cours..."
+                    : lang === "ar"
+                      ? "جاري الإرسال..."
+                      : "Sending request..."}
+                </span>
+              </>
             ) : (
-              <span>{lang === "fr" ? "Envoyer" : lang === "ar" ? "إرسال" : "Send request"}</span>
+              <span>
+                {lang === "fr"
+                  ? "Envoyer la demande de réservation"
+                  : lang === "ar"
+                    ? "إرسال طلب الحجز"
+                    : "Send booking request"}
+              </span>
             )}
           </Button>
         </div>

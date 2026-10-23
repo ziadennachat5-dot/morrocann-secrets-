@@ -484,21 +484,22 @@ function HomePage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════
-          6. BOOK YOUR DINNER (off-white, one large white card)
+          6. BOOK YOUR DINNER (paper background, section index 05, large title)
       ═══════════════════════════════════════════════════════════ */}
       {data.bookingOptions.experiences.length > 0 && (
         <section
           id="booking"
-          className="scroll-mt-20 bg-offwhite"
-          style={{ paddingBlock: "var(--section-pad-v-mobile)" }}
+          className="scroll-mt-20 bg-paper section-pad"
         >
-          <div className="ms-container" style={{ paddingBottom: "var(--section-pad-v)" }}>
-            <div className="text-center mb-10">
-              <h2 className="text-primary mb-4">{bookingTitle[lang]}</h2>
-              <OrnamentDivider center className="mb-5" />
+          <div className="ms-container">
+            <div className="text-center mb-10 sm:mb-14">
+              <span className="section-index block mb-3">05 / BOOKING</span>
+              <h2 className="text-center text-primary font-display font-semibold leading-[1.02]">
+                {bookingTitle[lang]}
+              </h2>
+              <OrnamentDivider center className="mt-5 mb-5" />
               <p
-                className="text-foreground/70 mx-auto"
-                style={{ maxWidth: "48ch", fontSize: "1.0625rem" }}
+                className="text-foreground/75 mx-auto leading-relaxed text-base sm:text-[1.125rem] max-w-[52ch]"
               >
                 {lang === "fr"
                   ? "Partagez le repas d'une vraie famille marocaine. Entrées, boissons et dessert inclus."

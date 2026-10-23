@@ -73,22 +73,20 @@ function Calendar({
             : "[&>svg]:text-muted-foreground flex h-8 items-center gap-1 rounded-md pl-2 pr-1 text-sm [&>svg]:size-3.5",
           defaultClassNames.caption_label,
         ),
-        table: "w-full border-collapse",
-        weekdays: cn("flex", defaultClassNames.weekdays),
-        weekday: cn(
-          "text-muted-foreground flex-1 select-none rounded-md text-[0.8rem] font-normal",
-          defaultClassNames.weekday,
-        ),
-        week: cn("mt-2 flex w-full", defaultClassNames.week),
+        table: "w-full border-collapse block",
+        thead: "block w-full mb-1 sm:mb-2",
+        tbody: "block w-full space-y-[6px] sm:space-y-2",
+        weekdays:
+          "grid grid-cols-7 gap-[6px] sm:gap-2 w-full [grid-template-columns:repeat(7,minmax(0,1fr))]",
+        weekday:
+          "flex items-center justify-center text-center text-[12px] sm:text-[13px] uppercase text-stone-500 font-semibold py-1 select-none min-w-0",
+        week: "grid grid-cols-7 gap-[6px] sm:gap-2 w-full [grid-template-columns:repeat(7,minmax(0,1fr))]",
         week_number_header: cn("w-(--cell-size) select-none", defaultClassNames.week_number_header),
         week_number: cn(
           "text-muted-foreground select-none text-[0.8rem]",
           defaultClassNames.week_number,
         ),
-        day: cn(
-          "group/day relative aspect-square h-full w-full select-none p-0 text-center [&:first-child[data-selected=true]_button]:rounded-l-md [&:last-child[data-selected=true]_button]:rounded-r-md",
-          defaultClassNames.day,
-        ),
+        day: "flex items-center justify-center p-0 text-center select-none w-full min-w-0 aspect-square",
         range_start: cn("bg-accent rounded-l-md", defaultClassNames.range_start),
         range_middle: cn("rounded-none", defaultClassNames.range_middle),
         range_end: cn("bg-accent rounded-r-md", defaultClassNames.range_end),
@@ -191,7 +189,7 @@ function CalendarDayButton({
       data-range-end={modifiers["range_end"]}
       data-range-middle={modifiers["range_middle"]}
       className={cn(
-        "relative flex aspect-square h-auto w-full min-w-[48px] min-h-[48px] lg:min-w-[56px] lg:min-h-[56px] flex-col items-center justify-center gap-0.5 text-sm lg:text-base font-semibold leading-none rounded-xl transition-all overflow-hidden",
+        "relative flex aspect-square h-auto w-full min-w-0 flex-col items-center justify-center gap-0.5 text-xs sm:text-sm lg:text-base font-semibold leading-none rounded-xl transition-all overflow-hidden",
         isAvailable &&
           "bg-white border-2 border-accent/60 text-accent font-bold hover:border-accent hover:bg-accent/10 cursor-pointer shadow-2xs",
         isSelected &&
