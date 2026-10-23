@@ -103,6 +103,14 @@ function HomePage() {
   const { heroGuestPhoto, heroImageUrl, heroImageSrcSet, galleryPhotos } =
     selectHeroAndGalleryPhotos(data.photos.photos, fallbackHeroUrl);
 
+  const conceptPhoto = galleryPhotos[0]
+    ? {
+        url: galleryPhotos[0].url,
+        srcSet: galleryPhotos[0].srcSet,
+        alt: galleryPhotos[0].alt[lang] || galleryPhotos[0].alt.en || "Dinner with a local family",
+      }
+    : undefined;
+
   const heroImageAlt = heroGuestPhoto
     ? heroGuestPhoto.alt[lang] || heroGuestPhoto.alt.en || "Dinner with a Moroccan family"
     : firstExperience?.title?.[lang] || "Eat with a local Moroccan family";
@@ -369,7 +377,7 @@ function HomePage() {
       {/* ═══════════════════════════════════════════════════════════
           2. WHAT IS IT? (off-white, 4 pillars, timeline, good to know)
       ═══════════════════════════════════════════════════════════ */}
-      <ConceptSection />
+      <ConceptSection conceptPhoto={conceptPhoto} />
 
       {/* ═══════════════════════════════════════════════════════════
           3. MENU (full-width burgundy)

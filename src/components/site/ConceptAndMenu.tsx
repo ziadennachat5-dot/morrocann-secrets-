@@ -15,6 +15,7 @@ import {
   ChefHat,
   ChevronDown,
   Clock,
+  Check,
 } from "lucide-react";
 import { OrnamentDivider } from "@/components/site/Brand";
 
@@ -325,62 +326,131 @@ export const MENU_TEXT = {
 
 type ConceptFact = { num: string; label: { en: string; fr: string; ar: string } };
 
-export function ConceptSection() {
+export function ConceptSection({
+  conceptPhoto,
+}: {
+  conceptPhoto?: { url: string; alt: string; srcSet?: string };
+}) {
   const { lang } = useI18n();
+
+  const eveningStops = [
+    {
+      time: "19:00",
+      title: {
+        en: "Welcome with mint tea",
+        fr: "Accueil au thé à la menthe",
+        ar: "الاستقبال بالشاي بالنعناع",
+      },
+    },
+    {
+      time: "19:30",
+      title: {
+        en: "Cooking together",
+        fr: "Cuisiner ensemble",
+        ar: "الطبخ معاً",
+      },
+    },
+    {
+      time: "20:30",
+      title: {
+        en: "Dinner around the table",
+        fr: "Dîner autour de la table",
+        ar: "العشاء حول المائدة",
+      },
+    },
+    {
+      time: "21:30",
+      title: {
+        en: "Stories, music and dessert",
+        fr: "Histoires, musique et dessert",
+        ar: "حكايات وموسيقى وحلوى",
+      },
+    },
+  ];
 
   return (
     <section
       id="concept"
-      className="scroll-mt-20 bg-offwhite relative z-0"
+      className="scroll-mt-20 bg-paper relative z-0"
       style={{ paddingBlock: "var(--section-pad-v)" }}
     >
       <div className="ms-container">
-        {/* --- Top: H2, Lead in large serif burgundy, Body paragraph --- */}
-        <div className="max-w-3xl" dir={lang === "ar" ? "rtl" : "ltr"}>
-          <h2 className="text-primary font-display font-semibold mb-5">
-            {WHAT_IS_IT_TEXT.title[lang]}
-          </h2>
-          <OrnamentDivider className="mb-6" />
-          <p className="font-display text-2xl sm:text-3xl text-primary font-semibold leading-snug mb-5">
-            {WHAT_IS_IT_TEXT.lead[lang]}
-          </p>
-          <p className="text-foreground/80 text-base sm:text-[1.125rem] leading-[1.7]">
-            {WHAT_IS_IT_TEXT.body[lang]}
-          </p>
-        </div>
-
-        {/* --- Four pillars as 2x2 grid of white cards (one column on phones) --- */}
-        <div
-          className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-12 sm:mt-16"
-          dir={lang === "ar" ? "rtl" : "ltr"}
-        >
-          {WHAT_IS_IT_TEXT.pillars.map((pillar) => {
-            const Icon = pillar.icon;
-            return (
-              <div
-                key={pillar.id}
-                className="rounded-[24px] bg-white p-7 sm:p-8 shadow-card flex flex-col items-start border border-stone-200/50 hover:shadow-lg transition-shadow duration-300"
-              >
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent/10 mb-5">
-                  <Icon className="h-6 w-6 text-accent stroke-[1.75]" aria-hidden="true" />
-                </div>
-                <h3 className="font-display text-xl sm:text-2xl font-bold text-foreground mb-2.5">
-                  {pillar.title[lang]}
-                </h3>
-                <p className="text-foreground/75 text-sm sm:text-base leading-relaxed">
-                  {pillar.desc[lang]}
-                </p>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* --- An evening at a glance: horizontal timeline (vertical on phones) --- */}
-        <div className="mt-16 sm:mt-24 pt-12 sm:pt-16 border-t border-stone-200/70">
+        {/* --- Top: Two Columns (Left sticky text, Right 4 pillars + tall zellige-cut photo) --- */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
+          {/* Left: Sticky text */}
           <div
-            className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-12"
+            className="lg:col-span-5 lg:sticky lg:top-28 space-y-6"
             dir={lang === "ar" ? "rtl" : "ltr"}
           >
+            <span className="section-index">01 / CONCEPT</span>
+            <h2 className="text-primary font-display font-semibold leading-[1.02]">
+              {WHAT_IS_IT_TEXT.title[lang]}
+            </h2>
+            <OrnamentDivider />
+            <p className="font-display text-2xl sm:text-3xl text-primary font-semibold leading-snug">
+              {WHAT_IS_IT_TEXT.lead[lang]}
+            </p>
+            <p className="text-foreground/80 text-base sm:text-[1.125rem] leading-[1.7] max-w-[52ch]">
+              {WHAT_IS_IT_TEXT.body[lang]}
+            </p>
+          </div>
+
+          {/* Right: Vertical stack of the 4 pillars + Tall photo with zellige-cut mask */}
+          <div className="lg:col-span-7 grid grid-cols-1 md:grid-cols-12 gap-8 items-stretch">
+            {/* Four pillars as large numbered rows (01 to 04) separated by hairlines */}
+            <div
+              className="md:col-span-7 flex flex-col justify-between divide-y divide-stone-300/70 border-y border-stone-300/70"
+              dir={lang === "ar" ? "rtl" : "ltr"}
+            >
+              {WHAT_IS_IT_TEXT.pillars.map((pillar, idx) => (
+                <div key={pillar.id} className="py-6 flex items-start gap-4">
+                  <span className="font-display text-2xl sm:text-3xl font-bold text-gold shrink-0 w-8">
+                    {String(idx + 1).padStart(2, "0")}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-3">
+                      <h3 className="font-display text-xl sm:text-2xl font-bold text-foreground">
+                        {pillar.title[lang]}
+                      </h3>
+                      <Check className="h-4 w-4 text-accent shrink-0 stroke-[2.5]" aria-hidden="true" />
+                    </div>
+                    <p className="text-foreground/75 text-sm sm:text-base leading-relaxed mt-1">
+                      {pillar.desc[lang]}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Next to the pillars: Tall photo with zellige-cut mask and slow reveal (or deep-red pull quote panel) */}
+            <div className="md:col-span-5 relative min-h-[380px] md:min-h-full">
+              {conceptPhoto?.url ? (
+                <div className="w-full h-full min-h-[380px] md:min-h-full overflow-hidden flex items-center justify-center image-reveal">
+                  <img
+                    src={conceptPhoto.url}
+                    srcSet={conceptPhoto.srcSet}
+                    alt={conceptPhoto.alt}
+                    className="w-full h-full object-cover zellige-cut-mask shadow-photo"
+                    loading="lazy"
+                  />
+                </div>
+              ) : (
+                <div className="w-full h-full min-h-[380px] md:min-h-full bg-[#4A0E0E] zellige-pattern zellige-cut-mask p-8 flex items-center justify-center text-center shadow-photo image-reveal">
+                  <p className="font-display text-xl sm:text-2xl italic leading-snug text-white/95 drop-shadow-sm">
+                    "{WHAT_IS_IT_TEXT.lead[lang]}"
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* --- An evening at a glance: horizontal timeline with big gold times (vertical on phones) --- */}
+        <div
+          className="mt-20 sm:mt-28 pt-14 border-t border-stone-300/60"
+          dir={lang === "ar" ? "rtl" : "ltr"}
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-12">
             <div>
               <h3 className="font-display text-2xl sm:text-3xl font-bold text-primary mb-2">
                 {WHAT_IS_IT_TEXT.eveningGlance.title[lang]}
@@ -394,49 +464,50 @@ export function ConceptSection() {
           </div>
 
           {/* Desktop timeline (horizontal) */}
-          <div className="hidden lg:block relative pt-6 pb-2" dir={lang === "ar" ? "rtl" : "ltr"}>
-            {/* Thin gold line */}
+          <div className="hidden lg:block relative pt-4 pb-2">
             <div
-              className="absolute top-9 start-[12.5%] end-[12.5%] h-[1.5px] bg-[#C9A24B]/50 z-0"
+              className="absolute top-10 start-[12.5%] end-[12.5%] h-px bg-gold/50 z-0"
               aria-hidden="true"
             />
             <div className="grid grid-cols-4 gap-6 relative z-10 text-center">
-              {WHAT_IS_IT_TEXT.eveningGlance.stops.map((stop, idx) => (
-                <div key={idx} className="flex flex-col items-center px-2">
+              {eveningStops.map((stop, idx) => (
+                <div key={idx} className="flex flex-col items-center px-3">
                   <div
-                    className="h-4 w-4 rounded-full bg-primary ring-4 ring-white shadow-xs mb-4"
+                    className="h-3.5 w-3.5 rounded-full bg-primary ring-4 ring-paper shadow-2xs mb-4"
                     aria-hidden="true"
                   />
-                  <span className="font-display font-bold text-lg text-foreground leading-snug">
-                    {stop.label[lang]}
+                  <span className="font-display text-3xl xl:text-4xl font-bold text-gold block leading-none mb-2">
+                    {stop.time}
                   </span>
+                  <h4 className="font-display text-lg font-bold text-foreground leading-snug">
+                    {stop.title[lang]}
+                  </h4>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Mobile timeline (vertical) */}
-          <div
-            className="lg:hidden relative border-s border-[#C9A24B]/50 ms-4 ps-7 space-y-7"
-            dir={lang === "ar" ? "rtl" : "ltr"}
-          >
-            {WHAT_IS_IT_TEXT.eveningGlance.stops.map((stop, idx) => (
+          <div className="lg:hidden relative border-s border-gold/50 ms-4 ps-7 space-y-8">
+            {eveningStops.map((stop, idx) => (
               <div key={idx} className="relative">
-                {/* Small red dot on timeline */}
                 <div
-                  className="absolute -start-[35px] top-1.5 h-3.5 w-3.5 rounded-full bg-primary ring-4 ring-white shadow-xs"
+                  className="absolute -start-[35px] top-2 h-3.5 w-3.5 rounded-full bg-primary ring-4 ring-paper shadow-2xs"
                   aria-hidden="true"
                 />
-                <span className="font-display font-bold text-base sm:text-lg text-foreground block leading-snug">
-                  {stop.label[lang]}
+                <span className="font-display text-2xl sm:text-3xl font-bold text-gold block leading-none mb-1">
+                  {stop.time}
                 </span>
+                <h4 className="font-display text-lg font-bold text-foreground leading-snug">
+                  {stop.title[lang]}
+                </h4>
               </div>
             ))}
           </div>
         </div>
 
-        {/* --- Good to know block: 4 short Q&A items (open grid desktop, accordion phones) --- */}
-        <div className="mt-16 sm:mt-24 pt-12 sm:pt-16 border-t border-stone-200/70">
+        {/* --- Good to know block: 4 short Q&A items --- */}
+        <div className="mt-16 sm:mt-24 pt-12 sm:pt-16 border-t border-stone-300/60">
           <div className="text-center mb-10">
             <h3 className="font-display text-2xl sm:text-3xl font-bold text-primary mb-3">
               {WHAT_IS_IT_TEXT.goodToKnow.title[lang]}
@@ -449,7 +520,7 @@ export function ConceptSection() {
             {WHAT_IS_IT_TEXT.goodToKnow.items.map((item, idx) => (
               <div
                 key={idx}
-                className="rounded-[20px] bg-white p-7 shadow-xs border border-stone-200/70 flex flex-col items-start"
+                className="rounded-[24px] bg-white p-7 shadow-soft border border-stone-200/70 flex flex-col items-start"
               >
                 <h4 className="font-display text-lg font-bold text-foreground mb-2.5 flex items-center gap-2.5">
                   <span className="h-2 w-2 rounded-full bg-accent shrink-0" aria-hidden="true" />
@@ -467,7 +538,7 @@ export function ConceptSection() {
             {WHAT_IS_IT_TEXT.goodToKnow.items.map((item, idx) => (
               <details
                 key={idx}
-                className="group rounded-[18px] bg-white p-4 sm:p-5 border border-stone-200/70 shadow-xs transition-colors"
+                className="group rounded-[20px] bg-white p-4 sm:p-5 border border-stone-200/70 shadow-soft transition-colors"
               >
                 <summary className="flex items-center justify-between font-display font-semibold text-foreground text-base cursor-pointer list-none select-none">
                   <span className="flex items-center gap-2.5 pe-3">
@@ -483,6 +554,9 @@ export function ConceptSection() {
             ))}
           </div>
         </div>
+
+        {/* Small decorative divider between sections */}
+        <OrnamentDivider center className="mt-20 sm:mt-28" />
       </div>
     </section>
   );
