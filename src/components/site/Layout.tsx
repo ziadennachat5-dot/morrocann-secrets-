@@ -210,7 +210,9 @@ function ContactBand() {
     ar: "يسعدنا الإجابة عليك عبر واتساب أو البريد الإلكتروني.",
   };
 
-  if (!links?.whatsapp && !links?.email) return null;
+  const whatsappHref = links?.whatsapp
+    ? `https://wa.me/${links.whatsapp}`
+    : "https://wa.me/212600000000";
 
   return (
     <section
@@ -231,18 +233,16 @@ function ContactBand() {
         </p>
 
         <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-          {links?.whatsapp && (
-            <a
-              className="inline-flex items-center gap-2.5 rounded-full bg-white px-8 py-3.5 text-base font-bold text-primary shadow-md transition-all duration-200 hover:bg-offwhite hover:-translate-y-0.5 active:translate-y-0"
-              style={{ minHeight: "52px" }}
-              href={`https://wa.me/${links.whatsapp}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              <MessageCircle className="h-5 w-5 text-accent" aria-hidden />
-              <span>WhatsApp</span>
-            </a>
-          )}
+          <a
+            className="inline-flex items-center gap-2.5 rounded-full bg-white px-8 py-3.5 text-base font-bold text-primary shadow-md transition-all duration-200 hover:bg-offwhite hover:-translate-y-0.5 active:translate-y-0"
+            style={{ minHeight: "52px" }}
+            href={whatsappHref}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <MessageCircle className="h-5 w-5 text-accent" aria-hidden />
+            <span>WhatsApp</span>
+          </a>
           {links?.email && (
             <a
               className="inline-flex items-center gap-2 rounded-full border-2 border-white/60 px-6 py-3 text-base font-medium text-white transition hover:bg-white/10"
@@ -330,10 +330,13 @@ function Footer() {
 function WhatsAppFab() {
   const { t } = useI18n();
   const { links } = useContactLinks();
-  if (!links?.whatsapp) return null;
+  const whatsappHref = links?.whatsapp
+    ? `https://wa.me/${links.whatsapp}`
+    : "https://wa.me/212600000000";
+
   return (
     <a
-      href={`https://wa.me/${links.whatsapp}`}
+      href={whatsappHref}
       target="_blank"
       rel="noopener noreferrer"
       aria-label={t.whatsappLabel}
