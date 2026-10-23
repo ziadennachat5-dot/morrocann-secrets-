@@ -218,3 +218,190 @@ export function SectionHead({
     </div>
   );
 }
+
+/** Large gold line-art zellige star ornament (seen in concept section and closing band) */
+export function ZelligeLineArtStar({
+  className = "w-32 h-32",
+  stroke = "var(--gold)",
+  opacity = 0.5,
+}: {
+  className?: string;
+  stroke?: string;
+  opacity?: number;
+}) {
+  return (
+    <svg
+      viewBox="0 0 100 100"
+      className={className}
+      fill="none"
+      stroke={stroke}
+      strokeWidth="1.2"
+      style={{ opacity }}
+      aria-hidden="true"
+    >
+      <polygon points="50,5 63,22 85,15 78,37 95,50 78,63 85,85 63,78 50,95 37,78 15,85 22,63 5,50 22,37 15,15 37,22" />
+      <rect x="25" y="25" width="50" height="50" transform="rotate(0 50 50)" />
+      <rect x="25" y="25" width="50" height="50" transform="rotate(45 50 50)" />
+      <polygon points="50,32 68,50 50,68 32,50" />
+      <circle cx="50" cy="50" r="6" />
+    </svg>
+  );
+}
+
+/** Delicate olive branch leaf illustration for hero note card */
+export function OliveBranchSvg({ className = "w-8 h-8 text-accent" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 48 48"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M8 40C14 34 26 22 40 8" />
+      <path d="M22 26C20 20 24 16 30 18C30 24 26 28 22 26Z" fill="currentColor" fillOpacity="0.15" />
+      <path d="M30 18C28 12 32 8 38 10C38 16 34 20 30 18Z" fill="currentColor" fillOpacity="0.15" />
+      <path d="M14 34C12 28 16 24 22 26" />
+      <circle cx="27" cy="22" r="2" fill="currentColor" />
+      <circle cx="35" cy="14" r="2" fill="currentColor" />
+    </svg>
+  );
+}
+
+/** Line icon: Local families */
+export function IconLocalFamilies({ className = "w-6 h-6 text-gold" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  );
+}
+
+/** Line icon: Home-cooked dishes */
+export function IconHomeCooked({ className = "w-6 h-6 text-gold" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M4 15c0 3.3 2.7 6 6 6h4c3.3 0 6-2.7 6-6V13H4v2z" />
+      <path d="M12 3v2" />
+      <path d="M8 5c1 1.5 1 2.5 0 4" />
+      <path d="M16 5c1 1.5 1 2.5 0 4" />
+      <path d="M4 13h16" />
+    </svg>
+  );
+}
+
+/** Line icon: Small groups */
+export function IconSmallGroups({ className = "w-6 h-6 text-gold" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="7" r="3" />
+      <circle cx="5" cy="9" r="2.5" />
+      <circle cx="19" cy="9" r="2.5" />
+      <path d="M8.5 20a4 4 0 0 1 7 0" />
+      <path d="M2 20a3.5 3.5 0 0 1 5-2.5" />
+      <path d="M22 20a3.5 3.5 0 0 0-5-2.5" />
+    </svg>
+  );
+}
+
+/** Step 1 thin line icon: Calendar */
+export function IconStepCalendar({ className = "w-7 h-7 text-gold" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.3"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+      <line x1="16" y1="2" x2="16" y2="6" />
+      <line x1="8" y1="2" x2="8" y2="6" />
+      <line x1="3" y1="10" x2="21" y2="10" />
+      <circle cx="8" cy="14" r="1" fill="currentColor" />
+      <circle cx="12" cy="14" r="1" fill="currentColor" />
+      <circle cx="16" cy="14" r="1" fill="currentColor" />
+      <circle cx="8" cy="18" r="1" fill="currentColor" />
+      <circle cx="12" cy="18" r="1" fill="currentColor" />
+    </svg>
+  );
+}
+
+/** Step 2 thin line icon: Hosts confirming */
+export function IconStepConfirm({ className = "w-7 h-7 text-gold" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.3"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  );
+}
+
+/** Step 3 thin line icon: Cloche / Dining */
+export function IconStepEnjoy({ className = "w-7 h-7 text-gold" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.3"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M12 4v3" />
+      <path d="M4 18h16" />
+      <path d="M4 18a8 8 0 0 1 16 0" />
+      <circle cx="12" cy="4" r="1.5" />
+    </svg>
+  );
+}
+

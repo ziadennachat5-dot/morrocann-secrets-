@@ -1,5 +1,5 @@
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { Link, useLocation } from "@tanstack/react-router";
-import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Menu, X, MessageCircle, Mail } from "lucide-react";
 import { useI18n, LANGS } from "@/lib/i18n";
 import { BRAND_NAME } from "@/lib/brand";
@@ -16,6 +16,15 @@ import { CookieConsent } from "./CookieConsent";
 
 type PublicContactLinks = Awaited<ReturnType<typeof getPublicContactLinks>>;
 
+const GalleryContext = createContext<{ hasGallery: boolean; setHasGallery: (v: boolean) => void }>({
+  hasGallery: false,
+  setHasGallery: () => {},
+});
+
+export function useGalleryContext() {
+  return useContext(GalleryContext);
+}
+
 function useContactLinks() {
   const [links, setLinks] = useState<PublicContactLinks | null>(null);
   const [error, setError] = useState(false);
@@ -30,21 +39,13 @@ function useContactLinks() {
   return { links, error };
 }
 
-const siteNavItems = [
-  { href: "/#concept", label: { en: "What is it?", fr: "Le concept", ar: "الفكرة" } },
-  { href: "/#menu", label: { en: "Menu", fr: "Menu", ar: "قائمة الطعام" } },
-  { href: "/#photos", label: { en: "Photos", fr: "Photos", ar: "الصور" } },
-  { href: "/#how", label: { en: "How it works", fr: "Comment ça marche", ar: "كيف تسير الأمسية" } },
-  { href: "/#booking", label: { en: "Book", fr: "Réserver", ar: "احجز" }, isBook: true },
-];
-
 function LangSwitch() {
   const { lang, setLang, t } = useI18n();
   return (
     <div
       role="group"
       aria-label={t.language}
-      className="flex shrink-0 items-center rounded-full border border-border/80 bg-offwhite p-0.5 text-xs font-medium"
+      className="flex shrink-0 items-center rounded-full border border-stone-300/80 bg-sand/60 p-0.5 text-xs font-semibold"
     >
       {LANGS.map((l) => (
         <button
@@ -52,8 +53,8 @@ function LangSwitch() {
           type="button"
           onClick={() => setLang(l)}
           aria-pressed={lang === l}
-          className={`flex h-[36px] min-w-[34px] sm:min-w-[38px] items-center justify-center rounded-full px-2 uppercase transition-colors text-[12px] font-semibold shrink-0 cursor-pointer ${
-            lang === l ? "bg-primary text-white shadow-2xs" : "text-foreground/75 hover:bg-muted"
+          className={`flex h-[32px] min-w-[32px] sm:min-w-[34px] items-center justify-center rounded-full px-2 uppercase transition-colors text-[11px] sm:text-[12px] font-semibold shrink-0 cursor-pointer ${
+            lang === l ? "bg-oxblood text-white shadow-2xs" : "text-ink/80 hover:bg-sand"
           }`}
         >
           {l === "ar" ? (
@@ -69,15 +70,35 @@ function LangSwitch() {
   );
 }
 
+export function getNavLinks(hasGallery: boolean) {
+  return [
+    { href: "/#experience", label: { en: "Experience", fr: "L'expérience", ar: "التجربة" } },
+    { href: "/#menu", label: { en: "The menu", fr: "Le menu", ar: "قائمة الطعام" } },
+    ...(hasGallery
+      ? [{ href: "/#photos", label: { en: "Photos", fr: "Photos", ar: "الصور" } }]
+      : []),
+    { href: "/#booking", label: { en: "Book", fr: "Réserver", ar: "احجز" } },
+  ];
+}
+
 function Header() {
   const { lang, t } = useI18n();
+  const { hasGallery } = useGalleryContext();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState<string>("");
   const [scrollProgress, setScrollProgress] = useState(0);
 
+  const navLinks = getNavLinks(hasGallery);
+
+  const bookDinnerText = {
+    en: "Book a dinner",
+    fr: "Réserver un dîner",
+    ar: "احجز عشاءً",
+  };
+
   useEffect(() => {
-    const sectionIds = ["concept", "menu", "photos", "how", "booking"];
+    const sectionIds = ["experience", "menu", "photos", "how", "booking"];
     const handleScroll = () => {
       setScrolled(window.scrollY > 8);
 
@@ -124,7 +145,7 @@ function Header() {
 
   return (
     <>
-      {/* Thin red scroll-progress line at the very top */}
+      {/* Thin scroll-progress line at top */}
       <div
         className="scroll-progress-line"
         style={{ width: `${scrollProgress}%` }}
@@ -132,11 +153,11 @@ function Header() {
       />
 
       <header
-        className={`sticky top-0 z-50 bg-white/85 backdrop-blur-md transition-shadow duration-300 h-[72px] flex flex-col justify-center ${
-          scrolled ? "header-scrolled border-b border-stone-200/50" : "border-b border-stone-200/30"
+        className={`sticky top-0 z-50 bg-[#F6F0E6]/90 backdrop-blur-md transition-shadow duration-300 h-[76px] flex flex-col justify-center border-b ${
+          scrolled ? "header-scrolled border-stone-300/70" : "border-stone-200/50"
         }`}
       >
-        <div className="mx-auto flex w-full max-w-[1320px] items-center justify-between gap-2 sm:gap-4 px-4 sm:px-6 lg:px-12">
+        <div className="ms-container flex items-center justify-between gap-2 sm:gap-4 h-full">
           {/* Logo left (fully visible) */}
           <a
             href="/"
@@ -144,46 +165,44 @@ function Header() {
             onClick={() => setOpen(false)}
             aria-label={BRAND_NAME}
           >
-            <HeaderLogo className="h-9 sm:h-11 w-auto object-contain" />
+            <HeaderLogo className="h-10 sm:h-12 w-auto object-contain" />
           </a>
 
-          {/* Desktop Nav centered with animated underline */}
+          {/* Center: links with thin gold underline on hover */}
           <nav
             aria-label="Main"
             className="hidden lg:flex flex-1 items-center justify-center gap-10"
           >
-            {siteNavItems
-              .filter((item) => !item.isBook)
-              .map((item) => {
-                const isActive = activeSection === item.href.replace("/#", "");
-                return (
-                  <a
-                    key={item.href}
-                    href={item.href}
-                    className={`nav-link text-[0.9375rem] ${
-                      isActive ? "active text-primary font-semibold" : ""
-                    }`}
-                  >
-                    <span>{item.label[lang]}</span>
-                  </a>
-                );
-              })}
+            {navLinks.map((item) => {
+              const isActive = activeSection === item.href.replace("/#", "");
+              return (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  className={`nav-link text-[0.9375rem] text-ink/90 hover:text-oxblood ${
+                    isActive ? "active text-oxblood font-semibold" : ""
+                  }`}
+                >
+                  <span>{item.label[lang]}</span>
+                </a>
+              );
+            })}
           </nav>
 
-          {/* Right: EN/FR/AR switcher and solid burgundy Book button */}
+          {/* Right: compact EN / FR / ع switcher and oxblood pill button "Book a dinner" */}
           <div className="flex items-center gap-2 sm:gap-3.5 shrink-0">
             <LangSwitch />
             <a
               href="/#booking"
-              className="hidden lg:inline-flex items-center justify-center h-11 min-h-[44px] px-7 rounded-full bg-primary text-white text-sm font-bold shadow-xs hover:bg-primary-dark active:scale-[0.98] transition-all duration-200"
+              className="hidden lg:inline-flex items-center justify-center h-11 px-6 rounded-full bg-oxblood text-white text-sm font-semibold hover:bg-burgundy active:scale-[0.98] transition-all duration-200 shadow-sm"
             >
-              {t.nav.book}
+              {bookDinnerText[lang]}
             </a>
 
             {/* Mobile menu trigger */}
             <button
               type="button"
-              className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full text-foreground hover:bg-stone-100 lg:hidden transition-colors shrink-0"
+              className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full text-ink hover:bg-sand/60 lg:hidden transition-colors shrink-0 cursor-pointer"
               aria-label={open ? "Close menu" : "Open menu"}
               aria-expanded={open}
               aria-controls="mobile-nav"
@@ -195,14 +214,14 @@ function Header() {
         </div>
       </header>
 
-      {/* Full-screen deep-red phone menu */}
+      {/* Full-screen oxblood phone menu */}
       {open && (
         <div
           id="mobile-nav"
           role="dialog"
           aria-modal="true"
           aria-label="Mobile Navigation"
-          className="fixed inset-0 z-[70] bg-[#4A0E0E] text-white flex flex-col justify-between p-6 sm:p-8 lg:hidden animate-in fade-in duration-200"
+          className="fixed inset-0 z-[70] bg-oxblood text-white flex flex-col justify-between p-6 sm:p-8 lg:hidden animate-in fade-in duration-200"
         >
           {/* Top row: white logo & close button */}
           <div className="flex items-center justify-between">
@@ -212,37 +231,35 @@ function Header() {
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors cursor-pointer"
               aria-label="Close menu"
             >
               <X className="h-6 w-6" />
             </button>
           </div>
 
-          {/* Center: huge serif links */}
+          {/* Center: large serif links */}
           <nav className="flex flex-col items-center justify-center gap-6 my-auto text-center">
-            {siteNavItems
-              .filter((item) => !item.isBook)
-              .map((item) => (
-                <a
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setOpen(false)}
-                  className="font-display text-4xl sm:text-5xl font-semibold text-white/95 hover:text-gold transition-colors tracking-tight"
-                >
-                  {item.label[lang]}
-                </a>
-              ))}
+            {navLinks.map((item) => (
+              <a
+                key={item.href}
+                href={item.href}
+                onClick={() => setOpen(false)}
+                className="font-display text-4xl sm:text-5xl font-semibold text-white/95 hover:text-gold transition-colors tracking-tight"
+              >
+                {item.label[lang]}
+              </a>
+            ))}
           </nav>
 
-          {/* Bottom: solid Book button */}
+          {/* Bottom: Book a dinner button */}
           <div className="pt-6">
             <a
               href="/#booking"
               onClick={() => setOpen(false)}
-              className="btn btn-primary w-full h-[56px] text-lg font-bold shadow-lg text-center"
+              className="btn bg-gold text-oxblood font-bold w-full h-[54px] rounded-full text-lg shadow-lg text-center"
             >
-              {t.nav.book}
+              {bookDinnerText[lang]}
             </a>
           </div>
         </div>
@@ -325,7 +342,9 @@ function ContactBand() {
 
 function Footer() {
   const { lang, t } = useI18n();
+  const { hasGallery } = useGalleryContext();
   const { links } = useContactLinks();
+  const navLinks = getNavLinks(hasGallery);
 
   const whatsappHref = links?.whatsapp
     ? `https://wa.me/${links.whatsapp}`
@@ -357,13 +376,13 @@ function Footer() {
             aria-label="Footer"
             className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3"
           >
-            {siteNavItems.map((item) => (
+            {navLinks.map((item) => (
               <a
                 key={item.href}
                 href={item.href}
                 className="text-sm sm:text-base font-medium text-white/80 hover:text-gold transition-colors underline-offset-4 hover:underline"
               >
-                {item.isBook ? t.nav.book : item.label[lang]}
+                {item.label[lang]}
               </a>
             ))}
           </nav>
@@ -434,6 +453,7 @@ function MobileBookingBar() {
 }
 
 export function SiteLayout({ children }: { children: ReactNode }) {
+  const [hasGallery, setHasGallery] = useState(false);
   const pathname = useLocation({ select: (location) => location.pathname });
   if (pathname === "/admin") {
     return (
@@ -450,23 +470,25 @@ export function SiteLayout({ children }: { children: ReactNode }) {
     );
   }
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <ZelligeClipDefs />
-      <a
-        href="#main"
-        className="sr-only focus:not-sr-only focus:absolute focus:start-4 focus:top-4 focus:z-50 focus:bg-background focus:p-2"
-      >
-        Skip to content
-      </a>
-      <Header />
-      <main id="main" className="flex-1">
-        {children}
-      </main>
-      <ContactBand />
-      <Footer />
-      <WhatsAppFab />
-      <MobileBookingBar />
-      <CookieConsent />
-    </div>
+    <GalleryContext.Provider value={{ hasGallery, setHasGallery }}>
+      <div className="flex min-h-screen flex-col bg-background">
+        <ZelligeClipDefs />
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:absolute focus:start-4 focus:top-4 focus:z-50 focus:bg-background focus:p-2"
+        >
+          Skip to content
+        </a>
+        <Header />
+        <main id="main" className="flex-1">
+          {children}
+        </main>
+        <ContactBand />
+        <Footer />
+        <WhatsAppFab />
+        <MobileBookingBar />
+        <CookieConsent />
+      </div>
+    </GalleryContext.Provider>
   );
 }

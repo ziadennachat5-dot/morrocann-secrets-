@@ -625,8 +625,8 @@
   bottom: 0;
   left: 0;
   width: 0%;
-  height: 2px;
-  background-color: var(--primary);
+  height: 1.5px;
+  background-color: var(--gold);
   border-radius: 9999px;
   transition: width 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
