@@ -329,7 +329,7 @@ type ConceptFact = { num: string; label: { en: string; fr: string; ar: string } 
 export function ConceptSection({
   conceptPhoto,
 }: {
-  conceptPhoto?: { url: string; alt: string; srcSet?: string };
+  conceptPhoto?: { url: string; alt: string; srcSet?: string } | undefined;
 }) {
   const { lang } = useI18n();
 

@@ -34,7 +34,7 @@ export const Route = createFileRoute("/")({
     const fallbackHeroUrl = loaderData?.experiences?.[0]?.image_url ?? "/images/hero-1200.webp";
     const heroImage =
       loaderData?.photos?.photos?.find(
-        (p: { source_file?: string | null; guest_consent_confirmed: boolean }) =>
+        (p: { source_file?: string | null | undefined; guest_consent_confirmed: boolean }) =>
           p.source_file === "6.jpeg" && p.guest_consent_confirmed,
       )?.url || fallbackHeroUrl;
     return {

@@ -74,12 +74,11 @@ function Calendar({
           defaultClassNames.caption_label,
         ),
         table: "w-full border-collapse block",
-        thead: "block w-full mb-1 sm:mb-2",
-        tbody: "block w-full space-y-[6px] sm:space-y-2",
         weekdays:
-          "grid grid-cols-7 gap-[6px] sm:gap-2 w-full [grid-template-columns:repeat(7,minmax(0,1fr))]",
+          "grid grid-cols-7 gap-[6px] sm:gap-2 w-full [grid-template-columns:repeat(7,minmax(0,1fr))] mb-1 sm:mb-2",
         weekday:
           "flex items-center justify-center text-center text-[12px] sm:text-[13px] uppercase text-stone-500 font-semibold py-1 select-none min-w-0",
+        weeks: "block w-full space-y-[6px] sm:space-y-2",
         week: "grid grid-cols-7 gap-[6px] sm:gap-2 w-full [grid-template-columns:repeat(7,minmax(0,1fr))]",
         week_number_header: cn("w-(--cell-size) select-none", defaultClassNames.week_number_header),
         week_number: cn(
