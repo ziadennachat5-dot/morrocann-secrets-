@@ -474,9 +474,9 @@ function HomePage() {
       <ConceptSection photos={data.photos.photos} conceptPhoto={conceptPhoto} />
 
       {/* ═══════════════════════════════════════════════════════════
-          3. MENU (full-width burgundy)
+          3. MENU (full-width oxblood)
       ═══════════════════════════════════════════════════════════ */}
-      <MenuSection />
+      <MenuSection photos={data.photos.photos} />
 
       {/* ═══════════════════════════════════════════════════════════
           4. PHOTOS (only when approved photos exist)

@@ -619,154 +619,233 @@ export function ConceptSection({
   );
 }
 
-function SmallMenuCard({
-  icon: Icon,
-  title,
-  children,
+export function MenuSection({
+  photos = [],
 }: {
-  icon: typeof Soup;
-  title: string;
-  children: ReactNode;
+  photos?: Array<{
+    source_file?: string | null | undefined;
+    guest_consent_confirmed: boolean;
+    url: string;
+    srcSet?: string | undefined;
+    alt: { en: string; fr: string; ar: string };
+  }> | undefined;
 }) {
-  return (
-    <div className="flex flex-col items-start text-start rounded-[28px] bg-paper text-foreground p-6 sm:p-7 shadow-soft border border-stone-300/40">
-      <div className="flex items-center gap-3 mb-2">
-        <Icon className="h-5 w-5 text-accent shrink-0 stroke-[2]" aria-hidden="true" />
-        <h4 className="font-display text-xl font-bold text-foreground">{title}</h4>
-      </div>
-      <div className="text-sm sm:text-base leading-relaxed text-foreground/80">{children}</div>
-    </div>
-  );
-}
-
-export function MenuSection() {
   const { lang } = useI18n();
+  const photo5 = photos?.find((p) => p.source_file === "5.jpeg" && p.guest_consent_confirmed);
+
+  const menuHeadings = {
+    eyebrow: { en: "THE MENU", fr: "LE MENU", ar: "قائمة الطعام" },
+    title: { en: "A taste of Morocco.", fr: "Un goût du Maroc.", ar: "مذاق المغرب الأصيل." },
+    chooseDishes: {
+      en: "Choose 2 main dishes",
+      fr: "Choisissez 2 plats principaux",
+      ar: "اختر طبقين رئيسيين",
+    },
+    included: {
+      en: "Included with every meal: starters, drinks, dessert",
+      fr: "Inclus avec chaque repas : entrées, boissons, dessert",
+      ar: "مشمول مع كل وجبة: المقبلات، المشروبات، الحلوى",
+    },
+  };
 
   return (
-    <>
-      {/* Main menu section: deep red #4A0E0E with very subtle zellige at 5% opacity and cropped star outline in corner */}
-      <section
-        id="menu"
-        className="scroll-mt-20 text-white relative overflow-hidden"
-        style={{
-          backgroundColor: "#4A0E0E",
-          paddingBlock: "var(--section-pad-v)",
-        }}
-      >
-        {/* Subtle zellige pattern overlay at 5% opacity */}
-        <div
-          aria-hidden="true"
-          className="zellige-burgundy absolute inset-0 pointer-events-none"
-          style={{ opacity: 0.05 }}
-        />
+    <section
+      id="menu"
+      className="scroll-mt-20 bg-oxblood text-white relative overflow-hidden"
+    >
+      {/* Background subtle zellige pattern */}
+      <div
+        aria-hidden="true"
+        className="zellige-burgundy absolute inset-0 pointer-events-none opacity-40"
+      />
 
-        {/* Large cropped star outline in the corner */}
+      {/* Desktop Layout (>=1024px): 2 columns with 5.jpeg occupying right half full-height */}
+      <div className="hidden lg:grid lg:grid-cols-12 min-h-[640px] relative z-10">
+        {/* Left column: Menu list inside container */}
         <div
-          className="absolute -top-28 -end-28 w-80 h-80 sm:w-96 sm:h-96 pointer-events-none text-gold/15 rotate-12"
-          aria-hidden="true"
+          className="lg:col-span-7 py-16 xl:py-20 ps-6 pe-8 xl:ps-16 xl:pe-12 max-w-[700px] ms-auto flex flex-col justify-center"
+          dir={lang === "ar" ? "rtl" : "ltr"}
         >
-          <svg
-            viewBox="0 0 24 24"
-            className="w-full h-full fill-none stroke-current"
-            strokeWidth="0.75"
-          >
-            <polygon points="12,0 15.51,3.51 20.49,3.51 20.49,8.49 24,12 20.49,15.51 20.49,20.49 15.51,20.49 12,24 8.49,20.49 3.51,20.49 3.51,15.51 0,12 3.51,8.49 3.51,3.51 8.49,3.51" />
-          </svg>
-        </div>
+          <span className="tracked-label text-gold mb-3">
+            {menuHeadings.eyebrow[lang]}
+          </span>
+          <h2 className="font-display text-4xl xl:text-5xl font-semibold text-white tracking-[-0.02em] leading-[1.0] mb-5">
+            {menuHeadings.title[lang]}
+          </h2>
+          <span className="gold-line mb-8" />
 
-        <div className="ms-container relative z-10">
-          {/* Section index & Huge white title */}
-          <div className="text-center mb-12 sm:mb-14">
-            <span className="section-index text-gold block mb-3">02 / MENU</span>
-            <h2 className="text-center text-white font-display font-semibold leading-[1.02]">
-              {MENU_TEXT.sectionTitle[lang]}
-            </h2>
-            <OrnamentDivider center light className="mt-5" />
-          </div>
-
-          <div className="grid gap-8 lg:grid-cols-12 items-start">
-            {/* Left: ONE big paper-colored menu card with 7 main dishes numbered 01 to 07 in gold serif with dotted leaders */}
-            <div className="lg:col-span-7 rounded-[28px] bg-paper text-foreground p-8 sm:p-10 shadow-soft border border-stone-300/40">
-              <div className="flex items-center gap-3 pb-6 mb-6 border-b border-stone-300/60">
-                <Utensils className="h-6 w-6 text-primary shrink-0" aria-hidden="true" />
-                <h3 className="font-display text-2xl font-bold text-primary">
-                  {MENU_TEXT.mainCoursesTitle[lang]}
-                </h3>
-              </div>
-
-              {/* Numbered 01 to 07 with dotted leaders */}
-              <ul className="space-y-4" dir={lang === "ar" ? "rtl" : "ltr"}>
-                {MAIN_DISHES.map((dish, idx) => (
-                  <li
-                    key={dish.id}
-                    className="flex items-baseline gap-3 py-2 text-base text-foreground/90"
-                  >
-                    <span className="font-display text-gold text-xl font-bold shrink-0 w-8">
-                      {String(idx + 1).padStart(2, "0")}
-                    </span>
-                    <span className="font-display font-bold text-foreground text-base sm:text-lg shrink-0">
-                      {dish.label[lang]}
-                    </span>
-                    <span
-                      className="flex-1 border-b border-dotted border-stone-400/60 min-w-[20px] mb-1.5"
-                      aria-hidden="true"
-                    />
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Right: Three stacked compact cards for starters, drinks and dessert + calm allergy note */}
-            <div className="lg:col-span-5 grid content-start gap-5">
-              <SmallMenuCard icon={Soup} title={MENU_TEXT.starters.title[lang]}>
-                <p>{MENU_TEXT.starters.desc[lang]}</p>
-              </SmallMenuCard>
-
-              <SmallMenuCard icon={Coffee} title={MENU_TEXT.drinks.title[lang]}>
-                <p>{MENU_TEXT.drinks.desc[lang]}</p>
-              </SmallMenuCard>
-
-              <SmallMenuCard icon={CakeSlice} title={MENU_TEXT.dessert.title[lang]}>
-                <p>{MENU_TEXT.dessert.desc[lang]}</p>
-              </SmallMenuCard>
-
-              {/* Calm allergy note with icon */}
-              <div className="flex items-center gap-3 text-white/90 text-sm sm:text-base pt-2 px-1">
-                <AlertCircle className="h-5 w-5 text-gold shrink-0" aria-hidden="true" />
-                <span className="leading-snug">{MENU_TEXT.allergyNote[lang]}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Highlights: separate white strip below as a row of 5 items with green line icons, NO boxes or circles */}
-      <section
-        className="bg-white border-b border-stone-200/50 py-14 sm:py-16"
-        aria-label={MENU_TEXT.highlightsTitle[lang]}
-      >
-        <div className="ms-container">
-          <ul className="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:grid-cols-5 text-center">
-            {MENU_TEXT.highlights.map((item, idx) => {
-              const Icon = item.icon;
-              return (
-                <li
-                  key={idx}
-                  className="flex flex-col items-center text-center p-2 cursor-default group"
-                >
-                  <Icon
-                    className="h-8 w-8 text-accent stroke-[1.75] mb-3 transition-transform duration-300 group-hover:scale-110"
-                    aria-hidden="true"
-                  />
-                  <span className="text-sm sm:text-base font-semibold text-foreground/85 leading-snug max-w-[16ch]">
-                    {item.label[lang]}
-                  </span>
-                </li>
-              );
-            })}
+          {/* Choose 2 main dishes */}
+          <h3 className="font-display text-xl xl:text-2xl font-bold text-gold mb-4">
+            {menuHeadings.chooseDishes[lang]}
+          </h3>
+          <ul className="space-y-2.5 mb-8">
+            {MAIN_DISHES.map((dish) => (
+              <li key={dish.id} className="flex items-baseline gap-3">
+                <span className="text-gold font-bold select-none shrink-0">—</span>
+                <span className="font-display text-lg xl:text-xl text-white/95 font-medium leading-snug">
+                  {dish.label[lang]}
+                </span>
+              </li>
+            ))}
           </ul>
+
+          {/* Included with every meal */}
+          <h3 className="font-display text-xl xl:text-2xl font-bold text-gold mb-3">
+            {menuHeadings.included[lang]}
+          </h3>
+          <div className="space-y-2 text-sm xl:text-base text-white/85 mb-8">
+            <div className="flex items-start gap-3">
+              <span className="text-gold select-none shrink-0">—</span>
+              <p>
+                <strong className="text-white font-semibold">{MENU_TEXT.starters.title[lang]}:</strong>{" "}
+                {MENU_TEXT.starters.desc[lang]}
+              </p>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="text-gold select-none shrink-0">—</span>
+              <p>
+                <strong className="text-white font-semibold">{MENU_TEXT.drinks.title[lang]}:</strong>{" "}
+                {MENU_TEXT.drinks.desc[lang]}
+              </p>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="text-gold select-none shrink-0">—</span>
+              <p>
+                <strong className="text-white font-semibold">{MENU_TEXT.dessert.title[lang]}:</strong>{" "}
+                {MENU_TEXT.dessert.desc[lang]}
+              </p>
+            </div>
+          </div>
+
+          {/* Allergy Note */}
+          <div className="pt-4 border-t border-white/15 flex items-center gap-3 text-xs xl:text-sm text-white/75">
+            <AlertCircle className="w-4 h-4 text-gold shrink-0" aria-hidden="true" />
+            <p>{MENU_TEXT.allergyNote[lang]}</p>
+          </div>
         </div>
-      </section>
-    </>
+
+        {/* Right column: 5.jpeg occupying ~50% width, full height, blended left edge */}
+        <div className="lg:col-span-5 relative h-full min-h-[640px] overflow-hidden">
+          {photo5?.url ? (
+            <div className="w-full h-full relative">
+              <img
+                src={photo5.url}
+                srcSet={photo5.srcSet}
+                alt="Moroccan feast dishes and tagines"
+                loading="lazy"
+                className="w-full h-full object-cover object-center"
+              />
+              {/* Very light dark overlay */}
+              <div className="absolute inset-0 bg-black/20 pointer-events-none" aria-hidden="true" />
+              {/* Gradient blending left edge into oxblood (mirrors in RTL) */}
+              <div
+                className="absolute inset-y-0 start-0 w-32 bg-gradient-to-r rtl:bg-gradient-to-l from-oxblood to-transparent pointer-events-none"
+                aria-hidden="true"
+              />
+            </div>
+          ) : (
+            <div className="w-full h-full bg-[#3A0E10] zellige-burgundy flex flex-col items-center justify-center p-8 text-center relative">
+              <ZelligeStarSvg className="w-12 h-12 text-gold/30 mb-3" />
+              <span className="text-xs font-semibold text-white/60 tracking-widest uppercase">
+                A taste of Morocco
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Mobile Layout (<1024px): Photo on top with gradient into oxblood, list below */}
+      <div className="lg:hidden flex flex-col w-full relative z-10">
+        {/* Photo on top with gradient into oxblood */}
+        <div className="w-full h-64 sm:h-80 relative overflow-hidden">
+          {photo5?.url ? (
+            <>
+              <img
+                src={photo5.url}
+                srcSet={photo5.srcSet}
+                alt="Moroccan feast dishes and tagines"
+                loading="lazy"
+                className="w-full h-full object-cover object-center"
+              />
+              <div className="absolute inset-0 bg-black/20 pointer-events-none" aria-hidden="true" />
+              <div
+                className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-oxblood via-oxblood/60 to-transparent pointer-events-none"
+                aria-hidden="true"
+              />
+            </>
+          ) : (
+            <div className="w-full h-full bg-[#3A0E10] zellige-burgundy flex flex-col items-center justify-center p-6 text-center relative">
+              <ZelligeStarSvg className="w-10 h-10 text-gold/30 mb-2" />
+              <span className="text-xs font-semibold text-white/60 tracking-widest uppercase">
+                A taste of Morocco
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* List below */}
+        <div
+          className="ms-container py-10 px-5 flex flex-col"
+          dir={lang === "ar" ? "rtl" : "ltr"}
+        >
+          <span className="tracked-label text-gold mb-2 text-xs">
+            {menuHeadings.eyebrow[lang]}
+          </span>
+          <h2 className="font-display text-3xl sm:text-4xl font-semibold text-white tracking-[-0.02em] leading-[1.0] mb-3">
+            {menuHeadings.title[lang]}
+          </h2>
+          <span className="gold-line mb-6" />
+
+          {/* Choose 2 main dishes */}
+          <h3 className="font-display text-lg sm:text-xl font-bold text-gold mb-3">
+            {menuHeadings.chooseDishes[lang]}
+          </h3>
+          <ul className="space-y-2 mb-6">
+            {MAIN_DISHES.map((dish) => (
+              <li key={dish.id} className="flex items-baseline gap-2.5">
+                <span className="text-gold font-bold select-none shrink-0">—</span>
+                <span className="font-display text-base sm:text-lg text-white/95 font-medium leading-snug">
+                  {dish.label[lang]}
+                </span>
+              </li>
+            ))}
+          </ul>
+
+          {/* Included with every meal */}
+          <h3 className="font-display text-lg sm:text-xl font-bold text-gold mb-2.5">
+            {menuHeadings.included[lang]}
+          </h3>
+          <div className="space-y-2 text-xs sm:text-sm text-white/85 mb-6">
+            <div className="flex items-start gap-2.5">
+              <span className="text-gold select-none shrink-0">—</span>
+              <p>
+                <strong className="text-white font-semibold">{MENU_TEXT.starters.title[lang]}:</strong>{" "}
+                {MENU_TEXT.starters.desc[lang]}
+              </p>
+            </div>
+            <div className="flex items-start gap-2.5">
+              <span className="text-gold select-none shrink-0">—</span>
+              <p>
+                <strong className="text-white font-semibold">{MENU_TEXT.drinks.title[lang]}:</strong>{" "}
+                {MENU_TEXT.drinks.desc[lang]}
+              </p>
+            </div>
+            <div className="flex items-start gap-2.5">
+              <span className="text-gold select-none shrink-0">—</span>
+              <p>
+                <strong className="text-white font-semibold">{MENU_TEXT.dessert.title[lang]}:</strong>{" "}
+                {MENU_TEXT.dessert.desc[lang]}
+              </p>
+            </div>
+          </div>
+
+          {/* Allergy Note */}
+          <div className="pt-3 border-t border-white/15 flex items-center gap-2.5 text-xs text-white/75">
+            <AlertCircle className="w-4 h-4 text-gold shrink-0" aria-hidden="true" />
+            <p>{MENU_TEXT.allergyNote[lang]}</p>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
