@@ -701,13 +701,6 @@ body[data-cookie-banner="open"] .whatsapp-fab {
   display: none !important;
 }
 
-/* --- Move floating WhatsApp button above sticky booking bar on mobile so it never overlaps --- */
-@media (max-width: 1023px) {
-  .whatsapp-fab {
-    bottom: calc(140px + env(safe-area-inset-bottom, 0px) + 16px) !important;
-  }
-}
-
 /* --- Legal text (below 14px only for legal) --- */
 .legal-text {
   font-size: 0.75rem;
