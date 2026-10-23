@@ -1,4 +1,4 @@
-﻿import { useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, X } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { useI18n } from "@/lib/i18n";
@@ -36,13 +36,10 @@ export function GuestPhotoGallery({ photos }: { photos: PublicGuestPhoto[] }) {
 
   return (
     <div>
-      {/* Masonry grid — CSS column layout for natural staggering */}
+      {/* Mobile (<640px): Full-width horizontal scroll-snap gallery */}
       <div
-        style={{
-          columnCount: 2,
-          columnGap: "12px",
-        }}
-        className="sm:hidden"
+        className="sm:hidden flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4 -mx-5 px-5 scrollbar-none"
+        style={{ scrollPaddingLeft: "20px" }}
       >
         {photos.map((photo, index) => (
           <button
@@ -50,32 +47,31 @@ export function GuestPhotoGallery({ photos }: { photos: PublicGuestPhoto[] }) {
             type="button"
             aria-label={`${t.gallery.openPhoto}: ${getAlt(photo, lang)}`}
             onClick={() => setSelectedIndex(index)}
-            className="group block w-full mb-3 overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-            style={{ borderRadius: "20px", breakInside: "avoid" }}
+            className="group flex-shrink-0 w-[78vw] max-w-[300px] snap-center overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded-[24px] shadow-sm"
+            style={{ aspectRatio: "4/5" }}
           >
             <img
               src={photo.url}
               srcSet={photo.srcSet || undefined}
-              sizes="50vw"
+              sizes="80vw"
               alt={getAlt(photo, lang)}
               loading="lazy"
-              className="w-full object-cover transition-transform duration-300 group-hover:scale-103"
-              style={{ display: "block", borderRadius: "20px" }}
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-103 rounded-[24px]"
             />
           </button>
         ))}
       </div>
 
       {/* 3 columns — sm to lg */}
-      <div style={{ columnCount: 3, columnGap: "12px" }} className="hidden sm:block lg:hidden">
+      <div style={{ columnCount: 3, columnGap: "16px" }} className="hidden sm:block lg:hidden">
         {photos.map((photo, index) => (
           <button
             key={photo.id}
             type="button"
             aria-label={`${t.gallery.openPhoto}: ${getAlt(photo, lang)}`}
             onClick={() => setSelectedIndex(index)}
-            className="group block w-full mb-3 overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-            style={{ borderRadius: "20px", breakInside: "avoid" }}
+            className="group block w-full mb-4 overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded-[24px] shadow-sm"
+            style={{ breakInside: "avoid" }}
           >
             <img
               src={photo.url}
@@ -83,23 +79,23 @@ export function GuestPhotoGallery({ photos }: { photos: PublicGuestPhoto[] }) {
               sizes="33vw"
               alt={getAlt(photo, lang)}
               loading="lazy"
-              className="w-full object-cover transition-transform duration-300 group-hover:scale-103"
-              style={{ display: "block", borderRadius: "20px" }}
+              className="w-full object-cover transition-transform duration-300 group-hover:scale-103 rounded-[24px]"
+              style={{ display: "block" }}
             />
           </button>
         ))}
       </div>
 
       {/* 4 columns — lg+ */}
-      <div style={{ columnCount: 4, columnGap: "12px" }} className="hidden lg:block">
+      <div style={{ columnCount: 4, columnGap: "16px" }} className="hidden lg:block">
         {photos.map((photo, index) => (
           <button
             key={photo.id}
             type="button"
             aria-label={`${t.gallery.openPhoto}: ${getAlt(photo, lang)}`}
             onClick={() => setSelectedIndex(index)}
-            className="group block w-full mb-3 overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-            style={{ borderRadius: "20px", breakInside: "avoid" }}
+            className="group block w-full mb-4 overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded-[24px] shadow-sm"
+            style={{ breakInside: "avoid" }}
           >
             <img
               src={photo.url}
@@ -107,8 +103,8 @@ export function GuestPhotoGallery({ photos }: { photos: PublicGuestPhoto[] }) {
               sizes="25vw"
               alt={getAlt(photo, lang)}
               loading="lazy"
-              className="w-full object-cover transition-transform duration-300 group-hover:scale-103"
-              style={{ display: "block", borderRadius: "20px" }}
+              className="w-full object-cover transition-transform duration-300 group-hover:scale-103 rounded-[24px]"
+              style={{ display: "block" }}
             />
           </button>
         ))}

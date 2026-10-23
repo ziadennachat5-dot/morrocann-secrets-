@@ -52,8 +52,7 @@ export const Route = createFileRoute("/")({
 
 const HOW_IT_WORKS_STEPS = [
   {
-    num: "1",
-    icon: "M12 3C8.13 3 5 6.13 5 10c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z",
+    num: "01",
     title: {
       en: "Arrive and enjoy tea",
       fr: "Arrivez et savourez le thé",
@@ -66,8 +65,7 @@ const HOW_IT_WORKS_STEPS = [
     },
   },
   {
-    num: "2",
-    icon: "M18.06 22.99h1.66c.84 0 1.53-.64 1.63-1.46L23 5.05h-5V1h-1.97v4.05h-4.97l.3 2.34c1.71.47 3.31 1.32 4.27 2.26 1.44 1.42 2.43 2.89 2.43 5.29v8.05zM1 21.99V21h15.03v.99c0 .55-.45 1-1.01 1H2.01c-.56 0-1.01-.45-1.01-1zm15.03-7H1v-2h15.03v2zm0-4H1v-2h15.03v2z",
+    num: "02",
     title: { en: "Cook together", fr: "Cuisinez ensemble", ar: "الطبخ معاً" },
     desc: {
       en: "Join the family in the kitchen and help prepare the meal.",
@@ -76,8 +74,7 @@ const HOW_IT_WORKS_STEPS = [
     },
   },
   {
-    num: "3",
-    icon: "M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm4.24 16L12 15.45 7.77 18l1.12-4.81-3.73-3.23 4.92-.42L12 5l1.92 4.53 4.92.42-3.73 3.23L16.23 18z",
+    num: "03",
     title: { en: "Eat slowly", fr: "Prenez le temps de manger", ar: "تناول الطعام بهدوء" },
     desc: {
       en: "Share the table, the stories and the music.",
@@ -420,7 +417,7 @@ function HomePage() {
       )}
 
       {/* ═══════════════════════════════════════════════════════════
-          5. HOW IT WORKS (Bento Timeline Cards)
+          5. HOW IT WORKS (Outlined Burgundy Numerals, Vertical Dividers)
       ═══════════════════════════════════════════════════════════ */}
       <section
         id="how"
@@ -429,100 +426,66 @@ function HomePage() {
       >
         <div className="ms-container" style={{ paddingBottom: "var(--section-pad-v)" }}>
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 rounded-full bg-accent/10 border border-accent/25 px-4 py-1.5 text-xs font-bold text-accent mb-4">
-              <span>
-                {lang === "fr"
-                  ? "Simple & Clair"
-                  : lang === "ar"
-                    ? "بكل بساطة"
-                    : "Simple & Seamless"}
-              </span>
-            </div>
             <h2 className="text-primary text-center mb-4">{howTitle[lang]}</h2>
             <OrnamentDivider center />
           </div>
 
-          {/* Steps grid: horizontal Bento cards on desktop, vertical timeline on mobile */}
-          <div className="relative grid gap-8 lg:grid-cols-3 lg:gap-8">
-            {/* Horizontal dotted gold connector line — desktop only */}
-            <div
-              aria-hidden="true"
-              style={{
-                position: "absolute",
-                top: "36px",
-                insetInlineStart: "calc(16.67% + 28px)",
-                insetInlineEnd: "calc(16.67% + 28px)",
-                height: "2px",
-                borderTop: "2px dashed rgba(201,162,75,0.45)",
-                display: "none",
-                zIndex: 0,
-              }}
-              className="lg:block"
-            />
-
-            {/* Vertical timeline line on phones (left in LTR, right in Arabic) */}
-            <div
-              aria-hidden="true"
-              className="absolute top-7 bottom-7 start-7 -translate-x-1/2 rtl:translate-x-1/2 w-0.5 border-s-2 border-dashed border-gold/45 lg:hidden z-0"
-            />
-
+          {/* Desktop (>=1024px): 3 columns with thin vertical dividers */}
+          <div className="hidden lg:grid lg:grid-cols-3 divide-x rtl:divide-x-reverse divide-stone-200/80">
             {HOW_IT_WORKS_STEPS.map((item) => (
               <div
                 key={item.num}
-                className="relative flex items-start gap-5 lg:flex-col lg:items-center lg:text-center ps-16 lg:ps-0"
+                className="px-10 py-4 flex flex-col items-start"
                 dir={lang === "ar" ? "rtl" : "ltr"}
               >
-                {/* Numbered circle (absolute on mobile start-0, relative centered on desktop) */}
-                <div
-                  className="absolute start-0 top-0 lg:relative lg:start-auto lg:top-auto flex items-center justify-center shrink-0 mb-0 lg:mb-6 transition-all duration-300 group-hover:scale-105"
+                <span
+                  className="font-display text-7xl font-bold tracking-tight mb-5 select-none"
                   style={{
-                    width: "56px",
-                    height: "56px",
-                    borderRadius: "50%",
-                    background: "#fff",
-                    border: "2.5px solid var(--primary)",
-                    zIndex: 2,
-                    boxShadow: "0 4px 14px rgba(139,26,26,0.14)",
+                    WebkitTextStroke: "2px #8B1A1A",
+                    color: "transparent",
                   }}
+                  aria-hidden="true"
                 >
-                  <span
-                    className="font-display font-bold text-primary"
-                    style={{ fontSize: "1.5rem", lineHeight: 1 }}
-                  >
-                    {item.num}
-                  </span>
-                </div>
+                  {item.num}
+                </span>
+                <h3 className="font-display text-2xl font-bold text-foreground mb-3">
+                  {item.title[lang]}
+                </h3>
+                <p className="text-foreground/75 text-base sm:text-[1.125rem] leading-[1.7] max-w-[34ch]">
+                  {item.desc[lang]}
+                </p>
+              </div>
+            ))}
+          </div>
 
-                {/* Bento Card container */}
-                <div className="flex-1 w-full rounded-2xl lg:rounded-3xl bg-white/95 backdrop-blur-md border border-stone-200/80 p-6 lg:p-8 shadow-xs hover:shadow-card hover:-translate-y-1.5 hover:border-gold/50 transition-all duration-300 flex flex-col items-start lg:items-center group">
-                  {/* Green icon container */}
-                  <div
-                    className="flex items-center justify-center mb-4 transition-all duration-300 group-hover:scale-110 group-hover:bg-accent/15 group-hover:border-accent"
-                    style={{
-                      width: "44px",
-                      height: "44px",
-                      borderRadius: "50%",
-                      border: "1.5px solid rgba(47,93,52,0.3)",
-                      background: "rgba(47,93,52,0.06)",
-                    }}
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      className="h-5 w-5 text-accent"
-                      fill="currentColor"
-                      aria-hidden
-                    >
-                      <path d={item.icon} />
-                    </svg>
-                  </div>
-
-                  <h3 className="text-foreground mb-2 text-xl font-bold font-display">
-                    {item.title[lang]}
-                  </h3>
-                  <p className="text-foreground/75 leading-relaxed text-sm sm:text-base max-w-[32ch]">
-                    {item.desc[lang]}
-                  </p>
-                </div>
+          {/* Mobile (<1024px): vertical timeline */}
+          <div
+            className="lg:hidden relative border-s-2 border-stone-200/80 ms-4 ps-7 space-y-12"
+            dir={lang === "ar" ? "rtl" : "ltr"}
+          >
+            {HOW_IT_WORKS_STEPS.map((item) => (
+              <div key={item.num} className="relative">
+                {/* Timeline node dot */}
+                <div
+                  className="absolute -start-[35px] top-3 h-3.5 w-3.5 rounded-full bg-primary ring-4 ring-white"
+                  aria-hidden="true"
+                />
+                <span
+                  className="font-display text-5xl sm:text-6xl font-bold tracking-tight mb-2 block select-none"
+                  style={{
+                    WebkitTextStroke: "2px #8B1A1A",
+                    color: "transparent",
+                  }}
+                  aria-hidden="true"
+                >
+                  {item.num}
+                </span>
+                <h3 className="font-display text-xl sm:text-2xl font-bold text-foreground mb-2">
+                  {item.title[lang]}
+                </h3>
+                <p className="text-foreground/75 text-base leading-relaxed max-w-[42ch]">
+                  {item.desc[lang]}
+                </p>
               </div>
             ))}
           </div>

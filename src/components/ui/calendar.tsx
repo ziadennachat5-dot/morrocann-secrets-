@@ -140,6 +140,7 @@ function CalendarDayButton({
   className,
   day,
   modifiers,
+  children,
   ...props
 }: React.ComponentProps<typeof DayButton>) {
   const defaultClassNames = getDefaultClassNames();
@@ -171,20 +172,38 @@ function CalendarDayButton({
       data-range-end={modifiers["range_end"]}
       data-range-middle={modifiers["range_middle"]}
       className={cn(
-        "flex aspect-square h-auto w-full min-w-(--cell-size) min-h-(--cell-size) flex-col gap-1 text-sm font-semibold leading-none rounded-xl transition-all",
+        "relative flex aspect-square h-auto w-full min-w-[48px] min-h-[48px] flex-col items-center justify-center gap-0.5 text-sm font-semibold leading-none rounded-xl transition-all overflow-hidden",
         isAvailable &&
-          "bg-white border-2 border-accent text-accent font-bold hover:bg-accent/15 cursor-pointer shadow-2xs",
+          "bg-white border border-stone-200/90 text-foreground font-semibold hover:border-accent hover:bg-accent/5 cursor-pointer shadow-2xs",
         isSelected &&
           "!bg-primary !text-white !border-2 !border-primary font-bold shadow-sm scale-[1.02]",
         isFullyBooked &&
-          "bg-red-50 text-red-700/80 border border-red-200/80 relative line-through cursor-not-allowed opacity-75",
+          "bg-stone-50 text-stone-400 border border-stone-200/60 cursor-not-allowed opacity-65",
         isClosed &&
-          "bg-stone-100 text-stone-400 border border-stone-200/60 cursor-not-allowed opacity-60",
+          "bg-stone-100 text-stone-300 border border-stone-200/40 cursor-not-allowed opacity-50",
         defaultClassNames.day,
         className,
       )}
       {...props}
-    />
+    >
+      <span className="relative z-10 flex flex-col items-center justify-center">
+        <span>{children}</span>
+        {isAvailable && !isSelected && (
+          <span
+            className="mt-0.5 h-1.5 w-1.5 rounded-full bg-accent shrink-0"
+            aria-hidden="true"
+          />
+        )}
+      </span>
+      {isFullyBooked && !isSelected && (
+        <span
+          className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden"
+          aria-hidden="true"
+        >
+          <span className="h-[2px] w-[150%] -rotate-45 bg-red-500/80" />
+        </span>
+      )}
+    </Button>
   );
 }
 

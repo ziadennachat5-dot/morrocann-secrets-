@@ -457,47 +457,48 @@ export function BookingFlow({
             />
 
             {/* Calendar Legend — larger, placed under the calendar */}
+            {/* Calendar Legend — green dot for available, solid burgundy for selected, diagonal strike for fully booked */}
             <div className="mt-5 flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-sm text-foreground/85">
               <span className="inline-flex items-center gap-2 font-medium">
-                <span className="h-4 w-4 rounded-md border-2 border-accent bg-white shadow-2xs" />
+                <span className="h-2 w-2 rounded-full bg-accent" aria-hidden="true" />
                 {lang === "fr" ? "Disponible" : lang === "ar" ? "متاح" : "Available"}
               </span>
               <span className="inline-flex items-center gap-2 font-medium">
-                <span className="h-4 w-4 rounded-md bg-primary shadow-2xs" />
+                <span className="h-3.5 w-3.5 rounded-md bg-primary shadow-2xs" aria-hidden="true" />
                 {lang === "fr" ? "Sélectionné" : lang === "ar" ? "المحدد" : "Selected"}
               </span>
               <span className="inline-flex items-center gap-2 font-medium">
-                <span className="relative flex h-4 w-4 items-center justify-center rounded-md border border-red-300 bg-red-100">
-                  <span className="absolute h-0.5 w-4 rotate-45 bg-red-600" />
+                <span
+                  className="relative flex h-3.5 w-3.5 items-center justify-center rounded-md border border-stone-300 bg-stone-100 overflow-hidden"
+                  aria-hidden="true"
+                >
+                  <span className="absolute h-[1.5px] w-5 rotate-45 bg-red-500" />
                 </span>
                 {lang === "fr" ? "Complet" : lang === "ar" ? "محجوز بالكامل" : "Fully booked"}
               </span>
               <span className="inline-flex items-center gap-2 font-medium">
-                <span className="h-4 w-4 rounded-md border border-stone-300 bg-stone-200" />
+                <span
+                  className="h-3.5 w-3.5 rounded-md border border-stone-200 bg-stone-100 opacity-60"
+                  aria-hidden="true"
+                />
                 {lang === "fr" ? "Fermé / Passé" : lang === "ar" ? "مغلق / ماضٍ" : "Closed / Past"}
               </span>
             </div>
 
-            {/* Selected Date Summary Box — appears once a day is chosen */}
+            {/* Live summary box ("Saturday 24 October, 4 guests") */}
             {date ? (
-              <div className="mt-5 w-full max-w-lg rounded-2xl border-2 border-accent/40 bg-accent/5 p-4 text-start shadow-xs animate-in fade-up">
+              <div className="mt-5 w-full max-w-lg rounded-2xl border border-primary/20 bg-primary/5 p-4 text-start shadow-xs animate-in fade-up">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-wider text-accent">
+                    <p className="text-xs font-bold uppercase tracking-wider text-primary">
                       {lang === "fr"
-                        ? "Date sélectionnée"
+                        ? "Votre sélection"
                         : lang === "ar"
-                          ? "التاريخ المختار"
-                          : "Selected date"}
+                          ? "ملخص الحجز"
+                          : "Selection summary"}
                     </p>
-                    <p className="mt-1 font-display text-lg font-bold text-foreground capitalize">
-                      {formatDateInWords(date, lang)}
-                    </p>
-                  </div>
-                  <div className="text-end shrink-0">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-accent/15 px-3.5 py-1.5 text-xs font-bold text-accent">
-                      <Users className="h-3.5 w-3.5" />
-                      {guests}{" "}
+                    <p className="mt-1 font-display text-lg sm:text-xl font-bold text-foreground capitalize">
+                      {formatDateInWords(date, lang)}, {guests}{" "}
                       {guests === 1
                         ? lang === "fr"
                           ? "personne"
@@ -509,6 +510,12 @@ export function BookingFlow({
                           : lang === "ar"
                             ? "ضيوف"
                             : "guests"}
+                    </p>
+                  </div>
+                  <div className="text-end shrink-0">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3.5 py-1.5 text-xs font-bold text-primary">
+                      <Users className="h-3.5 w-3.5" />
+                      {guests}
                     </span>
                   </div>
                 </div>
