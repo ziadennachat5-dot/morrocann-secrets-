@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Utensils, MapPin, Check, ArrowRight } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
@@ -21,6 +21,9 @@ import {
   IconLocalFamilies,
   IconHomeCooked,
   IconSmallGroups,
+  IconStepCalendar,
+  IconStepConfirm,
+  IconStepEnjoy,
 } from "@/components/site/Brand";
 import { useGalleryContext } from "@/components/site/Layout";
 import { getSiteUrl } from "@/lib/seo";
@@ -193,14 +196,72 @@ function HomePage() {
     ar: "احجز عشاءك",
   };
 
+  const assignedFiles = new Set(["10.jpeg", "4.jpeg", "11.jpeg", "5.jpeg"]);
+  const remainingApprovedPhotos = data.photos.photos.filter(
+    (p) => !assignedFiles.has(p.source_file ?? "") && p.guest_consent_confirmed,
+  );
+
   // Manage gallery visibility: only show if 3 or more approved photos remain besides the assigned ones
   useEffect(() => {
-    const assignedFiles = new Set(["10.jpeg", "4.jpeg", "11.jpeg", "5.jpeg"]);
-    const remainingApproved = data.photos.photos.filter(
-      (p) => !assignedFiles.has(p.source_file ?? "") && p.guest_consent_confirmed,
-    );
-    setHasGallery(remainingApproved.length >= 3);
-  }, [data.photos.photos, setHasGallery]);
+    setHasGallery(remainingApprovedPhotos.length >= 3);
+  }, [remainingApprovedPhotos.length, setHasGallery]);
+
+  const howItWorksTrackedLabel = {
+    en: "HOW IT WORKS",
+    fr: "COMMENT ÇA MARCHE",
+    ar: "كيف تسير التجربة",
+  };
+
+  const howItWorksTitle = {
+    en: "A simple journey.",
+    fr: "Un parcours simple.",
+    ar: "رحلة بسيطة وممتعة.",
+  };
+
+  const howItWorksSteps = [
+    {
+      num: "1",
+      icon: IconStepCalendar,
+      title: {
+        en: "Choose your date",
+        fr: "Choisissez votre date",
+        ar: "اختر موعدك",
+      },
+      desc: {
+        en: "Pick an available evening that fits your schedule in Marrakech.",
+        fr: "Sélectionnez une soirée disponible selon vos dates de séjour à Marrakech.",
+        ar: "اختر أمسية متاحة تناسب برنامج رحلتك في مراكش.",
+      },
+    },
+    {
+      num: "2",
+      icon: IconStepConfirm,
+      title: {
+        en: "Send your request, the host confirms",
+        fr: "Envoyez votre demande, l'hôte confirme",
+        ar: "أرسل طلبك، والمضيف يؤكد",
+      },
+      desc: {
+        en: "Fill in your details and dishes; the local family confirms your table.",
+        fr: "Indiquez vos plats choisis et coordonnées ; la famille locale confirme votre table.",
+        ar: "حدد أطباقك المفضلة وبياناتك، وستؤكد العائلة المحلية حجزك.",
+      },
+    },
+    {
+      num: "3",
+      icon: IconStepEnjoy,
+      title: {
+        en: "Enjoy the evening",
+        fr: "Profitez de la soirée",
+        ar: "استمتع بالأمسية",
+      },
+      desc: {
+        en: "Share tea, cook together, and gather around the family table.",
+        fr: "Partagez le thé, cuisinez ensemble et savourez le dîner autour de la table.",
+        ar: "شارك الشاي، اطبخوا معاً، واجتمعوا حول مائدة العائلة الدافئة.",
+      },
+    },
+  ];
 
   const heroTrackedLabel = {
     en: "LOCAL FAMILY DINNER / MARRAKECH",
@@ -479,94 +540,96 @@ function HomePage() {
       <MenuSection photos={data.photos.photos} />
 
       {/* ═══════════════════════════════════════════════════════════
-          4. PHOTOS (only when approved photos exist)
+          4. PHOTOS (only when 3 or more approved photos remain)
       ═══════════════════════════════════════════════════════════ */}
-      {galleryPhotos.length > 0 && (
-        <section id="photos" className="scroll-mt-20 bg-white section-pad">
+      {remainingApprovedPhotos.length >= 3 && (
+        <section id="photos" className="scroll-mt-20 bg-cream section-pad">
           <div className="ms-container">
             <div className="text-center mb-12 sm:mb-16">
-              <span className="section-index block mb-3">03 / PHOTOS</span>
-              <h2 className="text-center text-primary font-display font-semibold leading-[1.02]">
+              <span className="tracked-label block mb-2 text-gold">
+                {lang === "fr" ? "GALERIE PHOTOS" : lang === "ar" ? "صور الضيوف" : "PHOTOS"}
+              </span>
+              <h2 className="text-center text-oxblood font-display font-semibold leading-[1.0] text-3xl sm:text-4xl lg:text-[44px] tracking-tight">
                 {photosTitle[lang]}
               </h2>
-              <OrnamentDivider center className="mt-5" />
             </div>
-            <GuestPhotoGallery photos={galleryPhotos} />
+            <GuestPhotoGallery photos={remainingApprovedPhotos} />
           </div>
         </section>
       )}
 
       {/* ═══════════════════════════════════════════════════════════
-          5. HOW IT WORKS (Outlined Burgundy Numerals, Vertical Dividers)
+          5. HOW IT WORKS
       ═══════════════════════════════════════════════════════════ */}
-      <section id="how" className="scroll-mt-20 bg-white section-pad">
+      <section id="how" className="scroll-mt-20 bg-cream section-pad">
         <div className="ms-container">
           <div className="text-center mb-12 sm:mb-16">
-            <span className="section-index block mb-3">04 / HOW IT WORKS</span>
-            <h2 className="text-center text-primary font-display font-semibold leading-[1.02]">
-              {howTitle[lang]}
+            <span className="tracked-label block mb-2 text-gold">
+              {howItWorksTrackedLabel[lang]}
+            </span>
+            <h2 className="text-center text-oxblood font-display font-semibold leading-[1.0] text-3xl sm:text-4xl lg:text-[44px] tracking-tight">
+              {howItWorksTitle[lang]}
             </h2>
-            <OrnamentDivider center className="mt-5" />
           </div>
 
-          {/* Desktop (>=1024px): 3 columns with thin vertical dividers */}
-          <div className="hidden lg:grid lg:grid-cols-3 divide-x rtl:divide-x-reverse divide-stone-200/80">
-            {HOW_IT_WORKS_STEPS.map((item) => (
-              <div
-                key={item.num}
-                className="px-10 py-4 flex flex-col items-start"
-                dir={lang === "ar" ? "rtl" : "ltr"}
-              >
-                <span
-                  className="font-display text-7xl font-bold tracking-tight mb-5 select-none"
-                  style={{
-                    WebkitTextStroke: "2px #8B1A1A",
-                    color: "transparent",
-                  }}
-                  aria-hidden="true"
-                >
-                  {item.num}
-                </span>
-                <h3 className="font-display text-2xl font-bold text-foreground mb-3">
-                  {item.title[lang]}
-                </h3>
-                <p className="text-foreground/75 text-base sm:text-[1.125rem] leading-[1.7] max-w-[34ch]">
-                  {item.desc[lang]}
-                </p>
-              </div>
-            ))}
+          {/* Desktop (>=1024px): 3 steps in a row with gold arrows */}
+          <div className="hidden lg:grid lg:grid-cols-[1fr_auto_1fr_auto_1fr] items-start gap-4">
+            {howItWorksSteps.map((step, idx) => {
+              const Icon = step.icon;
+              return (
+                <Fragment key={step.num}>
+                  <div className="flex flex-col items-center text-center px-4">
+                    <div className="flex items-center gap-3 mb-4">
+                      <span className="w-9 h-9 rounded-full border border-gold/70 text-gold flex items-center justify-center font-display text-sm font-semibold select-none">
+                        {step.num}
+                      </span>
+                      <Icon className="w-7 h-7 text-gold" />
+                    </div>
+                    <h3 className="font-display font-bold text-ink text-xl sm:text-2xl mb-2">
+                      {step.title[lang]}
+                    </h3>
+                    <p className="text-muted-text text-sm sm:text-base leading-relaxed max-w-[280px]">
+                      {step.desc[lang]}
+                    </p>
+                  </div>
+                  {idx < howItWorksSteps.length - 1 && (
+                    <div className="pt-2 flex items-center justify-center text-gold/70" aria-hidden="true">
+                      <ArrowRight className="w-5 h-5 rtl:rotate-180" />
+                    </div>
+                  )}
+                </Fragment>
+              );
+            })}
           </div>
 
-          {/* Mobile (<1024px): vertical timeline */}
+          {/* Mobile / Tablet (<1024px): Stacked on vertical line */}
           <div
-            className="lg:hidden relative border-s-2 border-stone-200/80 ms-4 ps-7 space-y-12"
+            className="lg:hidden relative border-s-2 border-gold/30 ms-4 sm:ms-8 ps-6 sm:ps-8 space-y-10"
             dir={lang === "ar" ? "rtl" : "ltr"}
           >
-            {HOW_IT_WORKS_STEPS.map((item) => (
-              <div key={item.num} className="relative">
-                {/* Timeline node dot */}
-                <div
-                  className="absolute -start-[35px] top-3 h-3.5 w-3.5 rounded-full bg-primary ring-4 ring-white"
-                  aria-hidden="true"
-                />
-                <span
-                  className="font-display text-5xl sm:text-6xl font-bold tracking-tight mb-2 block select-none"
-                  style={{
-                    WebkitTextStroke: "2px #8B1A1A",
-                    color: "transparent",
-                  }}
-                  aria-hidden="true"
-                >
-                  {item.num}
-                </span>
-                <h3 className="font-display text-xl sm:text-2xl font-bold text-foreground mb-2">
-                  {item.title[lang]}
-                </h3>
-                <p className="text-foreground/75 text-base leading-relaxed max-w-[42ch]">
-                  {item.desc[lang]}
-                </p>
-              </div>
-            ))}
+            {howItWorksSteps.map((step) => {
+              const Icon = step.icon;
+              return (
+                <div key={step.num} className="relative">
+                  {/* Step numbered circle node overlapping the line */}
+                  <div
+                    className="absolute -start-[38px] sm:-start-[46px] top-0.5 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-cream border border-gold text-gold flex items-center justify-center font-display text-xs sm:text-sm font-bold shadow-xs select-none"
+                    aria-hidden="true"
+                  >
+                    {step.num}
+                  </div>
+                  <div className="flex items-center gap-2.5 mb-2">
+                    <Icon className="w-5 h-5 text-gold shrink-0" />
+                    <h3 className="font-display font-bold text-ink text-lg sm:text-xl">
+                      {step.title[lang]}
+                    </h3>
+                  </div>
+                  <p className="text-muted-text text-sm leading-relaxed max-w-[38ch]">
+                    {step.desc[lang]}
+                  </p>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>

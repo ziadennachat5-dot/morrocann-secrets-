@@ -46,7 +46,7 @@ export function GuestPhotoGallery({ photos }: { photos: PublicGuestPhoto[] }) {
             type="button"
             aria-label={`${t.gallery.openPhoto}: ${getAlt(photo, lang)}`}
             onClick={() => setSelectedIndex(index)}
-            className="group shrink-0 w-[78vw] max-w-[340px] snap-center overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded-[28px] shadow-soft cursor-pointer"
+            className="group shrink-0 w-[78vw] max-w-[340px] snap-center overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded-[20px] shadow-soft cursor-pointer"
             style={{ aspectRatio: "4/5" }}
           >
             <img
@@ -55,7 +55,7 @@ export function GuestPhotoGallery({ photos }: { photos: PublicGuestPhoto[] }) {
               sizes="(max-width: 640px) 80vw, 340px"
               alt={getAlt(photo, lang)}
               loading="lazy"
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02] rounded-[28px] image-reveal"
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02] rounded-[20px] image-reveal"
             />
           </button>
         ))}
@@ -72,7 +72,7 @@ export function GuestPhotoGallery({ photos }: { photos: PublicGuestPhoto[] }) {
                 type="button"
                 aria-label={`${t.gallery.openPhoto}: ${getAlt(largePhoto, lang)}`}
                 onClick={() => setSelectedIndex(0)}
-                className="group w-full h-full min-h-[540px] max-h-[580px] overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded-[28px] shadow-soft cursor-pointer block relative"
+                className="group w-full h-full min-h-[540px] max-h-[580px] overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded-[20px] shadow-soft cursor-pointer block relative"
               >
                 <img
                   src={largePhoto.url}
@@ -80,7 +80,7 @@ export function GuestPhotoGallery({ photos }: { photos: PublicGuestPhoto[] }) {
                   sizes="(min-width: 1024px) 58vw, 800px"
                   alt={getAlt(largePhoto, lang)}
                   loading="lazy"
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02] rounded-[28px] image-reveal"
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02] rounded-[20px] image-reveal"
                 />
               </button>
             </div>
@@ -94,7 +94,7 @@ export function GuestPhotoGallery({ photos }: { photos: PublicGuestPhoto[] }) {
                     type="button"
                     aria-label={`${t.gallery.openPhoto}: ${getAlt(photo, lang)}`}
                     onClick={() => setSelectedIndex(1 + mIdx)}
-                    className="group w-full h-[258px] overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded-[28px] shadow-soft cursor-pointer block relative"
+                    className="group w-full h-[258px] overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded-[20px] shadow-soft cursor-pointer block relative"
                   >
                     <img
                       src={photo.url}
@@ -102,7 +102,7 @@ export function GuestPhotoGallery({ photos }: { photos: PublicGuestPhoto[] }) {
                       sizes="(min-width: 1024px) 42vw, 550px"
                       alt={getAlt(photo, lang)}
                       loading="lazy"
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02] rounded-[28px] image-reveal"
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02] rounded-[20px] image-reveal"
                     />
                   </button>
                 ))}
@@ -122,7 +122,7 @@ export function GuestPhotoGallery({ photos }: { photos: PublicGuestPhoto[] }) {
                 type="button"
                 aria-label={`${t.gallery.openPhoto}: ${getAlt(photo, lang)}`}
                 onClick={() => setSelectedIndex(3 + sIdx)}
-                className="group w-full h-[240px] overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded-[28px] shadow-soft cursor-pointer block relative"
+                className="group w-full h-[240px] overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded-[20px] shadow-soft cursor-pointer block relative"
               >
                 <img
                   src={photo.url}
@@ -130,7 +130,7 @@ export function GuestPhotoGallery({ photos }: { photos: PublicGuestPhoto[] }) {
                   sizes="(min-width: 1024px) 25vw, 320px"
                   alt={getAlt(photo, lang)}
                   loading="lazy"
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02] rounded-[28px] image-reveal"
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02] rounded-[20px] image-reveal"
                 />
               </button>
             ))}
@@ -147,7 +147,7 @@ export function GuestPhotoGallery({ photos }: { photos: PublicGuestPhoto[] }) {
         <DialogContent
           closeLabel={t.gallery.close}
           className="w-[calc(100vw-2rem)] max-w-5xl border-none bg-[#1D1414] p-4 text-white sm:p-8"
-          style={{ borderRadius: "28px" }}
+          style={{ borderRadius: "20px" }}
           onKeyDown={(event) => {
             if (event.key === "ArrowRight") {
               event.preventDefault();
