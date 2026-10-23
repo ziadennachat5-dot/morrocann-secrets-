@@ -9,6 +9,7 @@ const localizedAltSchema = z.object({
 
 const guestPhotoSchema = z.object({
   id: z.string().uuid(),
+  source_file: z.string().nullable().optional(),
   storage_path: z.string().min(1),
   renditions: z.array(z.object({ width: z.number().int().positive(), path: z.string().min(1) })),
   alt: localizedAltSchema,
@@ -24,11 +25,50 @@ export function filterPhotosWithConsent<T extends { guest_consent_confirmed: boo
   return photos.filter((photo) => photo.guest_consent_confirmed);
 }
 
+export function selectHeroAndGalleryPhotos<
+  T extends {
+    id: string;
+    source_file?: string | null | undefined;
+    guest_consent_confirmed: boolean;
+    url: string;
+    srcSet?: string | undefined;
+    alt: { en: string; fr: string; ar: string };
+  },
+>(
+  publicPhotos: T[],
+  fallbackUrl: string,
+): {
+  heroGuestPhoto: T | undefined;
+  heroImageUrl: string;
+  heroImageSrcSet: string | undefined;
+  isGuestHero: boolean;
+  galleryPhotos: T[];
+} {
+  const heroGuestPhoto = publicPhotos.find(
+    (photo) => photo.source_file === "6.jpeg" && photo.guest_consent_confirmed,
+  );
+
+  const heroImageUrl = heroGuestPhoto ? heroGuestPhoto.url : fallbackUrl;
+  const heroImageSrcSet = heroGuestPhoto?.srcSet;
+  const isGuestHero = Boolean(heroGuestPhoto);
+  const galleryPhotos = heroGuestPhoto
+    ? publicPhotos.filter((photo) => photo.id !== heroGuestPhoto.id)
+    : publicPhotos;
+
+  return {
+    heroGuestPhoto,
+    heroImageUrl,
+    heroImageSrcSet,
+    isGuestHero,
+    galleryPhotos,
+  };
+}
+
 export const getPublicGuestPhotos = createServerFn({ method: "GET" }).handler(async () => {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const result = await supabaseAdmin
     .from("guest_photos")
-    .select("id,storage_path,renditions,alt,sort_order,guest_consent_confirmed")
+    .select("id,source_file,storage_path,renditions,alt,sort_order,guest_consent_confirmed")
     .eq("guest_consent_confirmed", true)
     .order("sort_order", { ascending: true });
   if (result.error && ["42P01", "PGRST205"].includes(result.error.code ?? "")) {

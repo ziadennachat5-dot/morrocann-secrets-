@@ -10,7 +10,7 @@ import {
 } from "@/lib/public-content.functions";
 import { getPublicContactLinks } from "@/lib/public-contact.functions";
 import { getHomepageContent } from "@/lib/homepage.functions";
-import { getPublicGuestPhotos } from "@/lib/guest-photos.functions";
+import { getPublicGuestPhotos, selectHeroAndGalleryPhotos } from "@/lib/guest-photos.functions";
 import { GuestPhotoGallery } from "@/components/site/GuestPhotoGallery";
 import { ConceptSection, MenuSection } from "@/components/site/ConceptAndMenu";
 import { OrnamentDivider } from "@/components/site/Brand";
@@ -92,27 +92,34 @@ function HomePage() {
   const { lang } = useI18n();
   const firstBookable = data.bookingOptions.experiences[0]?.id;
   const firstExperience = data.experiences[0];
-  const heroImageUrl = firstExperience?.image_url ?? "/images/hero-1200.webp";
 
-  const heroHeadline = {
-    en: "Eat with a local Moroccan family",
-    fr: "Partagez le repas d'une famille marocaine",
-    ar: "تناول الطعام مع عائلة مغربية",
+  const fallbackHeroUrl = firstExperience?.image_url ?? "/images/hero-1200.webp";
+  const { heroGuestPhoto, heroImageUrl, heroImageSrcSet, galleryPhotos } =
+    selectHeroAndGalleryPhotos(data.photos.photos, fallbackHeroUrl);
+
+  const heroImageAlt = heroGuestPhoto
+    ? heroGuestPhoto.alt[lang] || heroGuestPhoto.alt.en || "Dinner with a Moroccan family"
+    : firstExperience?.title?.[lang] || "Eat with a local Moroccan family";
+
+  const heroH1Line1 = {
+    en: "Eat with a local",
+    fr: "Partagez le repas d'une",
+    ar: "تناول الطعام مع",
   };
-  const heroHeadlineItalic = {
-    en: "in their home in Marrakech",
-    fr: "dans leur maison à Marrakech",
-    ar: "في بيتهم بمراكش",
+  const heroH1Line2 = {
+    en: "Moroccan family",
+    fr: "famille marocaine",
+    ar: "عائلة مغربية",
+  };
+  const heroBadgeText = {
+    en: "Marrakech · Family dinner",
+    fr: "Marrakech · Dîner en famille",
+    ar: "مراكش · عشاء عائلي",
   };
   const heroSubtitle = {
-    en: "Authentic cuisine, culture, hospitality and memories — all in one evening.",
-    fr: "Cuisine authentique, culture, hospitalité et souvenirs — en une seule soirée.",
-    ar: "مطبخ أصيل، ثقافة، ضيافة وذكريات في أمسية واحدة.",
-  };
-  const badgeText = {
-    en: "Marrakech, family dinner",
-    fr: "Marrakech, dîner en famille",
-    ar: "مراكش، عشاء عائلي",
+    en: "A real family home in Marrakech. Authentic cuisine, culture, hospitality and memories.",
+    fr: "Une vraie maison familiale à Marrakech. Cuisine authentique, culture, hospitalité et souvenirs.",
+    ar: "بيت عائلي حقيقي في مراكش. مطبخ أصيل، ثقافة، ضيافة وذكريات.",
   };
   const bookingTitle = {
     en: "Book your dinner",
@@ -124,7 +131,7 @@ function HomePage() {
     fr: "Voir le menu",
     ar: "شاهد قائمة الطعام",
   };
-  const reassurances = [
+  const heroFacts = [
     {
       en: "Starters, drinks and dessert included",
       fr: "Entrées, boissons et dessert inclus",
@@ -136,7 +143,7 @@ function HomePage() {
       ar: "حتى 8 ضيوف",
     },
     {
-      en: "Around 3 hours",
+      en: "About 3 hours",
       fr: "Environ 3 heures",
       ar: "حوالي 3 ساعات",
     },
@@ -145,12 +152,6 @@ function HomePage() {
     en: "Dinner in a real family home",
     fr: "Dîner dans une vraie maison familiale",
     ar: "عشاء في بيت عائلي حقيقي",
-  };
-
-  const bookingTitle2 = {
-    en: "Book your dinner",
-    fr: "Réservez votre dîner",
-    ar: "احجز عشاءك",
   };
 
   const photosTitle = {
@@ -182,190 +183,168 @@ function HomePage() {
   return (
     <div>
       {/* ═══════════════════════════════════════════════════════════
-          1. HERO — 85vh min, white + burgundy soft circle + zellige
+          1. HERO — Full-width burgundy, zellige, gold line, arch
       ═══════════════════════════════════════════════════════════ */}
       <section
         id="home"
-        className="relative bg-white overflow-hidden"
-        style={{ minHeight: "85vh", display: "flex", alignItems: "center" }}
+        className="relative bg-primary text-white overflow-x-clip z-10"
+        style={{
+          backgroundColor: "var(--primary)",
+          borderBottom: "1px solid rgba(201, 162, 75, 0.45)",
+        }}
         aria-label="Hero"
       >
-        {/* Large soft burgundy circle / arch — decorative bg */}
+        {/* Soft darker radial vignette toward edges */}
         <div
           aria-hidden="true"
+          className="absolute inset-0 pointer-events-none"
           style={{
-            position: "absolute",
-            insetInlineEnd: "-5%",
-            top: "-10%",
-            width: "55%",
-            aspectRatio: "1/1.3",
-            borderRadius: "50% 50% 40% 40% / 60% 60% 40% 40%",
             background:
-              "radial-gradient(ellipse at 60% 30%, rgba(139,26,26,0.085) 0%, rgba(139,26,26,0.02) 65%, transparent 100%)",
-            pointerEvents: "none",
-          }}
-        />
-        {/* Zellige corner — bottom-start */}
-        <div
-          aria-hidden="true"
-          className="zellige-light"
-          style={{
-            position: "absolute",
-            insetInlineStart: 0,
-            bottom: 0,
-            width: "220px",
-            height: "220px",
-            opacity: 0.6,
-            pointerEvents: "none",
+              "radial-gradient(ellipse at 50% 35%, rgba(139,26,26,0.82) 0%, rgba(95,15,15,0.96) 65%, rgba(65,10,10,0.99) 100%)",
           }}
         />
 
+        {/* Subtle zellige pattern overlay at low opacity */}
         <div
-          className="ms-container"
+          aria-hidden="true"
+          className="zellige-burgundy absolute inset-0 pointer-events-none"
+          style={{ opacity: 0.16 }}
+        />
+
+        <div
+          className="ms-container relative z-10 w-full"
           style={{
-            paddingTop: "clamp(48px, 8vw, 96px)",
-            paddingBottom: "clamp(64px, 10vw, 112px)",
-            width: "100%",
+            paddingTop: "clamp(24px, 4.5vw, 56px)",
+            paddingBottom: "clamp(36px, 6vw, 72px)",
+            minHeight: "min(90vh, 760px)",
+            display: "flex",
+            alignItems: "center",
           }}
         >
-          <div className="grid gap-10 items-center lg:grid-cols-12 lg:gap-16">
-            {/* Text block — desktop left, mobile second */}
-            <div className="order-2 lg:order-1 lg:col-span-7 flex flex-col items-start hero-fade">
-              {/* Green badge */}
-              <div
-                className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-semibold text-white mb-6"
-                style={{ background: "var(--accent)" }}
-              >
-                <MapPin className="h-3.5 w-3.5" aria-hidden />
-                <span>{badgeText[lang]}</span>
+          <div className="grid gap-6 sm:gap-8 items-center lg:grid-cols-12 lg:gap-12 w-full">
+            {/* Left column: white text & actions (order 2 on phone, order 1 on desktop) */}
+            <div className="order-2 lg:order-1 lg:col-span-7 flex flex-col items-start gap-3.5 sm:gap-4 lg:gap-5 hero-fade">
+              {/* Small pill badge in white outline with a green dot */}
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/35 bg-white/10 backdrop-blur-xs px-3.5 py-1 text-xs sm:text-sm font-medium text-white shadow-2xs">
+                <span
+                  className="h-2 w-2 rounded-full bg-accent ring-2 ring-accent/30 shrink-0"
+                  aria-hidden="true"
+                />
+                <span>{heroBadgeText[lang]}</span>
               </div>
 
-              {/* H1 */}
-              <h1 className="text-primary font-display" dir={lang === "ar" ? "rtl" : "ltr"}>
-                {heroHeadline[lang]}
-                <br />
-                <em
-                  style={{
-                    fontStyle: "italic",
-                    fontWeight: 500,
-                    color: "var(--primary-dark)",
-                    opacity: 0.75,
-                    fontSize: "0.82em",
-                  }}
-                >
-                  {heroHeadlineItalic[lang]}
-                </em>
+              {/* H1 on exactly TWO lines */}
+              <h1
+                className="font-display font-bold tracking-tight text-white"
+                style={{
+                  fontSize: "clamp(2.35rem, 5.2vw, 4.8rem)",
+                  lineHeight: 1.08,
+                }}
+                dir={lang === "ar" ? "rtl" : "ltr"}
+              >
+                <span className="block text-white whitespace-nowrap sm:whitespace-normal">
+                  {heroH1Line1[lang]}
+                </span>
+                <span className="block text-gold whitespace-nowrap sm:whitespace-normal">
+                  {heroH1Line2[lang]}
+                </span>
               </h1>
 
-              {/* Subtitle */}
+              {/* Thin gold ornament divider */}
+              <OrnamentDivider light className="my-1 sm:my-1.5" />
+
+              {/* Subtitle on at most 2 lines at 1.2rem, white at 90% */}
               <p
-                className="mt-5 text-foreground/75"
-                style={{ fontSize: "1.25rem", lineHeight: "1.65", maxWidth: "48ch" }}
+                className="text-white/90 leading-relaxed max-w-[46ch]"
+                style={{ fontSize: "clamp(1rem, 1.8vw, 1.2rem)" }}
+                dir={lang === "ar" ? "rtl" : "ltr"}
               >
                 {heroSubtitle[lang]}
               </p>
 
-              {/* Buttons */}
-              <div className="mt-8 flex flex-wrap gap-4">
+              {/* Two buttons */}
+              <div className="mt-2 sm:mt-3 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
                 {firstBookable && (
-                  <a href="#booking" className="btn btn-primary gap-2">
-                    <Utensils className="h-4 w-4" aria-hidden />
-                    {bookingTitle[lang]}
+                  <a
+                    href="#booking"
+                    className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-7 py-3 text-sm sm:text-base font-bold text-primary shadow-md hover:bg-[#FBF7F2] hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200 text-center w-full sm:w-auto"
+                  >
+                    <Utensils className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+                    <span>{bookingTitle[lang]}</span>
                   </a>
                 )}
-                <a href="#menu" className="btn btn-secondary gap-2">
-                  {seeMenuText[lang]}
-                  <ArrowRight className="h-4 w-4" aria-hidden />
+                <a
+                  href="#menu"
+                  className="inline-flex items-center justify-center gap-2 rounded-full border border-white/80 bg-white/5 backdrop-blur-xs px-6 py-3 text-sm sm:text-base font-semibold text-white hover:bg-white/15 hover:border-white hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200 text-center w-full sm:w-auto"
+                >
+                  <span>{seeMenuText[lang]}</span>
+                  <ArrowRight className="h-4 w-4 shrink-0 rtl:rotate-180" aria-hidden="true" />
                 </a>
               </div>
 
-              {/* Reassurance row with interactive pills */}
+              {/* Three short facts in one row (stacked on phones) with small gold check icons */}
               <ul
-                className="mt-8 flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:gap-x-3.5"
+                className="mt-2 sm:mt-3 flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2 sm:gap-4 lg:gap-5 text-xs sm:text-sm text-white/95"
                 role="list"
+                dir={lang === "ar" ? "rtl" : "ltr"}
               >
-                {reassurances.map((r, i) => (
-                  <li
-                    key={i}
-                    className="inline-flex items-center gap-2.5 rounded-full bg-offwhite/90 backdrop-blur-xs border border-stone-200/80 px-4 py-2 text-sm font-semibold text-foreground/85 shadow-2xs hover:bg-white hover:border-accent/40 hover:shadow-xs hover:-translate-y-0.5 transition-all duration-200 cursor-default"
-                  >
-                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/15">
-                      <Check className="h-3 w-3 text-accent" aria-hidden strokeWidth={3} />
+                {heroFacts.map((fact, index) => (
+                  <li key={index} className="inline-flex items-center gap-2">
+                    <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-gold/20 border border-gold/50">
+                      <Check className="h-2.5 w-2.5 text-gold" strokeWidth={3} aria-hidden="true" />
                     </span>
-                    {r[lang]}
+                    <span className="font-medium whitespace-nowrap">{fact[lang]}</span>
                   </li>
                 ))}
               </ul>
             </div>
 
-            {/* Photo — desktop right, mobile first */}
-            <div className="order-1 lg:order-2 lg:col-span-5 flex justify-center hero-photo-fade">
-              <div className="relative w-full max-w-[75%] sm:max-w-sm lg:max-w-none">
-                {/* Offset burgundy arch outline (depth) */}
+            {/* Right column: 6.jpeg tall arch frame (order 1 on phone, order 2 on desktop) */}
+            <div className="order-1 lg:order-2 lg:col-span-5 flex justify-center hero-photo-fade w-full">
+              <div
+                className="relative w-[70%] max-w-[240px] sm:max-w-[290px] lg:w-full lg:max-w-[440px] lg:mb-[-64px] z-20"
+                style={{ aspectRatio: "4/5" }}
+              >
+                {/* Second thin gold arch outline offset behind for depth */}
                 <div
                   aria-hidden="true"
-                  style={{
-                    position: "absolute",
-                    inset: "-14px",
-                    borderRadius: "9999px 9999px 28px 28px",
-                    border: "2px solid var(--primary)",
-                    opacity: 0.2,
-                    zIndex: 0,
-                    transform: "translate(10px, 12px)",
-                  }}
+                  className="absolute -inset-2.5 sm:-inset-3 lg:-inset-4 rounded-t-[9999px] rounded-b-[28px] border border-gold/45 pointer-events-none translate-x-2 translate-y-2.5 sm:translate-x-3 sm:translate-y-3.5 rtl:-translate-x-2 rtl:sm:-translate-x-3 z-0"
                 />
-                {/* Gold border arch */}
+
+                {/* Main Arch Frame */}
                 <div
+                  className="relative z-10 w-full h-full rounded-t-[9999px] rounded-b-[24px] overflow-hidden bg-primary-dark"
                   style={{
-                    position: "relative",
-                    zIndex: 1,
-                    borderRadius: "9999px 9999px 24px 24px",
-                    border: "2px solid rgba(201,162,75,0.45)",
-                    overflow: "hidden",
-                    aspectRatio: "4/5",
-                    boxShadow: "var(--shadow-photo)",
+                    border: "3px solid var(--gold)",
+                    boxShadow:
+                      "0 20px 48px -10px rgba(0,0,0,0.55), 0 10px 20px -6px rgba(0,0,0,0.35)",
                   }}
                 >
                   <img
                     src={heroImageUrl}
-                    alt={heroHeadline[lang]}
-                    className="h-full w-full object-cover object-center transition-transform duration-700 hover:scale-105"
+                    srcSet={heroImageSrcSet}
+                    alt={heroImageAlt}
+                    className="h-full w-full object-cover object-[50%_35%] transition-transform duration-700 hover:scale-103"
                     loading="eager"
                     fetchPriority="high"
                     decoding="async"
                   />
-                </div>
 
-                {/* Floating card with modern glassmorphism */}
-                <div
-                  className="group transition-all duration-300 hover:scale-105"
-                  style={{
-                    position: "absolute",
-                    bottom: "20px",
-                    insetInlineStart: "-20px",
-                    zIndex: 2,
-                    background: "rgba(255, 255, 255, 0.9)",
-                    backdropFilter: "blur(16px)",
-                    WebkitBackdropFilter: "blur(16px)",
-                    borderRadius: "16px",
-                    padding: "12px 18px",
-                    boxShadow: "0 12px 36px -4px rgba(42,32,32,0.18)",
-                    border: "1px solid rgba(255,255,255,0.75)",
-                    maxWidth: "205px",
-                  }}
-                >
-                  <div className="flex items-center gap-1.5 mb-1 text-accent">
-                    <span className="h-2 w-2 rounded-full bg-accent animate-pulse" />
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-accent">
-                      Marrakech
-                    </span>
+                  {/* Small solid white tag fixed to lower-left corner */}
+                  <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 rtl:left-auto rtl:right-3 rtl:sm:right-4 z-20 bg-white rounded-xl shadow-lg border border-stone-200/90 px-3 py-1.5 sm:px-3.5 sm:py-2 max-w-[190px] sm:max-w-[210px]">
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                      <span
+                        className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-accent shrink-0"
+                        aria-hidden="true"
+                      />
+                      <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-accent">
+                        Marrakech
+                      </span>
+                    </div>
+                    <p className="font-display text-xs sm:text-sm font-bold text-[#1C1817] leading-tight">
+                      {floatingCardText[lang]}
+                    </p>
                   </div>
-                  <p
-                    className="font-display text-foreground"
-                    style={{ fontSize: "0.9375rem", lineHeight: "1.35", fontWeight: 700 }}
-                  >
-                    {floatingCardText[lang]}
-                  </p>
                 </div>
               </div>
             </div>
@@ -386,7 +365,7 @@ function HomePage() {
       {/* ═══════════════════════════════════════════════════════════
           4. PHOTOS (only when approved photos exist)
       ═══════════════════════════════════════════════════════════ */}
-      {data.photos.photos.length > 0 && (
+      {galleryPhotos.length > 0 && (
         <section
           id="photos"
           className="scroll-mt-20 bg-white"
@@ -395,7 +374,7 @@ function HomePage() {
           <div className="ms-container">
             <h2 className="text-center text-primary mb-4">{photosTitle[lang]}</h2>
             <OrnamentDivider center className="mb-12" />
-            <GuestPhotoGallery photos={data.photos.photos} />
+            <GuestPhotoGallery photos={galleryPhotos} />
           </div>
         </section>
       )}
@@ -521,7 +500,7 @@ function HomePage() {
         >
           <div className="ms-container" style={{ paddingBottom: "var(--section-pad-v)" }}>
             <div className="text-center mb-10">
-              <h2 className="text-primary mb-4">{bookingTitle2[lang]}</h2>
+              <h2 className="text-primary mb-4">{bookingTitle[lang]}</h2>
               <OrnamentDivider center className="mb-5" />
               <p
                 className="text-foreground/70 mx-auto"
