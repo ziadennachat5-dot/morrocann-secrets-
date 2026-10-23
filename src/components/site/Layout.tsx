@@ -1,6 +1,6 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Menu, X, MessageCircle } from "lucide-react";
+import { Menu, X, MessageCircle, Mail } from "lucide-react";
 import { useI18n, LANGS } from "@/lib/i18n";
 import { BRAND_NAME } from "@/lib/brand";
 import { HeaderLogo, HeaderLogoLight, FooterLogo, StarDivider, OrnamentDivider, ZelligeClipDefs } from "./Brand";
@@ -248,10 +248,10 @@ function ContactBand() {
   const { lang } = useI18n();
   const { links } = useContactLinks();
 
-  const questionsTitle = {
-    en: "Any questions?",
-    fr: "Des questions\u00a0?",
-    ar: "هل لديك سؤال؟",
+  const headline = {
+    en: "Let's set the table.",
+    fr: "Mettons la table ensemble.",
+    ar: "دعنا نعدّ المائدة معاً.",
   };
 
   const contactSubtitle = {
@@ -264,44 +264,54 @@ function ContactBand() {
     ? `https://wa.me/${links.whatsapp}`
     : "https://wa.me/212600000000";
 
+  const emailHref = links?.email
+    ? `mailto:${links.email}`
+    : "mailto:contact@moroccansecrets.com";
+
+  const emailLabel = links?.email ?? "contact@moroccansecrets.com";
+
   return (
     <section
       id="contact"
-      className="scroll-mt-20 zellige-burgundy px-5 py-20 text-white sm:py-24"
-      style={{ backgroundColor: "#5E1010" }}
+      className="scroll-mt-20 px-5 py-24 sm:py-32 text-white text-center relative overflow-hidden"
+      style={{ backgroundColor: "#4A0E0E" }}
+      dir={lang === "ar" ? "rtl" : "ltr"}
     >
-      <div className="mx-auto max-w-2xl text-center">
-        <OrnamentDivider center light />
+      <div className="ms-container max-w-3xl mx-auto relative z-10">
+        <OrnamentDivider center light className="mb-6" />
         <h2
-          className="mt-6 font-display font-semibold text-white tracking-[-0.02em]"
-          style={{ fontSize: "clamp(2.5rem, 5.5vw, 4.2rem)", lineHeight: 1.05 }}
+          className="font-display font-semibold text-white tracking-[-0.03em] leading-[0.98]"
+          style={{ fontSize: "clamp(2.8rem, 6.5vw, 5.2rem)" }}
         >
-          {questionsTitle[lang]}
+          {headline[lang]}
         </h2>
-        <p className="mt-4 text-white/90 mx-auto" style={{ maxWidth: "50ch", lineHeight: "1.75" }}>
+        <p
+          className="mt-5 text-white/85 mx-auto leading-relaxed text-base sm:text-lg"
+          style={{ maxWidth: "46ch" }}
+        >
           {contactSubtitle[lang]}
         </p>
 
-        <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-5">
+          {/* White WhatsApp button */}
           <a
-            className="inline-flex items-center gap-2.5 rounded-full bg-white px-8 py-3.5 text-base font-bold text-primary shadow-md transition-all duration-200 hover:bg-offwhite hover:-translate-y-0.5 active:translate-y-0"
-            style={{ minHeight: "52px" }}
+            className="btn bg-white text-primary font-bold hover:bg-paper h-[56px] px-8 rounded-full shadow-md inline-flex items-center gap-3 transition-transform hover:-translate-y-0.5 active:translate-y-0"
             href={whatsappHref}
             target="_blank"
             rel="noreferrer"
           >
-            <MessageCircle className="h-5 w-5 text-accent" aria-hidden />
+            <MessageCircle className="h-5 w-5 text-accent stroke-[2.2]" aria-hidden="true" />
             <span>WhatsApp</span>
           </a>
-          {links?.email && (
-            <a
-              className="inline-flex items-center gap-2 rounded-full border-2 border-white/60 px-6 py-3 text-base font-medium text-white transition hover:bg-white/10"
-              style={{ minHeight: "52px" }}
-              href={`mailto:${links.email}`}
-            >
-              {links.email}
-            </a>
-          )}
+
+          {/* Outlined email button */}
+          <a
+            className="btn border-2 border-white/70 text-white font-medium hover:bg-white/10 h-[56px] px-8 rounded-full inline-flex items-center gap-3 transition-transform hover:-translate-y-0.5 active:translate-y-0"
+            href={emailHref}
+          >
+            <Mail className="h-5 w-5 text-white/80" aria-hidden="true" />
+            <span>{emailLabel}</span>
+          </a>
         </div>
       </div>
     </section>
@@ -312,29 +322,43 @@ function Footer() {
   const { lang, t } = useI18n();
   const { links } = useContactLinks();
 
+  const whatsappHref = links?.whatsapp
+    ? `https://wa.me/${links.whatsapp}`
+    : "https://wa.me/212600000000";
+
+  const emailHref = links?.email
+    ? `mailto:${links.email}`
+    : "mailto:contact@moroccansecrets.com";
+
+  const emailLabel = links?.email ?? "contact@moroccansecrets.com";
+
   return (
     <footer
-      className="text-white pb-10 sm:pb-8 border-t border-white/10"
-      style={{ backgroundColor: "#5E1010" }}
+      className="text-white border-t border-white/10 pt-14 pb-10 sm:pb-12"
+      style={{
+        backgroundColor: "#300808",
+        paddingBottom: "max(40px, env(safe-area-inset-bottom))",
+      }}
+      dir={lang === "ar" ? "rtl" : "ltr"}
     >
-      <div className="mx-auto max-w-[1240px] px-5 pt-12 pb-2 sm:px-10">
-        {/* Top row: logo + nav */}
-        <div className="flex flex-col items-center gap-8 md:flex-row md:items-start md:justify-between">
+      <div className="ms-container">
+        {/* Top: Logo row with anchor links */}
+        <div className="flex flex-col items-center gap-8 md:flex-row md:items-center md:justify-between pb-10 border-b border-white/10">
           {/* Logo — light version, fully visible, never cropped */}
           <a href="/" aria-label={BRAND_NAME} className="flex items-center shrink-0">
-            <FooterLogo className="h-20 sm:h-24 w-auto object-contain" />
+            <FooterLogo className="h-16 sm:h-20 w-auto object-contain" />
           </a>
 
-          {/* Nav links */}
+          {/* Anchor links in a clear row */}
           <nav
             aria-label="Footer"
-            className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 md:justify-end"
+            className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3"
           >
             {siteNavItems.map((item) => (
               <a
                 key={item.href}
                 href={item.href}
-                className="text-sm font-medium text-white/80 transition-colors hover:text-gold"
+                className="text-sm sm:text-base font-medium text-white/80 hover:text-gold transition-colors underline-offset-4 hover:underline"
               >
                 {item.isBook ? t.nav.book : item.label[lang]}
               </a>
@@ -342,33 +366,28 @@ function Footer() {
           </nav>
         </div>
 
-        {/* Divider */}
-        <div className="my-8 h-px bg-white/10" />
-
-        {/* Bottom row: contact + copyright */}
-        <div className="flex flex-col items-center gap-4 text-center md:flex-row md:justify-between md:text-start">
-          <div className="flex flex-wrap items-center justify-center gap-4 md:justify-start">
-            {links?.whatsapp && (
-              <a
-                href={`https://wa.me/${links.whatsapp}`}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 text-sm text-white/70 hover:text-white transition-colors"
-              >
-                <MessageCircle className="h-4 w-4" aria-hidden />
-                WhatsApp
-              </a>
-            )}
-            {links?.email && (
-              <a
-                href={`mailto:${links.email}`}
-                className="text-sm text-white/70 hover:text-white transition-colors"
-              >
-                {links.email}
-              </a>
-            )}
+        {/* Bottom row: WhatsApp and email on start, copyright on end */}
+        <div className="pt-8 flex flex-col items-center gap-5 sm:flex-row sm:justify-between text-center sm:text-start">
+          <div className="flex flex-wrap items-center justify-center gap-6 text-sm">
+            <a
+              href={whatsappHref}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 text-white/75 hover:text-white transition-colors"
+            >
+              <MessageCircle className="h-4 w-4 text-accent" aria-hidden="true" />
+              <span>WhatsApp</span>
+            </a>
+            <a
+              href={emailHref}
+              className="inline-flex items-center gap-2 text-white/75 hover:text-white transition-colors"
+            >
+              <Mail className="h-4 w-4 text-white/60" aria-hidden="true" />
+              <span>{emailLabel}</span>
+            </a>
           </div>
-          <p className="text-xs text-white/50">
+
+          <p className="text-xs text-white/50 tracking-wide">
             &copy; {new Date().getFullYear()} {BRAND_NAME}. {t.footer.rights}
           </p>
         </div>
