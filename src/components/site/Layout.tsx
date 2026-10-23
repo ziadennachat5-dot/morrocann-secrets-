@@ -10,6 +10,7 @@ import {
   StarDivider,
   OrnamentDivider,
   ZelligeClipDefs,
+  ZelligeLineArtStar,
 } from "./Brand";
 import { getPublicContactLinks } from "@/lib/public-contact.functions";
 import { CookieConsent } from "./CookieConsent";
@@ -268,71 +269,60 @@ function Header() {
   );
 }
 
-function ContactBand() {
+function ClosingBand() {
   const { lang } = useI18n();
-  const { links } = useContactLinks();
 
-  const headline = {
-    en: "Let's set the table.",
-    fr: "Mettons la table ensemble.",
-    ar: "دعنا نعدّ المائدة معاً.",
+  const trackedLabel = {
+    en: "REAL PEOPLE / AUTHENTIC HOMES / LASTING MEMORIES",
+    fr: "VRAIES FAMILLES / MAISONS AUTHENTIQUES / SOUVENIRS UNIQUES",
+    ar: "عائلات مضيافة / بيوت أصيلة / ذكريات تدوم",
   };
 
-  const contactSubtitle = {
-    en: "We are happy to answer you on WhatsApp or by email.",
-    fr: "Nous serons ravis de vous répondre sur WhatsApp ou par email.",
-    ar: "يسعدنا الإجابة عليك عبر واتساب أو البريد الإلكتروني.",
+  const title = {
+    en: "Come as a guest. Leave as family.",
+    fr: "Venez en invité. Partez en famille.",
+    ar: "تعال كضيف. وغادر كفرد من العائلة.",
   };
 
-  const whatsappHref = links?.whatsapp
-    ? `https://wa.me/${links.whatsapp}`
-    : "https://wa.me/212600000000";
-
-  const emailHref = links?.email ? `mailto:${links.email}` : "mailto:contact@moroccansecrets.com";
-
-  const emailLabel = links?.email ?? "contact@moroccansecrets.com";
+  const buttonText = {
+    en: "Book your dinner",
+    fr: "Réservez votre dîner",
+    ar: "احجز عشاءك",
+  };
 
   return (
     <section
-      id="contact"
-      className="scroll-mt-20 px-5 py-24 sm:py-32 text-white text-center relative overflow-hidden"
-      style={{ backgroundColor: "#4A0E0E" }}
+      id="closing"
+      className="bg-oxblood text-white text-center py-20 sm:py-28 relative overflow-hidden"
       dir={lang === "ar" ? "rtl" : "ltr"}
     >
-      <div className="ms-container max-w-3xl mx-auto relative z-10">
-        <OrnamentDivider center light className="mb-6" />
-        <h2
-          className="font-display font-semibold text-white tracking-[-0.03em] leading-[0.98]"
-          style={{ fontSize: "clamp(2.8rem, 6.5vw, 5.2rem)" }}
-        >
-          {headline[lang]}
+      {/* Large gold line-art star ornaments at both edges */}
+      <div
+        className="absolute -start-16 sm:-start-20 lg:-start-12 top-1/2 -translate-y-1/2 pointer-events-none"
+        aria-hidden="true"
+      >
+        <ZelligeLineArtStar className="w-56 h-56 sm:w-72 sm:h-72 text-gold opacity-25" />
+      </div>
+      <div
+        className="absolute -end-16 sm:-end-20 lg:-end-12 top-1/2 -translate-y-1/2 pointer-events-none"
+        aria-hidden="true"
+      >
+        <ZelligeLineArtStar className="w-56 h-56 sm:w-72 sm:h-72 text-gold opacity-25" />
+      </div>
+
+      <div className="ms-container max-w-3xl mx-auto relative z-10 px-4">
+        <span className="tracked-label block mb-3 text-gold text-[10px] sm:text-[11px]">
+          {trackedLabel[lang]}
+        </span>
+        <h2 className="font-display font-semibold text-white text-3xl sm:text-4xl lg:text-[46px] leading-[1.05] tracking-tight mb-8">
+          {title[lang]}
         </h2>
-        <p
-          className="mt-5 text-white/85 mx-auto leading-relaxed text-base sm:text-lg"
-          style={{ maxWidth: "46ch" }}
-        >
-          {contactSubtitle[lang]}
-        </p>
-
-        <div className="mt-10 flex flex-wrap items-center justify-center gap-5">
-          {/* White WhatsApp button */}
+        <div className="flex justify-center">
           <a
-            className="btn bg-white text-primary font-bold hover:bg-paper h-[56px] px-8 rounded-full shadow-md inline-flex items-center gap-3 transition-transform hover:-translate-y-0.5 active:translate-y-0"
-            href={whatsappHref}
-            target="_blank"
-            rel="noreferrer"
+            href="#booking"
+            className="btn bg-gold text-oxblood hover:bg-gold/90 font-bold px-8 h-12 rounded-full inline-flex items-center justify-center gap-2 text-sm sm:text-base shadow-btn transition-transform hover:-translate-y-0.5 active:translate-y-0"
           >
-            <MessageCircle className="h-5 w-5 text-accent stroke-[2.2]" aria-hidden="true" />
-            <span>WhatsApp</span>
-          </a>
-
-          {/* Outlined email button */}
-          <a
-            className="btn border-2 border-white/70 text-white font-medium hover:bg-white/10 h-[56px] px-8 rounded-full inline-flex items-center gap-3 transition-transform hover:-translate-y-0.5 active:translate-y-0"
-            href={emailHref}
-          >
-            <Mail className="h-5 w-5 text-white/80" aria-hidden="true" />
-            <span>{emailLabel}</span>
+            <span>{buttonText[lang]}</span>
           </a>
         </div>
       </div>
@@ -351,67 +341,88 @@ function Footer() {
     : "https://wa.me/212600000000";
 
   const emailHref = links?.email ? `mailto:${links.email}` : "mailto:contact@moroccansecrets.com";
-
   const emailLabel = links?.email ?? "contact@moroccansecrets.com";
+
+  const hospitalityText = {
+    en: "Moroccan hospitality, always.",
+    fr: "L'hospitalité marocaine, toujours.",
+    ar: "الضيافة المغربية، دوماً.",
+  };
 
   return (
     <footer
-      className="text-white border-t border-white/10 pt-14 pb-10 sm:pb-12"
+      className="bg-cream text-ink border-t border-stone-300/60 pt-12 pb-10 sm:pb-8 lg:pb-10"
       style={{
-        backgroundColor: "#300808",
         paddingBottom: "max(40px, env(safe-area-inset-bottom))",
       }}
       dir={lang === "ar" ? "rtl" : "ltr"}
     >
       <div className="ms-container">
-        {/* Top: Logo row with anchor links */}
-        <div className="flex flex-col items-center gap-8 md:flex-row md:items-center md:justify-between pb-10 border-b border-white/10">
-          {/* Logo — light version, fully visible, never cropped */}
+        {/* Main Footer Row: Logo left, Links center, Switcher right */}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-10 border-b border-stone-300/60">
+          {/* Logo — our logo, fully visible */}
           <a href="/" aria-label={BRAND_NAME} className="flex items-center shrink-0">
-            <FooterLogo className="h-16 sm:h-20 w-auto object-contain" />
+            <HeaderLogo className="h-10 sm:h-12 w-auto object-contain" />
           </a>
 
-          {/* Anchor links in a clear row */}
+          {/* Centered nav links */}
           <nav
             aria-label="Footer"
-            className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3"
+            className="flex flex-wrap items-center justify-center gap-x-6 sm:gap-x-8 gap-y-2"
           >
             {navLinks.map((item) => (
               <a
                 key={item.href}
                 href={item.href}
-                className="text-sm sm:text-base font-medium text-white/80 hover:text-gold transition-colors underline-offset-4 hover:underline"
+                className="text-sm sm:text-base font-medium text-ink hover:text-oxblood transition-colors py-1 hover:underline hover:decoration-gold hover:underline-offset-8"
               >
                 {item.label[lang]}
               </a>
             ))}
           </nav>
+
+          {/* Compact language switcher on right */}
+          <div className="shrink-0">
+            <LangSwitch />
+          </div>
         </div>
 
-        {/* Bottom row: WhatsApp and email on start, copyright on end */}
-        <div className="pt-8 flex flex-col items-center gap-5 sm:flex-row sm:justify-between text-center sm:text-start">
-          <div className="flex flex-wrap items-center justify-center gap-6 text-sm">
-            <a
-              href={whatsappHref}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-2 text-white/75 hover:text-white transition-colors"
-            >
-              <MessageCircle className="h-4 w-4 text-accent" aria-hidden="true" />
-              <span>WhatsApp</span>
-            </a>
-            <a
-              href={emailHref}
-              className="inline-flex items-center gap-2 text-white/75 hover:text-white transition-colors"
-            >
-              <Mail className="h-4 w-4 text-white/60" aria-hidden="true" />
-              <span>{emailLabel}</span>
-            </a>
+        {/* Optional contact row: WhatsApp and email only if set */}
+        {(links?.whatsapp || links?.email) && (
+          <div className="py-4 flex flex-wrap items-center justify-center gap-6 text-xs sm:text-sm text-muted-text border-b border-stone-300/40">
+            {links?.whatsapp && (
+              <a
+                href={whatsappHref}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 hover:text-oxblood transition-colors"
+              >
+                <MessageCircle className="h-3.5 w-3.5 text-oxblood" aria-hidden="true" />
+                <span>WhatsApp</span>
+              </a>
+            )}
+            {links?.email && (
+              <a
+                href={emailHref}
+                className="inline-flex items-center gap-2 hover:text-oxblood transition-colors"
+              >
+                <Mail className="h-3.5 w-3.5 text-oxblood" aria-hidden="true" />
+                <span>{emailLabel}</span>
+              </a>
+            )}
           </div>
+        )}
 
-          <p className="text-xs text-white/50 tracking-wide">
+        {/* Bottom row: copyright bottom-left, "Moroccan hospitality, always." with gold line bottom-right */}
+        <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-start">
+          <p className="text-xs text-muted-text tracking-wide">
             &copy; {new Date().getFullYear()} {BRAND_NAME}. {t.footer.rights}
           </p>
+
+          <div className="flex items-center gap-3 text-xs sm:text-sm font-serif italic text-muted-text">
+            <span className="w-10 sm:w-14 h-[1px] bg-gold/70" aria-hidden="true" />
+            <span>{hospitalityText[lang]}</span>
+          </div>
         </div>
       </div>
     </footer>
@@ -483,7 +494,7 @@ export function SiteLayout({ children }: { children: ReactNode }) {
         <main id="main" className="flex-1">
           {children}
         </main>
-        <ContactBand />
+        <ClosingBand />
         <Footer />
         <WhatsAppFab />
         <MobileBookingBar />
