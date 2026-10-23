@@ -403,30 +403,25 @@ export function ExperienceCardPhoto({
   sourceFile: string;
   alt: string;
 }) {
-  if (photo?.url) {
-    return (
-      <div className="w-full h-44 sm:h-48 overflow-hidden rounded-[14px] bg-sand">
-        <img
-          src={photo.url}
-          srcSet={photo.srcSet}
-          alt={alt}
-          loading="lazy"
-          className="w-full h-full object-cover object-center transition-transform duration-500 hover:scale-105"
-        />
-      </div>
-    );
-  }
+  const localUrl = `/${sourceFile}`;
+  const displayUrl = photo?.url || localUrl;
 
-  // Neutral placeholder: oxblood with zellige pattern
   return (
-    <div
-      className="w-full h-44 sm:h-48 overflow-hidden rounded-[14px] bg-oxblood zellige-burgundy flex flex-col items-center justify-center p-4 text-center relative"
-      aria-label={`Photo (${sourceFile}) pending consent`}
-    >
-      <ZelligeStarSvg className="w-8 h-8 text-gold/40 mb-2" />
-      <span className="text-[11px] font-medium text-white/50 tracking-wider uppercase">
-        Moroccan Secrets
-      </span>
+    <div className="w-full h-44 sm:h-48 overflow-hidden rounded-[14px] bg-sand">
+      <img
+        src={displayUrl}
+        srcSet={photo?.srcSet}
+        alt={alt}
+        loading="lazy"
+        onError={(e) => {
+          const target = e.currentTarget;
+          if (target.src !== localUrl) {
+            target.srcset = "";
+            target.src = localUrl;
+          }
+        }}
+        className="w-full h-full object-cover object-center transition-transform duration-500 hover:scale-105"
+      />
     </div>
   );
 }
@@ -733,33 +728,31 @@ export function MenuSection({
           </div>
         </div>
 
-        {/* Right column: 5.jpeg occupying ~50% width, full height, blended left edge */}
+        {/* Right column: 5.png occupying ~50% width, full height, blended left edge */}
         <div className="lg:col-span-5 relative h-full min-h-[640px] overflow-hidden">
-          {photo5?.url ? (
-            <div className="w-full h-full relative">
-              <img
-                src={photo5.url}
-                srcSet={photo5.srcSet}
-                alt="Moroccan feast dishes and tagines"
-                loading="lazy"
-                className="w-full h-full object-cover object-center"
-              />
-              {/* Very light dark overlay */}
-              <div className="absolute inset-0 bg-black/20 pointer-events-none" aria-hidden="true" />
-              {/* Gradient blending left edge into oxblood (mirrors in RTL) */}
-              <div
-                className="absolute inset-y-0 start-0 w-32 bg-gradient-to-r rtl:bg-gradient-to-l from-oxblood to-transparent pointer-events-none"
-                aria-hidden="true"
-              />
-            </div>
-          ) : (
-            <div className="w-full h-full bg-[#3A0E10] zellige-burgundy flex flex-col items-center justify-center p-8 text-center relative">
-              <ZelligeStarSvg className="w-12 h-12 text-gold/30 mb-3" />
-              <span className="text-xs font-semibold text-white/60 tracking-widest uppercase">
-                A taste of Morocco
-              </span>
-            </div>
-          )}
+          <div className="w-full h-full relative">
+            <img
+              src={photo5?.url || "/5.png"}
+              srcSet={photo5?.srcSet}
+              alt="Moroccan feast dishes and tagines"
+              loading="lazy"
+              onError={(e) => {
+                const target = e.currentTarget;
+                if (target.src !== "/5.png") {
+                  target.srcset = "";
+                  target.src = "/5.png";
+                }
+              }}
+              className="w-full h-full object-cover object-center"
+            />
+            {/* Very light dark overlay */}
+            <div className="absolute inset-0 bg-black/20 pointer-events-none" aria-hidden="true" />
+            {/* Gradient blending left edge into oxblood (mirrors in RTL) */}
+            <div
+              className="absolute inset-y-0 start-0 w-32 bg-gradient-to-r rtl:bg-gradient-to-l from-oxblood to-transparent pointer-events-none"
+              aria-hidden="true"
+            />
+          </div>
         </div>
       </div>
 
@@ -767,29 +760,25 @@ export function MenuSection({
       <div className="lg:hidden flex flex-col w-full relative z-10">
         {/* Photo on top with gradient into oxblood */}
         <div className="w-full h-64 sm:h-80 relative overflow-hidden">
-          {photo5?.url ? (
-            <>
-              <img
-                src={photo5.url}
-                srcSet={photo5.srcSet}
-                alt="Moroccan feast dishes and tagines"
-                loading="lazy"
-                className="w-full h-full object-cover object-center"
-              />
-              <div className="absolute inset-0 bg-black/20 pointer-events-none" aria-hidden="true" />
-              <div
-                className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-oxblood via-oxblood/60 to-transparent pointer-events-none"
-                aria-hidden="true"
-              />
-            </>
-          ) : (
-            <div className="w-full h-full bg-[#3A0E10] zellige-burgundy flex flex-col items-center justify-center p-6 text-center relative">
-              <ZelligeStarSvg className="w-10 h-10 text-gold/30 mb-2" />
-              <span className="text-xs font-semibold text-white/60 tracking-widest uppercase">
-                A taste of Morocco
-              </span>
-            </div>
-          )}
+          <img
+            src={photo5?.url || "/5.png"}
+            srcSet={photo5?.srcSet}
+            alt="Moroccan feast dishes and tagines"
+            loading="lazy"
+            onError={(e) => {
+              const target = e.currentTarget;
+              if (target.src !== "/5.png") {
+                target.srcset = "";
+                target.src = "/5.png";
+              }
+            }}
+            className="w-full h-full object-cover object-center"
+          />
+          <div className="absolute inset-0 bg-black/20 pointer-events-none" aria-hidden="true" />
+          <div
+            className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-oxblood via-oxblood/60 to-transparent pointer-events-none"
+            aria-hidden="true"
+          />
         </div>
 
         {/* List below */}

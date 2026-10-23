@@ -86,7 +86,7 @@ export const getPublicGuestPhotos = createServerFn({ method: "GET" }).handler(as
         paths.map(async ({ width, path }) => {
           const { data, error } = await supabaseAdmin.storage
             .from("guest-photos")
-            .createSignedUrl(path, 300);
+            .createSignedUrl(path, 86400);
           if (error || !data?.signedUrl) throw new Error("Unable to create a guest photo URL.");
           return { width, url: data.signedUrl };
         }),

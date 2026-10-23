@@ -182,31 +182,27 @@ function BookingBandArchPhoto({
     photos.find((p) => p.source_file === "4.png" && p.guest_consent_confirmed) ??
     photos.find((p) => p.source_file === "4.jpeg" && p.guest_consent_confirmed);
 
-  if (photo4?.url) {
-    const alt = photo4.alt[lang] || photo4.alt.en || "Moroccan family dinner";
-    return (
-      <div className="w-full max-w-[260px] sm:max-w-[280px] h-[340px] sm:h-[400px] arch-frame overflow-hidden shadow-soft bg-sand">
-        <img
-          src={photo4.url}
-          srcSet={photo4.srcSet}
-          alt={alt}
-          loading="lazy"
-          className="w-full h-full object-cover object-center"
-        />
-      </div>
-    );
-  }
+  const photo4Url = photo4?.url || "/4.png";
+  const alt = photo4?.alt
+    ? photo4.alt[lang] || photo4.alt.en || "Moroccan family dinner"
+    : "Moroccan family dinner";
 
-  // Neutral placeholder: oxblood with zellige pattern
   return (
-    <div
-      className="w-full max-w-[260px] sm:max-w-[280px] h-[340px] sm:h-[400px] arch-frame overflow-hidden bg-oxblood zellige-burgundy flex flex-col items-center justify-center p-6 text-center shadow-soft relative"
-      aria-label="Photo (4.png) pending consent"
-    >
-      <ZelligeStarSvg className="w-12 h-12 text-gold/40 mb-3" />
-      <span className="text-xs font-medium text-white/60 tracking-widest uppercase">
-        Moroccan Secrets
-      </span>
+    <div className="w-full max-w-[260px] sm:max-w-[280px] h-[340px] sm:h-[400px] arch-frame overflow-hidden shadow-soft bg-sand">
+      <img
+        src={photo4Url}
+        srcSet={photo4?.srcSet}
+        alt={alt}
+        loading="lazy"
+        onError={(e) => {
+          const target = e.currentTarget;
+          if (target.src !== "/4.png") {
+            target.srcset = "";
+            target.src = "/4.png";
+          }
+        }}
+        className="w-full h-full object-cover object-center"
+      />
     </div>
   );
 }
