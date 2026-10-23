@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Utensils, MapPin, Check, ArrowRight } from "lucide-react";
+import { Utensils, MapPin, Check, ArrowRight, ChevronDown } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { BookingFlow } from "@/routes/booking";
 import { getBookingOptions } from "@/lib/booking.functions";
@@ -17,7 +17,6 @@ import { ConceptSection, MenuSection } from "@/components/site/ConceptAndMenu";
 import {
   OrnamentDivider,
   ZelligeStarSvg,
-  OliveBranchSvg,
   IconLocalFamilies,
   IconHomeCooked,
   IconSmallGroups,
@@ -143,7 +142,7 @@ function HeroVideo() {
       <img
         src="/media/hero-poster.jpg"
         alt="Moroccan dining experience"
-        className="w-full h-full object-cover object-center"
+        className="w-full h-full object-cover object-[center_30%]"
       />
     );
   }
@@ -159,7 +158,7 @@ function HeroVideo() {
       playsInline
       preload="metadata"
       onError={() => setHasError(true)}
-      className="w-full h-full object-cover object-center"
+      className="w-full h-full object-cover object-[center_30%]"
       aria-label="Moroccan dining experience"
     />
   );
@@ -378,23 +377,44 @@ function HomePage() {
     ar: "اكتشف التجربة",
   };
 
-  const heroNoteLine1 = {
-    en: "A real home.",
-    fr: "Une vraie maison.",
-    ar: "بيت حقيقي.",
-  };
-
-  const heroNoteLine2 = {
-    en: "A shared meal.",
-    fr: "Un repas partagé.",
-    ar: "مائدة مشتركة.",
-  };
-
-  const heroTagText = {
-    en: "Made with Moroccan hospitality",
-    fr: "Fait avec l'hospitalité marocaine",
-    ar: "مصنوع بالضيافة المغربية",
-  };
+  const heroFacts = [
+    {
+      num: "19:00",
+      label: {
+        en: "Start",
+        fr: "Début",
+        ar: "البداية",
+      },
+    },
+    {
+      num: {
+        en: "3h",
+        fr: "3h",
+        ar: "3 ساعات",
+      },
+      label: {
+        en: "Together",
+        fr: "Ensemble",
+        ar: "معاً",
+      },
+    },
+    {
+      num: "2",
+      label: {
+        en: "Dishes to choose",
+        fr: "Plats au choix",
+        ar: "أطباق للاختيار",
+      },
+    },
+    {
+      num: "8",
+      label: {
+        en: "Guests max",
+        fr: "Invités max",
+        ar: "ضيوف كحد أقصى",
+      },
+    },
+  ];
 
   const sandBandItems = [
     {
@@ -429,147 +449,117 @@ function HomePage() {
   return (
     <div>
       {/* ═══════════════════════════════════════════════════════════
-          1. HERO — Two columns on cream background (#F6F0E6)
+          1. HERO — Full-bleed video background (100svh, min 600px)
       ═══════════════════════════════════════════════════════════ */}
-      <section id="home" className="relative bg-cream overflow-hidden" aria-label="Hero">
-        {/* --- DESKTOP HERO (>=1024px) --- */}
-        <div className="hidden lg:grid lg:grid-cols-12 gap-8 xl:gap-14 items-center py-14 xl:py-20 ms-container">
-          {/* Left Column (col-span-7) */}
-          <div className="lg:col-span-7 flex flex-col items-start hero-rise">
-            <span className="tracked-label mb-4 text-gold">
-              {heroTrackedLabel[lang]}
-            </span>
-            <h1 className="font-display font-semibold text-oxblood tracking-[-0.02em] leading-[1.0] text-5xl xl:text-[5rem]">
-              <span className="block">{heroH1Line1[lang]}</span>
-              <span className="block italic">{heroH1Line2[lang]}</span>
-            </h1>
-            <p className="mt-6 text-muted-text text-lg xl:text-xl leading-[1.6] max-w-[44ch]">
-              {heroSubtitle[lang]}
-            </p>
-            <div className="mt-8 flex items-center gap-6">
-              <a
-                href="#booking"
-                className="btn bg-oxblood text-white hover:bg-burgundy px-8 h-[54px] font-semibold text-base inline-flex items-center gap-3 shadow-btn hover:shadow-btn-hover"
-              >
-                <span>{heroBookingBtn[lang]}</span>
-                <ArrowRight className="h-5 w-5 rtl:rotate-180" aria-hidden="true" />
-              </a>
-              <a
-                href="#experience"
-                className="text-ink hover:text-oxblood font-semibold text-base inline-flex items-center gap-2 transition-colors py-2"
-              >
-                <span>{heroDiscoverBtn[lang]}</span>
-                <ArrowRight className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
-              </a>
-            </div>
-          </div>
-
-          {/* Right Column: Arch Video + Overlapping Cards (col-span-5) */}
-          <div className="lg:col-span-5 flex justify-center relative">
-            <div className="relative w-full max-w-[420px] xl:max-w-[450px]">
-              {/* Arch Frame (rounded top, straight bottom corners) */}
-              <div className="arch-frame w-full h-[520px] xl:h-[560px] shadow-photo bg-sand relative z-10">
-                <HeroVideo />
-              </div>
-
-              {/* Top-Right Overlapping Note Card (Mirrors in RTL) */}
-              <div
-                className="absolute -top-4 end-[-14px] xl:end-[-20px] z-20 bg-[#FDFCF9] rounded-2xl p-4 shadow-soft border border-[#EFE6D8] max-w-[210px]"
-                dir={lang === "ar" ? "rtl" : "ltr"}
-              >
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <p className="font-display text-base font-bold text-ink leading-tight">
-                    {heroNoteLine1[lang]}
-                    <br />
-                    {heroNoteLine2[lang]}
-                  </p>
-                  <OliveBranchSvg className="w-7 h-7 text-accent shrink-0" />
-                </div>
-                <div className="flex items-center gap-2">
-                  <ZelligeStarSvg className="w-2.5 h-2.5 text-gold shrink-0" />
-                  <span className="h-px w-8 bg-gold/70 inline-block" />
-                </div>
-              </div>
-
-              {/* Bottom-Right Overlapping Oxblood Square Tag (Mirrors in RTL) */}
-              <div
-                className="absolute -bottom-5 end-[-10px] xl:end-[-16px] z-20 bg-oxblood text-white rounded-2xl p-4 shadow-soft border border-gold/30 w-[148px] text-center flex flex-col items-center justify-center gap-1.5"
-                dir={lang === "ar" ? "rtl" : "ltr"}
-              >
-                <ZelligeStarSvg className="w-4 h-4 text-gold mb-0.5" />
-                <span className="text-xs font-medium leading-snug text-white/95">
-                  {heroTagText[lang]}
-                </span>
-              </div>
-            </div>
-          </div>
+      <section
+        id="home"
+        className="relative w-full h-[100svh] min-h-[600px] overflow-hidden flex flex-col justify-between"
+        aria-label="Hero"
+      >
+        {/* Full-bleed background video / poster fallback */}
+        <div className="absolute inset-0 z-0">
+          <HeroVideo />
         </div>
 
-        {/* --- MOBILE HERO (<1024px): video arch first, then text, full-width button --- */}
-        <div className="lg:hidden flex flex-col w-full px-5 py-5 ms-container">
-          {/* 1. Arch Video first */}
-          <div className="relative w-full max-w-[260px] sm:max-w-[290px] mx-auto">
-            <div className="arch-frame w-full h-[270px] sm:h-[300px] shadow-photo bg-sand relative z-10">
-              <HeroVideo />
-            </div>
+        {/* Dark oxblood gradient overlay for WCAG AA readability */}
+        <div
+          className="absolute inset-0 z-[1] pointer-events-none"
+          style={{
+            background:
+              "linear-gradient(to top, rgba(26,6,8,0.78) 0%, rgba(26,6,8,0.55) 45%, rgba(26,6,8,0.25) 100%)",
+          }}
+          aria-hidden="true"
+        />
+        <div
+          className="absolute inset-0 z-[1] pointer-events-none hidden sm:block"
+          style={{
+            background:
+              lang === "ar"
+                ? "linear-gradient(to left, rgba(26,6,8,0.85) 0%, rgba(26,6,8,0.45) 55%, transparent 100%)"
+                : "linear-gradient(to right, rgba(26,6,8,0.85) 0%, rgba(26,6,8,0.45) 55%, transparent 100%)",
+          }}
+          aria-hidden="true"
+        />
 
-            {/* Overlapping top-right note card */}
-            <div
-              className="absolute -top-3 end-[-10px] z-20 bg-[#FDFCF9] rounded-xl p-2.5 sm:p-3 shadow-soft border border-[#EFE6D8] max-w-[155px]"
-              dir={lang === "ar" ? "rtl" : "ltr"}
-            >
-              <div className="flex items-start justify-between gap-1.5 mb-1.5">
-                <p className="font-display text-xs sm:text-sm font-bold text-ink leading-tight">
-                  {heroNoteLine1[lang]}
-                  <br />
-                  {heroNoteLine2[lang]}
-                </p>
-                <OliveBranchSvg className="w-5 h-5 text-accent shrink-0" />
-              </div>
-              <div className="flex items-center gap-1.5">
-                <ZelligeStarSvg className="w-2 h-2 text-gold shrink-0" />
-                <span className="h-px w-5 bg-gold/70 inline-block" />
-              </div>
-            </div>
-
-            {/* Overlapping bottom-right oxblood tag */}
-            <div
-              className="absolute -bottom-3 end-[-6px] z-20 bg-oxblood text-white rounded-xl p-2.5 sm:p-3 shadow-soft border border-gold/30 w-[124px] text-center flex flex-col items-center justify-center gap-1"
-              dir={lang === "ar" ? "rtl" : "ltr"}
-            >
-              <ZelligeStarSvg className="w-3 h-3 text-gold" />
-              <span className="text-[11px] font-medium leading-tight text-white/95">
-                {heroTagText[lang]}
-              </span>
-            </div>
-          </div>
-
-          {/* 2. Text Content below */}
-          <div className="mt-5 text-center flex flex-col items-center hero-rise">
-            <span className="tracked-label mb-2 text-[10px] sm:text-[11px] text-gold">
+        {/* Foreground Content: on left on desktop, bottom on phones */}
+        <div className="ms-container w-full h-full relative z-10 flex flex-col justify-between pt-24 sm:pt-28 lg:pt-32 pb-4 sm:pb-6 lg:pb-8">
+          {/* Middle/Bottom Text Block */}
+          <div className="my-auto lg:my-auto max-w-2xl text-start">
+            <span className="tracked-label mb-3 sm:mb-4 text-gold drop-shadow-xs font-semibold inline-block">
               {heroTrackedLabel[lang]}
             </span>
-            <h1 className="font-display font-semibold text-oxblood tracking-[-0.02em] leading-[1.0] text-3xl sm:text-4xl">
+            <h1 className="font-display font-semibold text-white tracking-[-0.02em] leading-[1.05] sm:leading-[1.02] text-4xl sm:text-5xl lg:text-6xl xl:text-7xl drop-shadow-sm">
               <span className="block">{heroH1Line1[lang]}</span>
               <span className="block italic">{heroH1Line2[lang]}</span>
             </h1>
-            <p className="mt-2 text-muted-text text-sm sm:text-base leading-snug max-w-[36ch]">
+            <p className="mt-4 sm:mt-6 text-white/90 text-base sm:text-lg lg:text-xl leading-[1.6] max-w-[46ch] drop-shadow-xs">
               {heroSubtitle[lang]}
             </p>
-            <div className="mt-4 w-full flex flex-col items-center gap-2">
+            <div className="mt-7 sm:mt-9 flex flex-wrap items-center gap-4 sm:gap-6">
               <a
                 href="#booking"
-                className="btn bg-oxblood text-white hover:bg-burgundy w-full h-12 font-semibold text-sm sm:text-base inline-flex items-center justify-center gap-2 shadow-btn"
+                className="h-[60px] px-8 sm:px-9 rounded-full bg-gold text-oxblood hover:bg-[#D8B45B] active:scale-[0.98] font-semibold text-base inline-flex items-center gap-3 transition-all duration-200 shadow-lg shadow-black/20 group"
               >
                 <span>{heroBookingBtn[lang]}</span>
-                <ArrowRight className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
+                <ArrowRight
+                  className="h-5 w-5 rtl:rotate-180 transition-transform group-hover:translate-x-1 rtl:group-hover:-translate-x-1"
+                  aria-hidden="true"
+                />
               </a>
               <a
                 href="#experience"
-                className="text-ink hover:text-oxblood font-semibold text-sm inline-flex items-center gap-1.5 py-1"
+                className="text-white/90 hover:text-white font-semibold text-base inline-flex items-center gap-2 transition-colors py-3 group"
               >
-                <span>{heroDiscoverBtn[lang]}</span>
-                <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180" aria-hidden="true" />
+                <span className="border-b border-transparent group-hover:border-white transition-colors">
+                  {heroDiscoverBtn[lang]}
+                </span>
+                <ArrowRight
+                  className="h-4 w-4 rtl:rotate-180 transition-transform group-hover:translate-x-1 rtl:group-hover:-translate-x-1"
+                  aria-hidden="true"
+                />
+              </a>
+            </div>
+          </div>
+
+          {/* Bottom Facts Glass Bar + Animated Scroll Indicator */}
+          <div className="w-full flex flex-col items-center">
+            {/* Facts glass bar */}
+            <div className="w-full rounded-2xl backdrop-blur-md bg-white/[0.12] border border-white/20 shadow-xl p-3 sm:p-4 lg:p-5 mt-4 sm:mt-6">
+              <div className="grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x rtl:sm:divide-x-reverse divide-white/20">
+                {heroFacts.map((fact, idx) => {
+                  const isOdd = idx % 2 === 0;
+                  return (
+                    <div
+                      key={idx}
+                      className={`flex flex-col items-center justify-center text-center py-2 px-2 sm:px-4 ${
+                        isOdd
+                          ? "border-r rtl:border-r-0 rtl:border-l border-white/20 sm:border-0"
+                          : ""
+                      } ${idx >= 2 ? "pt-3 sm:pt-2" : "pb-3 sm:pb-2"}`}
+                    >
+                      <span className="font-display text-2xl sm:text-3xl lg:text-4xl font-semibold text-white tracking-tight leading-none">
+                        {typeof fact.num === "string" ? fact.num : fact.num[lang]}
+                      </span>
+                      <span className="text-xs sm:text-sm text-white/85 font-sans mt-1 sm:mt-1.5 font-medium tracking-wide">
+                        {fact.label[lang]}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Animated scroll indicator (desktop only) */}
+            <div className="hidden lg:flex justify-center pt-3 pb-1">
+              <a
+                href="#experience"
+                aria-label="Scroll to experience"
+                className="flex flex-col items-center gap-1 text-white/70 hover:text-white transition-colors cursor-pointer group"
+              >
+                <span className="text-[10px] uppercase tracking-[0.2em] font-sans font-semibold">
+                  {lang === "fr" ? "Découvrir" : lang === "ar" ? "اكتشف" : "Scroll"}
+                </span>
+                <ChevronDown className="w-4 h-4 animate-bounce text-white/80 group-hover:text-gold transition-colors" />
               </a>
             </div>
           </div>
@@ -672,7 +662,10 @@ function HomePage() {
                     </p>
                   </div>
                   {idx < howItWorksSteps.length - 1 && (
-                    <div className="pt-2 flex items-center justify-center text-gold" aria-hidden="true">
+                    <div
+                      className="pt-2 flex items-center justify-center text-gold"
+                      aria-hidden="true"
+                    >
                       <ArrowRight className="w-6 h-6 rtl:rotate-180" />
                     </div>
                   )}
@@ -703,9 +696,7 @@ function HomePage() {
                       {step.title[lang]}
                     </h3>
                   </div>
-                  <p className="text-ink text-sm leading-relaxed max-w-[38ch]">
-                    {step.desc[lang]}
-                  </p>
+                  <p className="text-ink text-sm leading-relaxed max-w-[38ch]">{step.desc[lang]}</p>
                 </div>
               );
             })}
@@ -717,7 +708,10 @@ function HomePage() {
           6. BOOKING BAND (sand band with arch photo and white card)
       ═══════════════════════════════════════════════════════════ */}
       {data.bookingOptions.experiences.length > 0 && (
-        <section id="booking" className="scroll-mt-20 bg-sand section-pad border-y border-stone-300/40">
+        <section
+          id="booking"
+          className="scroll-mt-20 bg-sand section-pad border-y border-stone-300/40"
+        >
           <div className="ms-container">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
               {/* Left Column: Arch photo, label, title, sentence, gold line, tagline */}
@@ -728,9 +722,7 @@ function HomePage() {
                 <div className="mb-6 mx-auto lg:mx-0">
                   <BookingBandArchPhoto photos={data.photos.photos} lang={lang} />
                 </div>
-                <span className="tracked-label block mb-2 text-gold">
-                  {bookingBandLabel[lang]}
-                </span>
+                <span className="tracked-label block mb-2 text-gold">{bookingBandLabel[lang]}</span>
                 <h2 className="font-display font-semibold text-oxblood text-3xl sm:text-4xl lg:text-[40px] leading-[1.05] tracking-tight mb-3">
                   {bookingBandTitle[lang]}
                 </h2>
