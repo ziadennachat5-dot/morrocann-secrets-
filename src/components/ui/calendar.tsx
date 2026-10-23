@@ -189,10 +189,7 @@ function CalendarDayButton({
       <span className="relative z-10 flex flex-col items-center justify-center">
         <span>{children}</span>
         {isAvailable && !isSelected && (
-          <span
-            className="mt-0.5 h-1.5 w-1.5 rounded-full bg-accent shrink-0"
-            aria-hidden="true"
-          />
+          <span className="mt-0.5 h-1.5 w-1.5 rounded-full bg-accent shrink-0" aria-hidden="true" />
         )}
       </span>
       {isFullyBooked && !isSelected && (
