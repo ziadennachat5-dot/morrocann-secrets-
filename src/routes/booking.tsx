@@ -314,8 +314,221 @@ export function BookingFlow({
   if (confirmation) {
     return (
       <BookingFrame>
-        <div className="rounded-3xl border border-border/80 bg-white p-8 text-center shadow-card">
-          <p className="text-xl font-bold">Booking Request Received!</p>
+        <div
+          className="rounded-3xl border border-stone-200/90 bg-white p-6 sm:p-10 lg:p-12 text-center shadow-card max-w-3xl mx-auto"
+          dir={lang === "ar" ? "rtl" : "ltr"}
+        >
+          {/* Large green check */}
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-emerald-50 text-accent border-2 border-emerald-200/80 shadow-xs">
+            <Check className="h-10 w-10 stroke-[2.5]" aria-hidden />
+          </div>
+
+          <h2 className="mt-6 font-display text-3xl sm:text-4xl font-bold text-foreground">
+            {lang === "fr" ? "Demande envoyée" : lang === "ar" ? "تم إرسال الطلب" : "Request sent"}
+          </h2>
+
+          <p className="mt-3 text-base text-foreground/75 max-w-xl mx-auto leading-relaxed">
+            {lang === "fr"
+              ? `Merci ${name} ! Votre demande pour ${guests} personne${guests > 1 ? "s" : ""} a bien été transmise à la famille d'accueil.`
+              : lang === "ar"
+                ? `شكراً لك ${name}! تم إرسال طلبك لـ ${guests} ضيوف إلى العائلة المستضيفة.`
+                : `Thank you, ${name}! Your booking request for ${guests} guest${guests > 1 ? "s" : ""} has been sent to the host family.`}
+          </p>
+
+          {/* Recap card */}
+          <div className="mt-8 rounded-2xl border border-stone-200 bg-stone-50/70 p-6 sm:p-7 text-start shadow-2xs">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground border-b border-stone-200 pb-3">
+              {lang === "fr"
+                ? "Récapitulatif de votre demande"
+                : lang === "ar"
+                  ? "ملخص تفاصيل الحجز"
+                  : "Your booking recap"}
+            </h3>
+            <dl className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 text-sm">
+              <div>
+                <dt className="text-xs text-muted-foreground font-medium">
+                  {lang === "fr" ? "Date" : lang === "ar" ? "التاريخ" : "Date"}
+                </dt>
+                <dd className="font-bold text-foreground capitalize mt-0.5">
+                  {formatDateInWords(confirmation.date, lang)}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs text-muted-foreground font-medium">
+                  {lang === "fr" ? "Heure de début" : lang === "ar" ? "وقت البداية" : "Start time"}
+                </dt>
+                <dd className="font-bold text-foreground mt-0.5">19:00</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-muted-foreground font-medium">
+                  {lang === "fr" ? "Invités" : lang === "ar" ? "الضيوف" : "Guests"}
+                </dt>
+                <dd className="font-bold text-foreground mt-0.5">
+                  {confirmation.guests}{" "}
+                  {confirmation.guests === 1
+                    ? lang === "fr"
+                      ? "personne"
+                      : lang === "ar"
+                        ? "ضيف"
+                        : "guest"
+                    : lang === "fr"
+                      ? "personnes"
+                      : lang === "ar"
+                        ? "ضيوف"
+                        : "guests"}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs text-muted-foreground font-medium">
+                  {lang === "fr" ? "Coordonnées" : lang === "ar" ? "معلومات التواصل" : "Contact"}
+                </dt>
+                <dd className="font-medium text-foreground mt-0.5">
+                  {name} · {phone}
+                </dd>
+              </div>
+              <div className="sm:col-span-2">
+                <dt className="text-xs text-muted-foreground font-medium">
+                  {lang === "fr"
+                    ? "Plats choisis (2)"
+                    : lang === "ar"
+                      ? "الأطباق المختارة (2)"
+                      : "Selected main dishes (2)"}
+                </dt>
+                <dd className="font-semibold text-primary mt-0.5">
+                  {selectedDishes.join(", ") || "—"}
+                </dd>
+              </div>
+              {allergies && (
+                <div className="sm:col-span-2">
+                  <dt className="text-xs text-muted-foreground font-medium">
+                    {lang === "fr"
+                      ? "Allergies / régimes"
+                      : lang === "ar"
+                        ? "الحساسية"
+                        : "Allergies / dietary needs"}
+                  </dt>
+                  <dd className="font-medium text-foreground mt-0.5">{allergies}</dd>
+                </div>
+              )}
+              {message && (
+                <div className="sm:col-span-2">
+                  <dt className="text-xs text-muted-foreground font-medium">
+                    {lang === "fr" ? "Message" : lang === "ar" ? "رسالة" : "Message"}
+                  </dt>
+                  <dd className="font-medium text-foreground mt-0.5">{message}</dd>
+                </div>
+              )}
+            </dl>
+          </div>
+
+          {/* What happens next 1-2-3 list */}
+          <div className="mt-6 rounded-2xl border border-stone-200 bg-stone-50/50 p-6 text-start">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
+              {lang === "fr"
+                ? "Comment ça se passe ensuite :"
+                : lang === "ar"
+                  ? "ماذا يحدث الآن؟"
+                  : "What happens next"}
+            </h4>
+            <ol className="space-y-3 text-sm text-foreground/80">
+              <li className="flex items-start gap-3">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent text-white font-bold text-xs">
+                  ✓
+                </span>
+                <span>
+                  <strong>
+                    {lang === "fr"
+                      ? "1. Vous avez envoyé la demande."
+                      : lang === "ar"
+                        ? "1. أرسلت طلب الحجز بنجاح."
+                        : "1. You sent the request."}
+                  </strong>
+                </span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-xs">
+                  2
+                </span>
+                <span>
+                  <strong>
+                    {lang === "fr"
+                      ? "2. L'hôte confirme votre table"
+                      : lang === "ar"
+                        ? "2. يؤكد المضيف طاولتك"
+                        : "2. The host confirms by WhatsApp or email"}
+                  </strong>{" "}
+                  {lang === "fr"
+                    ? "et vous communique l'adresse exacte de la maison familiale dans Marrakech."
+                    : lang === "ar"
+                      ? "ويشاركك العنوان التفصيلي للبيت في مراكش."
+                      : "and provides the exact family home address in Marrakech."}
+                </span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-xs">
+                  3
+                </span>
+                <span>
+                  <strong>
+                    {lang === "fr"
+                      ? "3. Vous profitez de votre soirée."
+                      : lang === "ar"
+                        ? "3. تستمتع بأمسيتك العائلية."
+                        : "3. You enjoy the evening."}
+                  </strong>{" "}
+                  {lang === "fr"
+                    ? "Accueil au thé, cuisine partagée, grand dîner et musique traditionnelle."
+                    : lang === "ar"
+                      ? "استقبال بالشاي، مشاركة في الطبخ، عشاء أصيل وموسيقى تراثية."
+                      : "Welcome mint tea, cooking together, authentic table and traditional music."}
+                </span>
+              </li>
+            </ol>
+          </div>
+
+          {/* Action buttons: Back to top + Book another date */}
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+            <Button
+              type="button"
+              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+              className="btn btn-primary h-12 px-7 text-sm font-bold inline-flex items-center gap-2 cursor-pointer shadow-md"
+            >
+              <ArrowUp className="h-4 w-4" />
+              <span>
+                {lang === "fr" ? "Retour en haut" : lang === "ar" ? "العودة للأعلى" : "Back to top"}
+              </span>
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setConfirmation(null);
+                setDate("");
+                setSelectedDishes([]);
+                setAllergies("");
+                setMessage("");
+                setTouched({});
+              }}
+              className="h-12 px-6 border-stone-300 text-foreground hover:bg-stone-100 text-sm font-semibold cursor-pointer"
+            >
+              {lang === "fr"
+                ? "Faire une autre réservation"
+                : lang === "ar"
+                  ? "حجز موعد آخر"
+                  : "Book another date"}
+            </Button>
+            {waHref && (
+              <a
+                href={waHref}
+                target="_blank"
+                rel="noreferrer"
+                className="btn btn-secondary inline-flex items-center gap-2 h-12 px-6 text-sm font-semibold"
+              >
+                <MessageCircle className="h-4 w-4 text-accent" />
+                <span>WhatsApp</span>
+              </a>
+            )}
+          </div>
         </div>
       </BookingFrame>
     );
@@ -1001,14 +1214,24 @@ export function BookingFlow({
                 )}
               </div>
 
-              {/* Submit Error alert */}
+              {/* Submit Error alert with retry button, preserving entered data */}
               {submitError && (
                 <div
                   role="alert"
-                  className="flex items-center gap-2 rounded-xl bg-destructive/10 p-4 text-sm text-destructive font-medium border border-destructive/20"
+                  className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-xl bg-destructive/10 border border-destructive/25 p-4 text-destructive"
                 >
-                  <AlertCircle className="h-5 w-5 shrink-0" />
-                  <span>{submitError}</span>
+                  <div className="flex items-start gap-2.5">
+                    <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+                    <span className="text-sm font-semibold">{submitError}</span>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => void handleSubmit()}
+                    className="shrink-0 h-9 px-4 border-destructive/40 text-destructive hover:bg-destructive/10 text-xs font-bold"
+                  >
+                    {lang === "fr" ? "Réessayer" : lang === "ar" ? "إعادة المحاولة" : "Retry"}
+                  </Button>
                 </div>
               )}
 

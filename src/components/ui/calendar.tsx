@@ -156,11 +156,30 @@ function CalendarDayButton({
   const isClosed =
     (Boolean(modifiers["closed"]) || Boolean(modifiers["disabled"])) && !isAvailable && !isSelected;
 
+  const stateLabel = isSelected
+    ? "Selected"
+    : isAvailable
+      ? "Available"
+      : isFullyBooked
+        ? "Fully booked"
+        : isClosed
+          ? "Closed"
+          : "";
+
+  const formattedDate = day.date.toLocaleDateString(undefined, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
+  const ariaLabel = `${formattedDate}${stateLabel ? ` (${stateLabel})` : ""}`;
+
   return (
     <Button
       ref={ref}
       variant="ghost"
       size="icon"
+      aria-label={ariaLabel}
+      disabled={!isAvailable && !isSelected}
       data-day={day.date.toLocaleDateString()}
       data-selected-single={
         modifiers["selected"] &&
