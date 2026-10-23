@@ -31,6 +31,12 @@ export const Route = createFileRoute("/")({
   },
   head: ({ loaderData }) => {
     const siteUrl = getSiteUrl();
+    const fallbackHeroUrl = loaderData?.experiences?.[0]?.image_url ?? "/images/hero-1200.webp";
+    const heroImage =
+      loaderData?.photos?.photos?.find(
+        (p: { source_file?: string | null; guest_consent_confirmed: boolean }) =>
+          p.source_file === "6.jpeg" && p.guest_consent_confirmed,
+      )?.url || fallbackHeroUrl;
     return {
       meta: [
         { title: "Moroccan Secrets | Dinner with a local Moroccan family in Marrakech" },
@@ -42,9 +48,12 @@ export const Route = createFileRoute("/")({
         { property: "og:title", content: "Moroccan Secrets" },
         { property: "og:type", content: "website" },
         { property: "og:url", content: `${siteUrl}/` },
-        { property: "og:image", content: loaderData?.experiences?.[0]?.image_url ?? "" },
+        { property: "og:image", content: heroImage },
       ],
-      links: [{ rel: "canonical", href: `${siteUrl}/` }],
+      links: [
+        { rel: "canonical", href: `${siteUrl}/` },
+        { rel: "preload", as: "image", href: heroImage, fetchPriority: "high" },
+      ],
     };
   },
   component: HomePage,
@@ -128,20 +137,24 @@ function HomePage() {
     fr: "Voir le menu",
     ar: "شاهد قائمة الطعام",
   };
-  const heroFactsColumns = {
-    guests: {
-      num: "8",
-      label: { en: "guests max", fr: "personnes max", ar: "ضيوف كحد أقصى" },
+  const heroFactsColumns = [
+    {
+      num: "19:00",
+      label: { en: "Start", fr: "Début", ar: "البداية" },
     },
-    together: {
+    {
       num: "3h",
-      label: { en: "together", fr: "partagées", ar: "معاً" },
+      label: { en: "Together", fr: "Partagées", ar: "معاً" },
     },
-    dishes: {
+    {
       num: "2",
-      label: { en: "main dishes", fr: "plats au choix", ar: "أطباق رئيسية" },
+      label: { en: "Dishes to choose", fr: "Plats au choix", ar: "أطباق للاختيار" },
     },
-  };
+    {
+      num: "8",
+      label: { en: "Guests max", fr: "Personnes max", ar: "ضيوف كحد أقصى" },
+    },
+  ];
 
   const marqueeItems = {
     en: ["Authentic cuisine", "Culture", "Hospitality", "Memories"],
@@ -164,110 +177,103 @@ function HomePage() {
   return (
     <div>
       {/* ═══════════════════════════════════════════════════════════
-          1. HERO — Editorial split desktop, full-bleed mobile sheet
+          1. HERO — Editorial Moroccan Modern, full viewport height
       ═══════════════════════════════════════════════════════════ */}
       <section id="home" className="relative bg-white overflow-hidden" aria-label="Hero">
         {/* --- DESKTOP HERO (>=1024px) --- */}
-        <div className="hidden lg:grid lg:grid-cols-12 min-h-[640px] h-[calc(100svh-76px)] w-full items-stretch relative">
-          {/* Left half on white (6 cols) */}
-          <div className="lg:col-span-6 flex flex-col justify-center items-start pl-8 sm:pl-12 lg:pl-16 xl:pl-20 pr-6 lg:pr-10 py-12 z-10 hero-fade">
-            {/* Oversized headline on exactly TWO lines in burgundy, second line italic */}
-            <h1
-              className="text-primary font-display font-semibold tracking-[-0.02em] leading-[1.04]"
-              style={{ fontSize: "clamp(3rem, 6.2vw, 6rem)" }}
+        <div className="hidden lg:flex flex-col justify-between min-h-[calc(100svh-72px)] relative w-full pt-10 pb-8 px-8 xl:px-12 max-w-[1320px] mx-auto">
+          {/* Main edge-to-edge split: Left text overlapping right photo */}
+          <div className="relative w-full flex-1 flex items-center">
+            {/* Right Photo: ~55% width, bleeding off right and bottom edges, cropped by zellige-cut mask */}
+            <div
+              className="absolute top-0 bottom-0 end-[-48px] w-[55%] pointer-events-none hero-photo-fade z-0 flex items-center justify-end"
+              aria-hidden="true"
+            >
+              <div className="w-full h-full max-w-[850px] relative">
+                <img
+                  src={heroImageUrl}
+                  srcSet={heroImageSrcSet}
+                  alt={heroImageAlt}
+                  className="h-full w-full object-cover object-[50%_35%] zellige-cut-mask shadow-photo"
+                  loading="eager"
+                  fetchPriority="high"
+                  decoding="async"
+                />
+                <div
+                  className="absolute inset-0 zellige-cut-mask bg-gradient-to-t from-[#1D1414]/25 via-transparent to-transparent pointer-events-none"
+                  aria-hidden="true"
+                />
+              </div>
+            </div>
+
+            {/* Left Headline & Content: Overlaps photo on its right side */}
+            <div
+              className="relative z-10 max-w-[64%] py-6 hero-rise"
               dir={lang === "ar" ? "rtl" : "ltr"}
             >
-              <span className="block">{heroH1Line1[lang]}</span>
-              <span className="block italic">{heroH1Line2[lang]}</span>
-            </h1>
-
-            {/* 2-line subtitle (1.25rem, text at 75%) */}
-            <p
-              className="mt-6 text-foreground/75 text-[1.25rem] leading-relaxed max-w-[42ch]"
-              dir={lang === "ar" ? "rtl" : "ltr"}
-            >
-              {heroSubtitle[lang]}
-            </p>
-
-            {/* Two buttons: primary solid burgundy 60px high, secondary plain text link with red underline */}
-            <div className="mt-9 flex items-center gap-7">
-              {firstBookable && (
-                <a
-                  href="#booking"
-                  className="h-[60px] px-9 rounded-full bg-primary text-white font-bold text-base inline-flex items-center gap-3 shadow-md hover:bg-primary-dark hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200"
-                >
-                  <span>{bookingTitle[lang]}</span>
-                  <ArrowRight className="h-5 w-5 rtl:rotate-180" aria-hidden="true" />
-                </a>
-              )}
-              <a
-                href="#menu"
-                className="text-primary font-semibold text-base underline underline-offset-8 decoration-primary/60 hover:decoration-primary transition-all duration-200"
+              {/* Confident two-line headline in burgundy, overlapping photo */}
+              <h1
+                className="text-primary font-display font-semibold tracking-[-0.03em] leading-[0.95]"
+                style={{
+                  fontSize: "clamp(3.4rem, 8.5vw, 8rem)",
+                  textShadow:
+                    "0 2px 14px rgba(255, 255, 255, 0.95), 0 0 6px rgba(255, 255, 255, 0.9)",
+                }}
               >
-                {seeMenuText[lang]}
-              </a>
+                <span className="block">{heroH1Line1[lang]}</span>
+                <span className="block italic">{heroH1Line2[lang]}</span>
+              </h1>
+
+              {/* 2-line subtitle */}
+              <p className="mt-6 text-foreground/85 text-lg lg:text-xl leading-[1.65] max-w-[44ch] drop-shadow-[0_1px_4px_rgba(255,255,255,0.9)]">
+                {heroSubtitle[lang]}
+              </p>
+
+              {/* Primary solid burgundy 60px button with arrow + plain text link See the menu */}
+              <div className="mt-8 flex items-center gap-7">
+                {firstBookable && (
+                  <a
+                    href="#booking"
+                    className="h-[60px] px-9 rounded-full bg-primary text-white font-bold text-base inline-flex items-center gap-3 shadow-md hover:bg-primary-dark hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200"
+                  >
+                    <span>{bookingTitle[lang]}</span>
+                    <ArrowRight className="h-5 w-5 rtl:rotate-180" aria-hidden="true" />
+                  </a>
+                )}
+                <a
+                  href="#menu"
+                  className="text-primary font-semibold text-base underline underline-offset-8 decoration-primary/60 hover:decoration-primary transition-all duration-200"
+                >
+                  {seeMenuText[lang]}
+                </a>
+              </div>
             </div>
           </div>
 
-          {/* Right half: photo 6.jpeg flush to right edge, top and bottom (6 cols) */}
-          <div className="lg:col-span-6 relative w-full h-full overflow-visible hero-photo-fade">
-            <div className="relative w-full h-full">
-              <img
-                src={heroImageUrl}
-                srcSet={heroImageSrcSet}
-                alt={heroImageAlt}
-                className="h-full w-full object-cover object-[50%_35%] rounded-l-[48px] rtl:rounded-r-[48px] rtl:rounded-l-0 shadow-[0_20px_50px_-15px_rgba(36,26,26,0.18)]"
-                loading="eager"
-                fetchPriority="high"
-                decoding="async"
-                style={{ maxWidth: "50vw" }}
-              />
-              {/* Very light warm gradient at bottom for depth */}
-              <div
-                className="absolute inset-0 rounded-l-[48px] rtl:rounded-r-[48px] rtl:rounded-l-0 pointer-events-none bg-gradient-to-t from-[#241A1A]/35 via-transparent to-transparent"
-                aria-hidden="true"
-              />
-
-              {/* Over bottom-left corner of photo, overlapping into white half: Frosted Glass Card */}
-              <div
-                className="absolute bottom-8 -start-14 rtl:-end-14 z-20 bg-white/70 backdrop-blur-md rounded-[20px] shadow-[0_12px_36px_-6px_rgba(36,26,26,0.14)] border border-white/75 px-7 py-4 flex items-center gap-6"
-                dir={lang === "ar" ? "rtl" : "ltr"}
-              >
-                <div className="text-center min-w-[70px]">
-                  <span className="font-display text-3xl font-bold text-primary block leading-none">
-                    {heroFactsColumns.guests.num}
+          {/* Glass info bar at the bottom of the hero spanning the width */}
+          <div
+            className="w-full relative z-20 mt-6 glass-card rounded-2xl px-6 py-5 border border-white/80 shadow-soft"
+            dir={lang === "ar" ? "rtl" : "ltr"}
+          >
+            <div className="grid grid-cols-4 divide-x rtl:divide-x-reverse divide-stone-300/60 text-center">
+              {heroFactsColumns.map((fact, idx) => (
+                <div key={idx} className="px-3">
+                  <span className="font-display text-3xl xl:text-4xl font-bold text-primary block leading-none">
+                    {fact.num}
                   </span>
-                  <span className="text-xs text-foreground/80 mt-1 block font-medium whitespace-nowrap">
-                    {heroFactsColumns.guests.label[lang]}
+                  <span className="text-xs sm:text-sm font-semibold text-foreground/80 mt-1.5 block tracking-wide">
+                    {fact.label[lang]}
                   </span>
                 </div>
-                <div className="w-px h-8 bg-stone-300/60 shrink-0" aria-hidden="true" />
-                <div className="text-center min-w-[70px]">
-                  <span className="font-display text-3xl font-bold text-primary block leading-none">
-                    {heroFactsColumns.together.num}
-                  </span>
-                  <span className="text-xs text-foreground/80 mt-1 block font-medium whitespace-nowrap">
-                    {heroFactsColumns.together.label[lang]}
-                  </span>
-                </div>
-                <div className="w-px h-8 bg-stone-300/60 shrink-0" aria-hidden="true" />
-                <div className="text-center min-w-[70px]">
-                  <span className="font-display text-3xl font-bold text-primary block leading-none">
-                    {heroFactsColumns.dishes.num}
-                  </span>
-                  <span className="text-xs text-foreground/80 mt-1 block font-medium whitespace-nowrap">
-                    {heroFactsColumns.dishes.label[lang]}
-                  </span>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>
 
         {/* --- MOBILE HERO (<1024px) --- */}
         <div className="lg:hidden flex flex-col w-full relative">
-          {/* Photo comes first: full width, edge-to-edge, height 62svh, bottom corners rounded 32px */}
-          <div className="w-full h-[62svh] max-h-[500px] overflow-hidden rounded-b-[32px] relative z-0 hero-photo-fade">
+          {/* Full-bleed photo on top: 52-58svh, bottom corners 32px */}
+          <div className="w-full h-[52svh] max-h-[440px] overflow-hidden rounded-b-[32px] relative z-0 hero-photo-fade">
             <img
               src={heroImageUrl}
               srcSet={heroImageSrcSet}
@@ -277,34 +283,33 @@ function HomePage() {
               fetchPriority="high"
               decoding="async"
             />
-            {/* Soft warm gradient at bottom */}
             <div
-              className="absolute inset-0 pointer-events-none bg-gradient-to-t from-[#241A1A]/35 via-transparent to-transparent"
+              className="absolute inset-0 pointer-events-none bg-gradient-to-t from-[#1D1414]/30 via-transparent to-transparent"
               aria-hidden="true"
             />
           </div>
 
-          {/* Directly below: white sheet overlapping photo by 28px, 24px padding */}
+          {/* White sheet overlapping photo by 28px */}
           <div
-            className="relative -mt-7 z-10 bg-white rounded-t-[32px] px-6 pt-6 pb-8 shadow-[0_-8px_32px_rgba(36,26,26,0.06)] hero-fade"
+            className="relative -mt-7 z-10 bg-white rounded-t-[32px] px-5 sm:px-6 pt-5 pb-7 shadow-soft hero-rise"
             dir={lang === "ar" ? "rtl" : "ltr"}
           >
-            {/* Headline on two lines in burgundy, second line italic */}
+            {/* Giant headline in burgundy */}
             <h1
-              className="text-primary font-display font-semibold tracking-[-0.02em] leading-[1.05]"
-              style={{ fontSize: "clamp(2.35rem, 9.5vw, 3.2rem)" }}
+              className="text-primary font-display font-semibold tracking-[-0.03em] leading-[0.95]"
+              style={{ fontSize: "clamp(2.8rem, 11vw, 3.8rem)" }}
             >
               <span className="block">{heroH1Line1[lang]}</span>
               <span className="block italic">{heroH1Line2[lang]}</span>
             </h1>
 
-            {/* 2-line subtitle */}
-            <p className="mt-2.5 text-foreground/75 leading-relaxed text-sm sm:text-base max-w-[42ch]">
+            {/* Subtitle */}
+            <p className="mt-2.5 text-foreground/80 leading-relaxed text-sm sm:text-base max-w-[42ch]">
               {heroSubtitle[lang]}
             </p>
 
-            {/* Buttons: full-width primary 56px high + text link */}
-            <div className="mt-4 sm:mt-5 flex flex-col gap-2.5">
+            {/* Main button: first screen at 390x844 shows photo, headline and button without scrolling */}
+            <div className="mt-3.5 flex flex-col gap-2">
               {firstBookable && (
                 <a
                   href="#booking"
@@ -316,45 +321,31 @@ function HomePage() {
               )}
               <a
                 href="#menu"
-                className="text-center text-primary font-semibold text-sm sm:text-base underline underline-offset-8 decoration-primary/60 hover:decoration-primary py-1 transition-all duration-200"
+                className="text-center text-primary font-semibold text-sm underline underline-offset-6 decoration-primary/60 hover:decoration-primary py-1 transition-all duration-200"
               >
                 {seeMenuText[lang]}
               </a>
             </div>
 
-            {/* Three facts: horizontal row of three equal columns under buttons separated by hairlines */}
-            <div className="grid grid-cols-3 divide-x rtl:divide-x-reverse divide-stone-200/80 pt-4 sm:pt-5 mt-4 sm:mt-5 border-t border-stone-200/60 text-center">
-              <div className="px-1">
-                <span className="font-display text-2xl font-bold text-primary block leading-none">
-                  {heroFactsColumns.guests.num}
-                </span>
-                <span className="text-[11px] sm:text-xs text-foreground/75 mt-1 block font-medium">
-                  {heroFactsColumns.guests.label[lang]}
-                </span>
-              </div>
-              <div className="px-1">
-                <span className="font-display text-2xl font-bold text-primary block leading-none">
-                  {heroFactsColumns.together.num}
-                </span>
-                <span className="text-[11px] sm:text-xs text-foreground/75 mt-1 block font-medium">
-                  {heroFactsColumns.together.label[lang]}
-                </span>
-              </div>
-              <div className="px-1">
-                <span className="font-display text-2xl font-bold text-primary block leading-none">
-                  {heroFactsColumns.dishes.num}
-                </span>
-                <span className="text-[11px] sm:text-xs text-foreground/75 mt-1 block font-medium">
-                  {heroFactsColumns.dishes.label[lang]}
-                </span>
-              </div>
+            {/* Four facts as a 2x2 grid */}
+            <div className="grid grid-cols-2 gap-3 pt-4 mt-3 border-t border-stone-200/70 text-center">
+              {heroFactsColumns.map((fact, idx) => (
+                <div key={idx} className="p-2.5 rounded-xl bg-stone-50/80">
+                  <span className="font-display text-2xl font-bold text-primary block leading-none">
+                    {fact.num}
+                  </span>
+                  <span className="text-[12px] font-semibold text-foreground/80 mt-1 block">
+                    {fact.label[lang]}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* --- FULL-WIDTH BURGUNDY MARQUEE STRIP (48px high) --- */}
+        {/* --- FULL-WIDTH DEEP-RED MARQUEE STRIP (48px high) --- */}
         <div
-          className="marquee-container w-full h-12 bg-primary text-white overflow-hidden flex items-center relative z-20 cursor-default"
+          className="marquee-container w-full h-12 bg-[#4A0E0E] text-white overflow-hidden flex items-center relative z-20 cursor-default"
           dir={lang === "ar" ? "rtl" : "ltr"}
         >
           <div className="marquee-track flex items-center gap-8 px-4 text-xs sm:text-sm font-medium tracking-wide">
