@@ -445,10 +445,7 @@ export function ConceptSection() {
           </div>
 
           {/* Desktop (open 2x2 grid) */}
-          <div
-            className="hidden md:grid md:grid-cols-2 gap-6"
-            dir={lang === "ar" ? "rtl" : "ltr"}
-          >
+          <div className="hidden md:grid md:grid-cols-2 gap-6" dir={lang === "ar" ? "rtl" : "ltr"}>
             {WHAT_IS_IT_TEXT.goodToKnow.items.map((item, idx) => (
               <div
                 key={idx}

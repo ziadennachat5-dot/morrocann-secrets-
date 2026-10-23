@@ -172,15 +172,15 @@ function CalendarDayButton({
       data-range-end={modifiers["range_end"]}
       data-range-middle={modifiers["range_middle"]}
       className={cn(
-        "relative flex aspect-square h-auto w-full min-w-[48px] min-h-[48px] flex-col items-center justify-center gap-0.5 text-sm font-semibold leading-none rounded-xl transition-all overflow-hidden",
+        "relative flex aspect-square h-auto w-full min-w-[48px] min-h-[48px] lg:min-w-[56px] lg:min-h-[56px] flex-col items-center justify-center gap-0.5 text-sm lg:text-base font-semibold leading-none rounded-xl transition-all overflow-hidden",
         isAvailable &&
-          "bg-white border border-stone-200/90 text-foreground font-semibold hover:border-accent hover:bg-accent/5 cursor-pointer shadow-2xs",
+          "bg-white border-2 border-accent/60 text-accent font-bold hover:border-accent hover:bg-accent/10 cursor-pointer shadow-2xs",
         isSelected &&
           "!bg-primary !text-white !border-2 !border-primary font-bold shadow-sm scale-[1.02]",
         isFullyBooked &&
-          "bg-stone-50 text-stone-400 border border-stone-200/60 cursor-not-allowed opacity-65",
+          "bg-red-50 text-red-700/80 border border-red-200/80 cursor-not-allowed opacity-75",
         isClosed &&
-          "bg-stone-100 text-stone-300 border border-stone-200/40 cursor-not-allowed opacity-50",
+          "bg-stone-100 text-stone-400 border border-stone-200/50 cursor-not-allowed opacity-50",
         defaultClassNames.day,
         className,
       )}
