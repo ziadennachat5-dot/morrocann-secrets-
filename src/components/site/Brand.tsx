@@ -104,23 +104,53 @@ export function LogoMark({ className = "h-11 w-11" }: { className?: string }) {
 /** Generic Logo export for backwards compatibility */
 export const Logo = HeaderLogo;
 
+/** Global SVG clip path definition for zellige-cut mask */
+export function ZelligeClipDefs() {
+  return (
+    <svg width="0" height="0" className="sr-only" aria-hidden="true">
+      <defs>
+        <clipPath id="zellige-cut" clipPathUnits="objectBoundingBox">
+          <polygon points="0.5 0, 0.6464 0.1464, 0.8536 0.1464, 0.8536 0.3536, 1 0.5, 0.8536 0.6464, 0.8536 0.8536, 0.6464 0.8536, 0.5 1, 0.3536 0.8536, 0.1464 0.8536, 0.1464 0.6464, 0 0.5, 0.1464 0.3536, 0.1464 0.1464, 0.3536 0.1464" />
+        </clipPath>
+      </defs>
+    </svg>
+  );
+}
+
+/** 8-pointed Moroccan star SVG matching exact zellige-cut geometry */
+export function ZelligeStarSvg({
+  className = "h-3.5 w-3.5",
+  color = "currentColor",
+}: {
+  className?: string;
+  color?: string;
+}) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={className}
+      fill={color}
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <polygon points="12,0 15.51,3.51 20.49,3.51 20.49,8.49 24,12 20.49,15.51 20.49,20.49 15.51,20.49 12,24 8.49,20.49 3.51,20.49 3.51,15.51 0,12 3.51,8.49 3.51,3.51 8.49,3.51" />
+    </svg>
+  );
+}
+
 export function StarDivider({ className = "" }: { className?: string }) {
   return (
     <div className={`flex items-center justify-center gap-4 ${className}`} aria-hidden="true">
       <span className="h-px w-16 bg-gold/60 sm:w-28" />
-      <svg viewBox="-12 -12 24 24" className="h-5 w-5 fill-none stroke-gold" strokeWidth="1.5">
-        <rect x="-7" y="-7" width="14" height="14" />
-        <rect x="-7" y="-7" width="14" height="14" transform="rotate(45)" />
-      </svg>
+      <ZelligeStarSvg className="h-4 w-4 text-gold" />
       <span className="h-px w-16 bg-gold/60 sm:w-28" />
     </div>
   );
 }
 
 /**
- * Thin gold hairline with a small red diamond in the centre.
- * Use directly under section H2 titles.
- * center=true → uses mx-auto to centre the whole ornament.
+ * Decorative divider between sections using signature zellige-cut 8-pointed star
+ * and thin hairlines.
  */
 export function OrnamentDivider({
   center = false,
@@ -131,11 +161,11 @@ export function OrnamentDivider({
   light?: boolean;
   className?: string;
 }) {
-  const goldColor = light ? "rgba(201,162,75,0.7)" : "var(--gold)";
-  const diamondColor = light ? "#fff" : "var(--primary)";
+  const goldColor = light ? "rgba(201, 162, 75, 0.7)" : "var(--gold)";
+  const starColor = light ? "#FFFFFF" : "var(--gold)";
   return (
     <div
-      className={`flex items-center gap-0 ${center ? "mx-auto" : ""} ${className}`}
+      className={`flex items-center gap-3.5 ${center ? "mx-auto justify-center" : ""} ${className}`}
       aria-hidden="true"
       style={{ width: "fit-content" }}
     >
@@ -143,30 +173,17 @@ export function OrnamentDivider({
         style={{
           display: "block",
           width: "3rem",
-          height: "1.5px",
+          height: "1px",
           background: goldColor,
-          borderRadius: "9999px",
         }}
       />
-      <span
-        style={{
-          display: "block",
-          width: "8px",
-          height: "8px",
-          background: diamondColor,
-          borderRadius: "1px",
-          transform: "rotate(45deg)",
-          margin: "0 6px",
-          flexShrink: 0,
-        }}
-      />
+      <ZelligeStarSvg className="h-3 w-3 shrink-0" color={starColor} />
       <span
         style={{
           display: "block",
           width: "3rem",
-          height: "1.5px",
+          height: "1px",
           background: goldColor,
-          borderRadius: "9999px",
         }}
       />
     </div>

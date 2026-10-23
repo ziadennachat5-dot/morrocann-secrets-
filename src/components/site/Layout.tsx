@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Menu, X, MessageCircle } from "lucide-react";
 import { useI18n, LANGS } from "@/lib/i18n";
 import { BRAND_NAME } from "@/lib/brand";
-import { HeaderLogo, FooterLogo, StarDivider, OrnamentDivider } from "./Brand";
+import { HeaderLogo, HeaderLogoLight, FooterLogo, StarDivider, OrnamentDivider, ZelligeClipDefs } from "./Brand";
 import { getPublicContactLinks } from "@/lib/public-contact.functions";
 import { CookieConsent } from "./CookieConsent";
 
@@ -27,6 +27,7 @@ const siteNavItems = [
   { href: "/#concept", label: { en: "What is it?", fr: "Le concept", ar: "الفكرة" } },
   { href: "/#menu", label: { en: "Menu", fr: "Menu", ar: "قائمة الطعام" } },
   { href: "/#photos", label: { en: "Photos", fr: "Photos", ar: "الصور" } },
+  { href: "/#how", label: { en: "How it works", fr: "Comment ça marche", ar: "كيف تسير الأمسية" } },
   { href: "/#booking", label: { en: "Book", fr: "Réserver", ar: "احجز" }, isBook: true },
 ];
 
@@ -36,7 +37,7 @@ function LangSwitch() {
     <div
       role="group"
       aria-label={t.language}
-      className="flex rounded-full border border-border/80 bg-offwhite p-0.5 text-xs font-medium"
+      className="flex shrink-0 items-center rounded-full border border-border/80 bg-offwhite p-0.5 text-xs font-medium"
     >
       {LANGS.map((l) => (
         <button
@@ -44,7 +45,7 @@ function LangSwitch() {
           type="button"
           onClick={() => setLang(l)}
           aria-pressed={lang === l}
-          className={`rounded-full px-2 py-0.5 uppercase transition-colors text-[11px] font-semibold ${
+          className={`flex h-[36px] min-w-[34px] sm:min-w-[38px] items-center justify-center rounded-full px-2 uppercase transition-colors text-[12px] font-semibold shrink-0 cursor-pointer ${
             lang === l ? "bg-primary text-white shadow-2xs" : "text-foreground/75 hover:bg-muted"
           }`}
         >
@@ -66,12 +67,17 @@ function Header() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState<string>("");
-  const menuRef = useRef<HTMLElement>(null);
+  const [scrollProgress, setScrollProgress] = useState(0);
 
   useEffect(() => {
-    const sectionIds = ["concept", "menu", "photos", "booking", "how"];
+    const sectionIds = ["concept", "menu", "photos", "how", "booking"];
     const handleScroll = () => {
       setScrolled(window.scrollY > 8);
+
+      const total = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = total > 0 ? (window.scrollY / total) * 100 : 0;
+      setScrollProgress(Math.min(100, Math.max(0, progress)));
+
       const scrollPos = window.scrollY + 130;
       for (const id of [...sectionIds].reverse()) {
         const el = document.getElementById(id);
@@ -87,6 +93,18 @@ function Header() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
+
   // Close mobile menu on Escape
   useEffect(() => {
     if (!open) return;
@@ -98,99 +116,131 @@ function Header() {
   }, [open]);
 
   return (
-    <header
-      className={`sticky top-0 z-50 bg-white/85 backdrop-blur-md transition-shadow duration-300 ${
-        scrolled ? "shadow-[0_4px_24px_-2px_rgba(36,26,26,0.07)]" : "shadow-none"
-      }`}
-    >
-      <div className="mx-auto flex h-16 lg:h-[76px] max-w-[1240px] items-center justify-between gap-4 px-5 sm:px-10">
-        {/* Logo */}
-        <a
-          href="/"
-          className="flex items-center shrink-0 min-w-0"
-          onClick={() => setOpen(false)}
-          aria-label={BRAND_NAME}
-        >
-          <HeaderLogo />
-        </a>
+    <>
+      {/* Thin red scroll-progress line at the very top */}
+      <div
+        className="scroll-progress-line"
+        style={{ width: `${scrollProgress}%` }}
+        aria-hidden="true"
+      />
 
-        {/* Desktop Nav — centred with active red dot */}
-        <nav aria-label="Main" className="hidden items-center gap-9 md:flex flex-1 justify-center">
-          {siteNavItems
-            .filter((item) => !item.isBook)
-            .map((item) => {
-              const isActive = activeSection === item.href.replace("/#", "");
-              return (
+      <header
+        className={`sticky top-0 z-50 bg-white/85 backdrop-blur-md transition-shadow duration-300 h-[72px] flex flex-col justify-center ${
+          scrolled ? "header-scrolled border-b border-stone-200/50" : "border-b border-stone-200/30"
+        }`}
+      >
+        <div className="mx-auto flex w-full max-w-[1320px] items-center justify-between gap-2 sm:gap-4 px-4 sm:px-6 lg:px-12">
+          {/* Logo left (fully visible) */}
+          <a
+            href="/"
+            className="flex items-center shrink-0 min-w-0"
+            onClick={() => setOpen(false)}
+            aria-label={BRAND_NAME}
+          >
+            <HeaderLogo className="h-9 sm:h-11 w-auto object-contain" />
+          </a>
+
+          {/* Desktop Nav centered with animated underline */}
+          <nav
+            aria-label="Main"
+            className="hidden lg:flex flex-1 items-center justify-center gap-10"
+          >
+            {siteNavItems
+              .filter((item) => !item.isBook)
+              .map((item) => {
+                const isActive = activeSection === item.href.replace("/#", "");
+                return (
+                  <a
+                    key={item.href}
+                    href={item.href}
+                    className={`nav-link text-[0.9375rem] ${
+                      isActive ? "active text-primary font-semibold" : ""
+                    }`}
+                  >
+                    <span>{item.label[lang]}</span>
+                  </a>
+                );
+              })}
+          </nav>
+
+          {/* Right: EN/FR/AR switcher and solid burgundy Book button */}
+          <div className="flex items-center gap-2 sm:gap-3.5 shrink-0">
+            <LangSwitch />
+            <a
+              href="/#booking"
+              className="hidden lg:inline-flex items-center justify-center h-11 min-h-[44px] px-7 rounded-full bg-primary text-white text-sm font-bold shadow-xs hover:bg-primary-dark active:scale-[0.98] transition-all duration-200"
+            >
+              {t.nav.book}
+            </a>
+
+            {/* Mobile menu trigger */}
+            <button
+              type="button"
+              className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full text-foreground hover:bg-stone-100 lg:hidden transition-colors shrink-0"
+              aria-label={open ? "Close menu" : "Open menu"}
+              aria-expanded={open}
+              aria-controls="mobile-nav"
+              onClick={() => setOpen(!open)}
+            >
+              {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Full-screen deep-red phone menu */}
+      {open && (
+        <div
+          id="mobile-nav"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Mobile Navigation"
+          className="fixed inset-0 z-[70] bg-[#4A0E0E] text-white flex flex-col justify-between p-6 sm:p-8 lg:hidden animate-in fade-in duration-200"
+        >
+          {/* Top row: white logo & close button */}
+          <div className="flex items-center justify-between">
+            <a href="/" onClick={() => setOpen(false)} aria-label={BRAND_NAME}>
+              <HeaderLogoLight className="h-10 w-auto" />
+            </a>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
+              aria-label="Close menu"
+            >
+              <X className="h-6 w-6" />
+            </button>
+          </div>
+
+          {/* Center: huge serif links */}
+          <nav className="flex flex-col items-center justify-center gap-6 my-auto text-center">
+            {siteNavItems
+              .filter((item) => !item.isBook)
+              .map((item) => (
                 <a
                   key={item.href}
                   href={item.href}
-                  className={`relative text-[0.9375rem] font-medium transition-colors hover:text-primary py-1 ${
-                    isActive ? "text-primary font-semibold" : "text-foreground/80"
-                  }`}
-                >
-                  <span>{item.label[lang]}</span>
-                  {isActive && (
-                    <span
-                      className="absolute -bottom-1 left-1/2 -translate-x-1/2 h-1.5 w-1.5 rounded-full bg-primary"
-                      aria-hidden="true"
-                    />
-                  )}
-                </a>
-              );
-            })}
-        </nav>
-
-        {/* Right: compact lang switch + solid burgundy Book button (>=44px high) */}
-        <div className="flex items-center gap-3.5 shrink-0">
-          <LangSwitch />
-          <a
-            href="/#booking"
-            className="hidden md:inline-flex items-center justify-center h-11 min-h-[44px] px-6 rounded-full bg-primary text-white text-sm font-bold shadow-xs hover:bg-primary-dark active:scale-[0.98] transition-all duration-200"
-          >
-            {t.nav.book}
-          </a>
-          {/* Mobile hamburger */}
-          <button
-            type="button"
-            className="rounded-full p-2 text-foreground hover:bg-muted md:hidden transition-colors"
-            aria-label={open ? "Close menu" : "Open menu"}
-            aria-expanded={open}
-            aria-controls="mobile-nav"
-            onClick={() => setOpen(!open)}
-          >
-            {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
-        </div>
-      </div>
-
-      {/* Mobile full-width panel */}
-      {open && (
-        <nav
-          id="mobile-nav"
-          ref={menuRef}
-          aria-label="Mobile Navigation"
-          className="border-t border-border bg-white shadow-lg md:hidden"
-        >
-          <ul className="flex flex-col px-5 py-4 gap-1">
-            {siteNavItems.map((item) => (
-              <li key={item.href}>
-                <a
-                  href={item.href}
                   onClick={() => setOpen(false)}
-                  className={`block rounded-xl px-4 py-4 text-lg font-semibold transition-colors ${
-                    item.isBook
-                      ? "btn btn-primary mt-3 text-center justify-center w-full"
-                      : "text-foreground hover:bg-offwhite hover:text-primary"
-                  }`}
+                  className="font-display text-4xl sm:text-5xl font-semibold text-white/95 hover:text-gold transition-colors tracking-tight"
                 >
-                  {item.isBook ? t.nav.book : item.label[lang]}
+                  {item.label[lang]}
                 </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
+              ))}
+          </nav>
+
+          {/* Bottom: solid Book button */}
+          <div className="pt-6">
+            <a
+              href="/#booking"
+              onClick={() => setOpen(false)}
+              className="btn btn-primary w-full h-[56px] text-lg font-bold shadow-lg text-center"
+            >
+              {t.nav.book}
+            </a>
+          </div>
+        </div>
       )}
-    </header>
+    </>
   );
 }
 
@@ -379,6 +429,7 @@ export function SiteLayout({ children }: { children: ReactNode }) {
   }
   return (
     <div className="flex min-h-screen flex-col bg-background">
+      <ZelligeClipDefs />
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:absolute focus:start-4 focus:top-4 focus:z-50 focus:bg-background focus:p-2"
