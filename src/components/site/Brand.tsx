@@ -26,24 +26,8 @@ export function HeaderLogo({ className = "" }: { className?: string }) {
 /** Light (inverted) header logo for dark backgrounds (hero state) */
 export function HeaderLogoLight({ className = "" }: { className?: string }) {
   return (
-    <div className={`flex items-center ${className}`}>
-      {/* Small: light mark */}
-      <picture className="sm:hidden">
-        <source
-          srcSet="/brand/logo-mark-88.webp 1x, /brand/logo-mark-176.webp 2x"
-          type="image/webp"
-        />
-        <img
-          src="/brand/logo-mark-88.png"
-          srcSet="/brand/logo-mark-88.png 1x, /brand/logo-mark-176.png 2x"
-          alt={BRAND_NAME}
-          width={44}
-          height={44}
-          className="h-11 w-11 object-contain brightness-0 invert"
-        />
-      </picture>
-      {/* Desktop: light full logo */}
-      <picture className="hidden sm:block">
+    <div className={`flex items-center shrink-0 ${className}`}>
+      <picture>
         <source
           srcSet="/brand/logo-full-light-180.webp 1x, /brand/logo-full-light-320.webp 2x"
           type="image/webp"
@@ -52,9 +36,9 @@ export function HeaderLogoLight({ className = "" }: { className?: string }) {
           src="/brand/logo-full-light-180.png"
           srcSet="/brand/logo-full-light-180.png 1x, /brand/logo-full-light-320.png 2x"
           alt={BRAND_NAME}
-          width={180}
-          height={113}
-          className="h-14 w-auto object-contain"
+          width={120}
+          height={75}
+          className="h-10 sm:h-12 w-auto object-contain"
         />
       </picture>
     </div>
@@ -262,7 +246,11 @@ export function OliveBranchSvg({ className = "w-8 h-8 text-accent" }: { classNam
       aria-hidden="true"
     >
       <path d="M8 40C14 34 26 22 40 8" />
-      <path d="M22 26C20 20 24 16 30 18C30 24 26 28 22 26Z" fill="currentColor" fillOpacity="0.15" />
+      <path
+        d="M22 26C20 20 24 16 30 18C30 24 26 28 22 26Z"
+        fill="currentColor"
+        fillOpacity="0.15"
+      />
       <path d="M30 18C28 12 32 8 38 10C38 16 34 20 30 18Z" fill="currentColor" fillOpacity="0.15" />
       <path d="M14 34C12 28 16 24 22 26" />
       <circle cx="27" cy="22" r="2" fill="currentColor" />
@@ -404,4 +392,3 @@ export function IconStepEnjoy({ className = "w-7 h-7 text-gold" }: { className?:
     </svg>
   );
 }
-

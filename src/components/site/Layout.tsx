@@ -40,13 +40,17 @@ function useContactLinks() {
   return { links, error };
 }
 
-function LangSwitch() {
+function LangSwitch({ light = false }: { light?: boolean }) {
   const { lang, setLang, t } = useI18n();
   return (
     <div
       role="group"
       aria-label={t.language}
-      className="flex shrink-0 items-center rounded-full border border-stone-300/80 bg-sand/60 p-0.5 text-xs font-semibold"
+      className={`flex shrink-0 items-center rounded-full p-0.5 text-xs font-semibold transition-colors duration-300 ${
+        light
+          ? "border border-white/30 bg-black/25 backdrop-blur-xs text-white"
+          : "border border-stone-300/80 bg-sand/60 text-ink/80"
+      }`}
     >
       {LANGS.map((l) => (
         <button
@@ -54,8 +58,14 @@ function LangSwitch() {
           type="button"
           onClick={() => setLang(l)}
           aria-pressed={lang === l}
-          className={`flex h-[32px] min-w-[32px] sm:min-w-[34px] items-center justify-center rounded-full px-2 uppercase transition-colors text-[11px] sm:text-[12px] font-semibold shrink-0 cursor-pointer ${
-            lang === l ? "bg-oxblood text-white shadow-2xs" : "text-ink/80 hover:bg-sand"
+          className={`flex h-[32px] min-w-[30px] sm:min-w-[34px] items-center justify-center rounded-full px-2 uppercase transition-all text-[11px] sm:text-[12px] font-semibold shrink-0 cursor-pointer ${
+            lang === l
+              ? light
+                ? "bg-gold text-oxblood font-bold shadow-2xs"
+                : "bg-oxblood text-white shadow-2xs"
+              : light
+                ? "text-white/90 hover:bg-white/20"
+                : "text-ink/80 hover:bg-sand"
           }`}
         >
           {l === "ar" ? (
@@ -83,6 +93,8 @@ export function getNavLinks(hasGallery: boolean) {
 }
 
 function Header() {
+  const location = useLocation();
+  const isHomePage = location.pathname === "/" || location.pathname === "";
   const { lang, t } = useI18n();
   const { hasGallery } = useGalleryContext();
   const [open, setOpen] = useState(false);
@@ -90,6 +102,7 @@ function Header() {
   const [activeSection, setActiveSection] = useState<string>("");
   const [scrollProgress, setScrollProgress] = useState(0);
 
+  const isHeroTransparent = isHomePage && !scrolled;
   const navLinks = getNavLinks(hasGallery);
 
   const bookDinnerText = {
@@ -101,7 +114,7 @@ function Header() {
   useEffect(() => {
     const sectionIds = ["experience", "menu", "photos", "how", "booking"];
     const handleScroll = () => {
-      setScrolled(window.scrollY > 8);
+      setScrolled(window.scrollY > 80);
 
       const total = document.documentElement.scrollHeight - window.innerHeight;
       const progress = total > 0 ? (window.scrollY / total) * 100 : 0;
@@ -154,19 +167,27 @@ function Header() {
       />
 
       <header
-        className={`sticky top-0 z-50 bg-[#F6F0E6]/90 backdrop-blur-md transition-shadow duration-300 h-[76px] flex flex-col justify-center border-b ${
-          scrolled ? "header-scrolled border-stone-300/70" : "border-stone-200/50"
+        className={`${
+          isHomePage ? "fixed" : "sticky"
+        } top-0 inset-x-0 z-50 transition-all duration-300 h-[76px] flex flex-col justify-center ${
+          isHeroTransparent
+            ? "bg-transparent border-b border-transparent"
+            : "bg-[#F6F0E6]/90 backdrop-blur-md border-b border-stone-300/70 shadow-xs header-scrolled"
         }`}
       >
         <div className="ms-container flex items-center justify-between gap-2 sm:gap-4 h-full">
-          {/* Logo left (fully visible) */}
+          {/* Logo left */}
           <a
             href="/"
             className="flex items-center shrink-0 min-w-0"
             onClick={() => setOpen(false)}
             aria-label={BRAND_NAME}
           >
-            <HeaderLogo className="h-10 sm:h-12 w-auto object-contain" />
+            {isHeroTransparent ? (
+              <HeaderLogoLight className="h-10 sm:h-12 w-auto object-contain" />
+            ) : (
+              <HeaderLogo className="h-10 sm:h-12 w-auto object-contain" />
+            )}
           </a>
 
           {/* Center: links with thin gold underline on hover */}
@@ -180,8 +201,10 @@ function Header() {
                 <a
                   key={item.href}
                   href={item.href}
-                  className={`nav-link text-[0.9375rem] text-ink/90 hover:text-oxblood ${
-                    isActive ? "active text-oxblood font-semibold" : ""
+                  className={`nav-link text-[0.9375rem] transition-colors ${
+                    isHeroTransparent
+                      ? `text-white/90 hover:text-white ${isActive ? "active text-gold font-semibold" : ""}`
+                      : `text-ink/90 hover:text-oxblood ${isActive ? "active text-oxblood font-semibold" : ""}`
                   }`}
                 >
                   <span>{item.label[lang]}</span>
@@ -190,12 +213,16 @@ function Header() {
             })}
           </nav>
 
-          {/* Right: compact EN / FR / ع switcher and oxblood pill button "Book a dinner" */}
+          {/* Right: compact EN / FR / ع switcher and pill button "Book a dinner" */}
           <div className="flex items-center gap-2 sm:gap-3.5 shrink-0">
-            <LangSwitch />
+            <LangSwitch light={isHeroTransparent} />
             <a
               href="/#booking"
-              className="hidden lg:inline-flex items-center justify-center h-11 px-6 rounded-full bg-oxblood text-white text-sm font-semibold hover:bg-burgundy active:scale-[0.98] transition-all duration-200 shadow-sm"
+              className={`hidden lg:inline-flex items-center justify-center h-11 px-6 rounded-full text-sm font-semibold active:scale-[0.98] transition-all duration-200 shadow-sm ${
+                isHeroTransparent
+                  ? "bg-gold text-oxblood hover:bg-[#D8B45B]"
+                  : "bg-oxblood text-white hover:bg-burgundy"
+              }`}
             >
               {bookDinnerText[lang]}
             </a>
@@ -203,7 +230,9 @@ function Header() {
             {/* Mobile menu trigger */}
             <button
               type="button"
-              className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full text-ink hover:bg-sand/60 lg:hidden transition-colors shrink-0 cursor-pointer"
+              className={`flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full lg:hidden transition-colors shrink-0 cursor-pointer ${
+                isHeroTransparent ? "text-white hover:bg-white/10" : "text-ink hover:bg-sand/60"
+              }`}
               aria-label={open ? "Close menu" : "Open menu"}
               aria-expanded={open}
               aria-controls="mobile-nav"
