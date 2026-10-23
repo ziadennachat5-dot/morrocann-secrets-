@@ -190,11 +190,11 @@ function CalendarDayButton({
       className={cn(
         "relative flex aspect-square h-auto w-full min-w-0 flex-col items-center justify-center gap-0.5 text-xs sm:text-sm lg:text-base font-semibold leading-none rounded-xl transition-all overflow-hidden",
         isAvailable &&
-          "bg-white border-2 border-accent/60 text-accent font-bold hover:border-accent hover:bg-accent/10 cursor-pointer shadow-2xs",
+          "bg-white border-2 border-stone-200 text-ink font-bold hover:border-oxblood hover:bg-stone-50 cursor-pointer shadow-2xs",
         isSelected &&
-          "!bg-primary !text-white !border-2 !border-primary font-bold shadow-sm scale-[1.02]",
+          "!bg-oxblood !text-white !border-2 !border-oxblood font-bold shadow-sm scale-[1.02]",
         isFullyBooked &&
-          "bg-red-50 text-red-700/80 border border-red-200/80 cursor-not-allowed opacity-75",
+          "bg-stone-100 text-stone-400 border border-stone-200/60 cursor-not-allowed opacity-75",
         isClosed &&
           "bg-stone-100 text-stone-400 border border-stone-200/50 cursor-not-allowed opacity-50",
         defaultClassNames.day,
@@ -205,7 +205,7 @@ function CalendarDayButton({
       <span className="relative z-10 flex flex-col items-center justify-center">
         <span>{children}</span>
         {isAvailable && !isSelected && (
-          <span className="mt-0.5 h-1.5 w-1.5 rounded-full bg-accent shrink-0" aria-hidden="true" />
+          <span className="mt-0.5 h-1.5 w-1.5 rounded-full bg-[#2F5D34] shrink-0" aria-hidden="true" />
         )}
       </span>
       {isFullyBooked && !isSelected && (
@@ -213,7 +213,7 @@ function CalendarDayButton({
           className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden"
           aria-hidden="true"
         >
-          <span className="h-[2px] w-[150%] -rotate-45 bg-red-500/80" />
+          <span className="h-[2px] w-[150%] -rotate-45 bg-stone-400/80" />
         </span>
       )}
     </Button>

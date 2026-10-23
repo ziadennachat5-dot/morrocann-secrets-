@@ -161,6 +161,52 @@ function HeroVideo() {
   );
 }
 
+function BookingBandArchPhoto({
+  photos,
+  lang,
+}: {
+  photos: Array<{
+    source_file?: string | null | undefined;
+    guest_consent_confirmed: boolean;
+    url: string;
+    srcSet?: string | undefined;
+    alt: { en: string; fr: string; ar: string };
+  }>;
+  lang: "en" | "fr" | "ar";
+}) {
+  const photo4 = photos.find(
+    (p) => p.source_file === "4.jpeg" && p.guest_consent_confirmed,
+  );
+
+  if (photo4?.url) {
+    const alt = photo4.alt[lang] || photo4.alt.en || "Moroccan family dinner";
+    return (
+      <div className="w-full max-w-[260px] sm:max-w-[280px] h-[340px] sm:h-[400px] arch-frame overflow-hidden shadow-soft bg-sand">
+        <img
+          src={photo4.url}
+          srcSet={photo4.srcSet}
+          alt={alt}
+          loading="lazy"
+          className="w-full h-full object-cover object-center"
+        />
+      </div>
+    );
+  }
+
+  // Neutral placeholder: oxblood with zellige pattern
+  return (
+    <div
+      className="w-full max-w-[260px] sm:max-w-[280px] h-[340px] sm:h-[400px] arch-frame overflow-hidden bg-oxblood zellige-burgundy flex flex-col items-center justify-center p-6 text-center shadow-soft relative"
+      aria-label="Photo (4.jpeg) pending consent"
+    >
+      <ZelligeStarSvg className="w-12 h-12 text-gold/40 mb-3" />
+      <span className="text-xs font-medium text-white/60 tracking-widest uppercase">
+        Moroccan Secrets
+      </span>
+    </div>
+  );
+}
+
 function HomePage() {
   const data = Route.useLoaderData();
   const { lang } = useI18n();
@@ -188,6 +234,30 @@ function HomePage() {
     en: "How it works",
     fr: "Comment ça marche",
     ar: "كيف تسير الأمسية",
+  };
+
+  const bookingBandLabel = {
+    en: "BOOK YOUR DINNER",
+    fr: "RÉSERVEZ VOTRE DÎNER",
+    ar: "احجز عشاءك",
+  };
+
+  const bookingBandTitle = {
+    en: "Good food. Great company.",
+    fr: "Bonne table. Chaleureuse compagnie.",
+    ar: "مائدة طيبة. وصحبة رائعة.",
+  };
+
+  const bookingBandDesc = {
+    en: "Reserve your spot for an authentic Moroccan dinner with a local family.",
+    fr: "Réservez votre place pour un dîner marocain authentique chez une famille locale.",
+    ar: "احجز مكانك لعشاء مغربي أصيل في بيت عائلة محلية.",
+  };
+
+  const bookingBandTagline = {
+    en: "Authentic · Intimate · Unforgettable",
+    fr: "Authentique · Intime · Inoubliable",
+    ar: "أصيل · حميم · لا يُنسى",
   };
 
   const bookingTitle = {
@@ -635,30 +705,43 @@ function HomePage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════
-          6. BOOK YOUR DINNER (paper background, section index 05, large title)
+          6. BOOKING BAND (sand band with arch photo and white card)
       ═══════════════════════════════════════════════════════════ */}
       {data.bookingOptions.experiences.length > 0 && (
-        <section id="booking" className="scroll-mt-20 bg-paper section-pad">
+        <section id="booking" className="scroll-mt-20 bg-sand section-pad border-y border-stone-300/40">
           <div className="ms-container">
-            <div className="text-center mb-10 sm:mb-14">
-              <span className="section-index block mb-3">05 / BOOKING</span>
-              <h2 className="text-center text-primary font-display font-semibold leading-[1.02]">
-                {bookingTitle[lang]}
-              </h2>
-              <OrnamentDivider center className="mt-5 mb-5" />
-              <p className="text-foreground/75 mx-auto leading-relaxed text-base sm:text-[1.125rem] max-w-[52ch]">
-                {lang === "fr"
-                  ? "Partagez le repas d'une vraie famille marocaine. Entrées, boissons et dessert inclus."
-                  : lang === "ar"
-                    ? "شارك وجبة عائلية مغربية أصيلة. المقبلات والمشروبات والتحلية مشمولة."
-                    : "Eat with a real local Moroccan family. Starters, drinks and dessert included."}
-              </p>
-            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+              {/* Left Column: Arch photo, label, title, sentence, gold line, tagline */}
+              <div
+                className="lg:col-span-4 flex flex-col items-start lg:sticky lg:top-28"
+                dir={lang === "ar" ? "rtl" : "ltr"}
+              >
+                <div className="mb-6 mx-auto lg:mx-0">
+                  <BookingBandArchPhoto photos={data.photos.photos} lang={lang} />
+                </div>
+                <span className="tracked-label block mb-2 text-gold">
+                  {bookingBandLabel[lang]}
+                </span>
+                <h2 className="font-display font-semibold text-oxblood text-3xl sm:text-4xl lg:text-[40px] leading-[1.05] tracking-tight mb-3">
+                  {bookingBandTitle[lang]}
+                </h2>
+                <p className="text-muted-text text-sm sm:text-base leading-relaxed mb-4 max-w-[34ch]">
+                  {bookingBandDesc[lang]}
+                </p>
+                <div className="w-12 h-[1px] bg-gold/70 mb-4" aria-hidden="true" />
+                <p className="text-xs sm:text-sm font-medium text-ink/75 tracking-wider uppercase">
+                  {bookingBandTagline[lang]}
+                </p>
+              </div>
 
-            <BookingFlow
-              initialExperienceId={firstBookable ?? ""}
-              initialOptions={data.bookingOptions}
-            />
+              {/* Right Column: One large white card containing the booking flow */}
+              <div className="lg:col-span-8 w-full min-w-0">
+                <BookingFlow
+                  initialExperienceId={firstBookable ?? ""}
+                  initialOptions={data.bookingOptions}
+                />
+              </div>
+            </div>
           </div>
         </section>
       )}

@@ -564,7 +564,7 @@ export function BookingFlow({
       <form
         onSubmit={(e) => void handleSubmit(e)}
         noValidate
-        className="w-full rounded-[28px] border border-stone-200/80 bg-white p-3.5 sm:p-10 lg:p-12 shadow-soft pb-36 lg:pb-12"
+        className="w-full rounded-[20px] border border-stone-200/60 bg-white p-4 sm:p-8 lg:p-10 shadow-soft pb-36 lg:pb-10"
       >
         {/* =========================================================
             SLIM PROGRESS STEPPER AT TOP (32px circles, 12-13px labels, RTL-correct)
@@ -580,15 +580,15 @@ export function BookingFlow({
               <div
                 className={`flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-full text-xs sm:text-sm font-bold transition-all ${
                   step1Complete
-                    ? "bg-accent text-white shadow-xs"
-                    : "bg-primary text-white shadow-xs ring-4 ring-primary/10"
+                    ? "bg-gold text-oxblood shadow-xs"
+                    : "bg-gold text-oxblood shadow-xs ring-4 ring-gold/25"
                 }`}
               >
                 {step1Complete ? <Check className="h-4 w-4 stroke-[3]" /> : "1"}
               </div>
               <span
                 className={`text-[12px] sm:text-[13px] leading-tight font-semibold max-w-[65px] sm:max-w-none text-start break-words ${
-                  step1Complete ? "text-accent" : "text-foreground"
+                  step1Complete ? "text-gold" : "text-oxblood font-bold"
                 }`}
               >
                 {lang === "fr" ? "Date" : lang === "ar" ? "التاريخ" : "Date"}
@@ -598,7 +598,7 @@ export function BookingFlow({
             {/* Connecting line 1 -> 2 */}
             <div
               className={`h-0.5 flex-1 min-w-[8px] sm:min-w-[16px] mx-1 sm:mx-3 transition-colors ${
-                step1Complete ? "bg-accent" : "bg-stone-200"
+                step1Complete ? "bg-gold" : "bg-stone-200"
               }`}
             />
 
@@ -607,10 +607,10 @@ export function BookingFlow({
               <div
                 className={`flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-full text-xs sm:text-sm font-bold transition-all ${
                   step2Complete
-                    ? "bg-accent text-white shadow-xs"
+                    ? "bg-gold text-oxblood shadow-xs"
                     : step1Complete
-                      ? "bg-primary text-white shadow-xs ring-4 ring-primary/10"
-                      : "bg-stone-100 text-stone-500 border border-stone-300"
+                      ? "bg-gold text-oxblood shadow-xs ring-4 ring-gold/25"
+                      : "bg-stone-100 text-stone-400 border border-stone-300"
                 }`}
               >
                 {step2Complete ? <Check className="h-4 w-4 stroke-[3]" /> : "2"}
@@ -618,10 +618,10 @@ export function BookingFlow({
               <span
                 className={`text-[12px] sm:text-[13px] leading-tight font-semibold max-w-[80px] sm:max-w-none text-start break-words ${
                   step2Complete
-                    ? "text-accent"
+                    ? "text-gold"
                     : step1Complete
-                      ? "text-foreground"
-                      : "text-stone-500"
+                      ? "text-oxblood font-bold"
+                      : "text-stone-400"
                 }`}
               >
                 {lang === "fr"
@@ -635,7 +635,7 @@ export function BookingFlow({
             {/* Connecting line 2 -> 3 */}
             <div
               className={`h-0.5 flex-1 min-w-[8px] sm:min-w-[16px] mx-1 sm:mx-3 transition-colors ${
-                step2Complete ? "bg-accent" : "bg-stone-200"
+                step2Complete ? "bg-gold" : "bg-stone-200"
               }`}
             />
 
@@ -644,10 +644,10 @@ export function BookingFlow({
               <div
                 className={`flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-full text-xs sm:text-sm font-bold transition-all ${
                   step3Complete
-                    ? "bg-accent text-white shadow-xs"
+                    ? "bg-gold text-oxblood shadow-xs"
                     : step2Complete
-                      ? "bg-primary text-white shadow-xs ring-4 ring-primary/10"
-                      : "bg-stone-100 text-stone-500 border border-stone-300"
+                      ? "bg-gold text-oxblood shadow-xs ring-4 ring-gold/25"
+                      : "bg-stone-100 text-stone-400 border border-stone-300"
                 }`}
               >
                 {step3Complete ? <Check className="h-4 w-4 stroke-[3]" /> : "3"}
@@ -655,10 +655,10 @@ export function BookingFlow({
               <span
                 className={`text-[12px] sm:text-[13px] leading-tight font-semibold max-w-[75px] sm:max-w-none text-start break-words ${
                   step3Complete
-                    ? "text-accent"
+                    ? "text-gold"
                     : step2Complete
-                      ? "text-foreground"
-                      : "text-stone-500"
+                      ? "text-oxblood font-bold"
+                      : "text-stone-400"
                 }`}
               >
                 {lang === "fr" ? "Vos coordonnées" : lang === "ar" ? "بياناتكم" : "Your details"}
@@ -726,11 +726,11 @@ export function BookingFlow({
                   className="w-full max-w-lg rounded-2xl border border-border p-3 sm:p-5 bg-background shadow-xs booking-calendar overflow-hidden"
                   classNames={{
                     caption_label:
-                      "font-display text-xl sm:text-2xl font-bold text-primary tracking-wide",
+                      "font-display text-xl sm:text-2xl font-bold text-oxblood tracking-wide",
                     button_previous:
-                      "h-10 w-10 sm:h-12 sm:w-12 rounded-full border border-border/80 hover:bg-muted text-primary flex items-center justify-center transition-colors disabled:opacity-30 disabled:pointer-events-none aria-disabled:opacity-30 aria-disabled:pointer-events-none",
+                      "h-10 w-10 sm:h-12 sm:w-12 rounded-full border border-stone-200/80 hover:bg-stone-100 text-oxblood flex items-center justify-center transition-colors disabled:opacity-30 disabled:pointer-events-none aria-disabled:opacity-30 aria-disabled:pointer-events-none",
                     button_next:
-                      "h-10 w-10 sm:h-12 sm:w-12 rounded-full border border-border/80 hover:bg-muted text-primary flex items-center justify-center transition-colors",
+                      "h-10 w-10 sm:h-12 sm:w-12 rounded-full border border-stone-200/80 hover:bg-stone-100 text-oxblood flex items-center justify-center transition-colors",
                     weekday:
                       "flex items-center justify-center text-center text-[12px] sm:text-[13px] uppercase text-stone-500 font-semibold py-1 select-none min-w-0",
                   }}
@@ -739,22 +739,22 @@ export function BookingFlow({
                 {/* Calendar Legend */}
                 <div className="mt-5 flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs sm:text-sm text-foreground/85">
                   <span className="inline-flex items-center gap-2 font-medium">
-                    <span className="h-2.5 w-2.5 rounded-full bg-accent" aria-hidden="true" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-[#2F5D34]" aria-hidden="true" />
                     {lang === "fr" ? "Disponible" : lang === "ar" ? "متاح" : "Available"}
                   </span>
                   <span className="inline-flex items-center gap-2 font-medium">
                     <span
-                      className="h-3.5 w-3.5 rounded-md bg-primary shadow-2xs"
+                      className="h-3.5 w-3.5 rounded-md bg-oxblood shadow-2xs"
                       aria-hidden="true"
                     />
                     {lang === "fr" ? "Sélectionné" : lang === "ar" ? "المحدد" : "Selected"}
                   </span>
                   <span className="inline-flex items-center gap-2 font-medium">
                     <span
-                      className="relative flex h-3.5 w-3.5 items-center justify-center rounded-md border border-red-300 bg-red-50 overflow-hidden"
+                      className="relative flex h-3.5 w-3.5 items-center justify-center rounded-md border border-stone-300 bg-stone-100 overflow-hidden"
                       aria-hidden="true"
                     >
-                      <span className="absolute h-[1.5px] w-5 rotate-45 bg-red-500" />
+                      <span className="absolute h-[1.5px] w-5 rotate-45 bg-stone-400" />
                     </span>
                     {lang === "fr" ? "Complet" : lang === "ar" ? "محجوز بالكامل" : "Fully booked"}
                   </span>
@@ -864,7 +864,7 @@ export function BookingFlow({
                     }
                     disabled={guests <= 1}
                     onClick={() => setGuests((g) => Math.max(1, g - 1))}
-                    className="flex h-12 w-12 sm:h-13 sm:w-13 items-center justify-center rounded-xl border border-input bg-white text-foreground shadow-2xs hover:bg-stone-100 active:scale-95 transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+                    className="flex h-12 w-12 sm:h-13 sm:w-13 items-center justify-center rounded-full border border-stone-300 bg-white text-oxblood shadow-2xs hover:bg-stone-100 active:scale-95 transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
                   >
                     <Minus className="h-5 w-5" />
                   </button>
@@ -882,7 +882,7 @@ export function BookingFlow({
                     }
                     disabled={guests >= 8}
                     onClick={() => setGuests((g) => Math.min(8, g + 1))}
-                    className="flex h-12 w-12 sm:h-13 sm:w-13 items-center justify-center rounded-xl border border-input bg-white text-foreground shadow-2xs hover:bg-stone-100 active:scale-95 transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+                    className="flex h-12 w-12 sm:h-13 sm:w-13 items-center justify-center rounded-full border border-stone-300 bg-white text-oxblood shadow-2xs hover:bg-stone-100 active:scale-95 transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
                   >
                     <Plus className="h-5 w-5" />
                   </button>
@@ -910,8 +910,8 @@ export function BookingFlow({
                   <span
                     className={`rounded-full px-3 py-1 text-xs font-bold transition-colors ${
                       selectedDishes.length === 2
-                        ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
-                        : "bg-amber-100 text-amber-900 border border-amber-300"
+                        ? "bg-gold text-oxblood border border-gold"
+                        : "bg-stone-100 text-stone-600 border border-stone-200"
                     }`}
                   >
                     {selectedDishes.length}/2
@@ -952,13 +952,13 @@ export function BookingFlow({
                         onClick={() => toggleDish(dish)}
                         className={`group relative flex items-center justify-between gap-3 rounded-xl border p-3.5 text-start transition-all cursor-pointer ${
                           checked
-                            ? "border-primary bg-primary/5 shadow-xs ring-1 ring-primary"
-                            : "border-border/80 bg-white hover:border-primary/50 hover:bg-stone-50/50"
+                            ? "border-oxblood bg-oxblood/5 shadow-xs ring-1 ring-oxblood"
+                            : "border-border/80 bg-white hover:border-oxblood/50 hover:bg-stone-50/50"
                         }`}
                       >
                         <span
                           className={`text-sm leading-snug ${
-                            checked ? "font-bold text-primary" : "font-medium text-foreground"
+                            checked ? "font-bold text-oxblood" : "font-medium text-foreground"
                           }`}
                         >
                           {dish.label[lang]}
@@ -966,8 +966,8 @@ export function BookingFlow({
                         <span
                           className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition-all ${
                             checked
-                              ? "bg-accent text-white"
-                              : "border border-border/80 bg-stone-50 group-hover:border-primary/40"
+                              ? "bg-oxblood text-white"
+                              : "border border-border/80 bg-stone-50 group-hover:border-oxblood/40"
                           }`}
                         >
                           {checked && <Check className="h-3.5 w-3.5 stroke-[3]" />}
@@ -1486,7 +1486,7 @@ export function BookingFlow({
                 <Button
                   type="submit"
                   disabled={submitting}
-                  className="btn btn-primary w-full h-[56px] text-base font-bold shadow-md cursor-pointer flex items-center justify-center gap-2"
+                  className="btn bg-oxblood text-white hover:bg-burgundy rounded-full w-full h-[56px] text-base font-bold shadow-btn cursor-pointer flex items-center justify-center gap-2"
                 >
                   {submitting ? (
                     <>
@@ -1516,7 +1516,7 @@ export function BookingFlow({
                     href={waHref}
                     target="_blank"
                     rel="noreferrer"
-                    className="btn btn-secondary w-full inline-flex items-center justify-center gap-2.5 h-[50px] text-sm font-semibold border-stone-300 hover:bg-stone-100"
+                    className="btn btn-secondary rounded-full w-full inline-flex items-center justify-center gap-2.5 h-[50px] text-sm font-semibold border-stone-300 hover:bg-stone-100"
                   >
                     <MessageCircle className="h-4 w-4 text-accent" />
                     <span>
@@ -1604,7 +1604,7 @@ export function BookingFlow({
             type="button"
             onClick={() => void handleSubmit()}
             disabled={submitting || !canSubmit}
-            className="btn btn-primary w-full h-[52px] text-base font-bold shadow-md cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn bg-oxblood text-white hover:bg-burgundy rounded-full w-full h-[52px] text-sm sm:text-base font-bold shadow-btn cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {submitting ? (
               <>
@@ -1634,5 +1634,5 @@ export function BookingFlow({
 }
 
 function BookingFrame({ children }: { children: ReactNode }) {
-  return <div className="mx-auto w-full max-w-[1180px] px-0 sm:px-2 py-4 sm:py-6">{children}</div>;
+  return <div className="w-full">{children}</div>;
 }
