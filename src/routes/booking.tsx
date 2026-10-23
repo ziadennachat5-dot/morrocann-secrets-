@@ -1569,7 +1569,8 @@ export function BookingFlow({
                     ? "ضيوف"
                     : "guests"}
               {" · "}
-              {selectedDishes.length}/2 {lang === "fr" ? "plats" : lang === "ar" ? "أطباق" : "dishes"}
+              {selectedDishes.length}/2{" "}
+              {lang === "fr" ? "plats" : lang === "ar" ? "أطباق" : "dishes"}
             </p>
 
             {/* Disabled state reason */}

@@ -113,7 +113,9 @@ export function GuestPhotoGallery({ photos }: { photos: PublicGuestPhoto[] }) {
 
         {/* Bottom row: Small Photos in a clean grid */}
         {smallPhotos.length > 0 && (
-          <div className={`grid gap-6 ${smallPhotos.length === 1 ? "grid-cols-1" : smallPhotos.length === 2 ? "grid-cols-2" : smallPhotos.length === 3 ? "grid-cols-3" : "grid-cols-4"}`}>
+          <div
+            className={`grid gap-6 ${smallPhotos.length === 1 ? "grid-cols-1" : smallPhotos.length === 2 ? "grid-cols-2" : smallPhotos.length === 3 ? "grid-cols-3" : "grid-cols-4"}`}
+          >
             {smallPhotos.map((photo, sIdx) => (
               <button
                 key={photo.id}

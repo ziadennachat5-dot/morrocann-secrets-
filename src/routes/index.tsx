@@ -388,10 +388,7 @@ function HomePage() {
           4. PHOTOS (only when approved photos exist)
       ═══════════════════════════════════════════════════════════ */}
       {galleryPhotos.length > 0 && (
-        <section
-          id="photos"
-          className="scroll-mt-20 bg-white section-pad"
-        >
+        <section id="photos" className="scroll-mt-20 bg-white section-pad">
           <div className="ms-container">
             <div className="text-center mb-12 sm:mb-16">
               <span className="section-index block mb-3">03 / PHOTOS</span>
@@ -408,10 +405,7 @@ function HomePage() {
       {/* ═══════════════════════════════════════════════════════════
           5. HOW IT WORKS (Outlined Burgundy Numerals, Vertical Dividers)
       ═══════════════════════════════════════════════════════════ */}
-      <section
-        id="how"
-        className="scroll-mt-20 bg-white section-pad"
-      >
+      <section id="how" className="scroll-mt-20 bg-white section-pad">
         <div className="ms-container">
           <div className="text-center mb-12 sm:mb-16">
             <span className="section-index block mb-3">04 / HOW IT WORKS</span>
@@ -487,10 +481,7 @@ function HomePage() {
           6. BOOK YOUR DINNER (paper background, section index 05, large title)
       ═══════════════════════════════════════════════════════════ */}
       {data.bookingOptions.experiences.length > 0 && (
-        <section
-          id="booking"
-          className="scroll-mt-20 bg-paper section-pad"
-        >
+        <section id="booking" className="scroll-mt-20 bg-paper section-pad">
           <div className="ms-container">
             <div className="text-center mb-10 sm:mb-14">
               <span className="section-index block mb-3">05 / BOOKING</span>
@@ -498,9 +489,7 @@ function HomePage() {
                 {bookingTitle[lang]}
               </h2>
               <OrnamentDivider center className="mt-5 mb-5" />
-              <p
-                className="text-foreground/75 mx-auto leading-relaxed text-base sm:text-[1.125rem] max-w-[52ch]"
-              >
+              <p className="text-foreground/75 mx-auto leading-relaxed text-base sm:text-[1.125rem] max-w-[52ch]">
                 {lang === "fr"
                   ? "Partagez le repas d'une vraie famille marocaine. Entrées, boissons et dessert inclus."
                   : lang === "ar"

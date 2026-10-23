@@ -412,7 +412,10 @@ export function ConceptSection({
                       <h3 className="font-display text-xl sm:text-2xl font-bold text-foreground">
                         {pillar.title[lang]}
                       </h3>
-                      <Check className="h-4 w-4 text-accent shrink-0 stroke-[2.5]" aria-hidden="true" />
+                      <Check
+                        className="h-4 w-4 text-accent shrink-0 stroke-[2.5]"
+                        aria-hidden="true"
+                      />
                     </div>
                     <p className="text-foreground/75 text-sm sm:text-base leading-relaxed mt-1">
                       {pillar.desc[lang]}
@@ -608,7 +611,11 @@ export function MenuSection() {
           className="absolute -top-28 -end-28 w-80 h-80 sm:w-96 sm:h-96 pointer-events-none text-gold/15 rotate-12"
           aria-hidden="true"
         >
-          <svg viewBox="0 0 24 24" className="w-full h-full fill-none stroke-current" strokeWidth="0.75">
+          <svg
+            viewBox="0 0 24 24"
+            className="w-full h-full fill-none stroke-current"
+            strokeWidth="0.75"
+          >
             <polygon points="12,0 15.51,3.51 20.49,3.51 20.49,8.49 24,12 20.49,15.51 20.49,20.49 15.51,20.49 12,24 8.49,20.49 3.51,20.49 3.51,15.51 0,12 3.51,8.49 3.51,3.51 8.49,3.51" />
           </svg>
         </div>

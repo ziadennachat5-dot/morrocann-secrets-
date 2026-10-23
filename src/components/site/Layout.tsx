@@ -3,7 +3,14 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Menu, X, MessageCircle, Mail } from "lucide-react";
 import { useI18n, LANGS } from "@/lib/i18n";
 import { BRAND_NAME } from "@/lib/brand";
-import { HeaderLogo, HeaderLogoLight, FooterLogo, StarDivider, OrnamentDivider, ZelligeClipDefs } from "./Brand";
+import {
+  HeaderLogo,
+  HeaderLogoLight,
+  FooterLogo,
+  StarDivider,
+  OrnamentDivider,
+  ZelligeClipDefs,
+} from "./Brand";
 import { getPublicContactLinks } from "@/lib/public-contact.functions";
 import { CookieConsent } from "./CookieConsent";
 
@@ -264,9 +271,7 @@ function ContactBand() {
     ? `https://wa.me/${links.whatsapp}`
     : "https://wa.me/212600000000";
 
-  const emailHref = links?.email
-    ? `mailto:${links.email}`
-    : "mailto:contact@moroccansecrets.com";
+  const emailHref = links?.email ? `mailto:${links.email}` : "mailto:contact@moroccansecrets.com";
 
   const emailLabel = links?.email ?? "contact@moroccansecrets.com";
 
@@ -326,9 +331,7 @@ function Footer() {
     ? `https://wa.me/${links.whatsapp}`
     : "https://wa.me/212600000000";
 
-  const emailHref = links?.email
-    ? `mailto:${links.email}`
-    : "mailto:contact@moroccansecrets.com";
+  const emailHref = links?.email ? `mailto:${links.email}` : "mailto:contact@moroccansecrets.com";
 
   const emailLabel = links?.email ?? "contact@moroccansecrets.com";
 
