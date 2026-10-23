@@ -117,6 +117,10 @@ function HeroVideo() {
     const video = videoRef.current;
     if (!video || reduceMotion || hasError) return;
 
+    // React JSX muted attribute does not always set DOM property; set explicitly for autoplay compliance
+    video.muted = true;
+    video.defaultMuted = true;
+
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
@@ -649,22 +653,22 @@ function HomePage() {
               return (
                 <Fragment key={step.num}>
                   <div className="flex flex-col items-center text-center px-4">
-                    <div className="flex items-center gap-3 mb-4">
-                      <span className="w-9 h-9 rounded-full border border-gold/70 text-gold flex items-center justify-center font-display text-sm font-semibold select-none">
+                    <div className="flex items-center gap-3.5 mb-4">
+                      <span className="w-10 h-10 rounded-full bg-oxblood text-white flex items-center justify-center font-display text-base font-bold shadow-sm select-none">
                         {step.num}
                       </span>
-                      <Icon className="w-7 h-7 text-gold" />
+                      <Icon className="w-7 h-7 text-oxblood" />
                     </div>
-                    <h3 className="font-display font-bold text-ink text-xl sm:text-2xl mb-2">
+                    <h3 className="font-display font-bold text-oxblood text-xl sm:text-2xl mb-2">
                       {step.title[lang]}
                     </h3>
-                    <p className="text-muted-text text-sm sm:text-base leading-relaxed max-w-[280px]">
+                    <p className="text-ink text-sm sm:text-base leading-relaxed max-w-[280px]">
                       {step.desc[lang]}
                     </p>
                   </div>
                   {idx < howItWorksSteps.length - 1 && (
-                    <div className="pt-2 flex items-center justify-center text-gold/70" aria-hidden="true">
-                      <ArrowRight className="w-5 h-5 rtl:rotate-180" />
+                    <div className="pt-2 flex items-center justify-center text-gold" aria-hidden="true">
+                      <ArrowRight className="w-6 h-6 rtl:rotate-180" />
                     </div>
                   )}
                 </Fragment>
@@ -674,27 +678,27 @@ function HomePage() {
 
           {/* Mobile / Tablet (<1024px): Stacked on vertical line */}
           <div
-            className="lg:hidden relative border-s-2 border-gold/30 ms-4 sm:ms-8 ps-6 sm:ps-8 space-y-10"
+            className="lg:hidden relative border-s-2 border-gold ms-6 sm:ms-8 ps-8 sm:ps-10 space-y-12"
             dir={lang === "ar" ? "rtl" : "ltr"}
           >
             {howItWorksSteps.map((step) => {
               const Icon = step.icon;
               return (
                 <div key={step.num} className="relative">
-                  {/* Step numbered circle node overlapping the line */}
+                  {/* Step numbered circle node (40px solid oxblood) overlapping the vertical line */}
                   <div
-                    className="absolute -start-[38px] sm:-start-[46px] top-0.5 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-cream border border-gold text-gold flex items-center justify-center font-display text-xs sm:text-sm font-bold shadow-xs select-none"
+                    className="absolute -start-[21px] top-0 w-10 h-10 rounded-full bg-oxblood text-white flex items-center justify-center font-display text-sm font-bold shadow-sm ring-4 ring-cream select-none"
                     aria-hidden="true"
                   >
                     {step.num}
                   </div>
                   <div className="flex items-center gap-2.5 mb-2">
-                    <Icon className="w-5 h-5 text-gold shrink-0" />
-                    <h3 className="font-display font-bold text-ink text-lg sm:text-xl">
+                    <Icon className="w-6 h-6 text-oxblood shrink-0" />
+                    <h3 className="font-display font-bold text-oxblood text-lg sm:text-xl">
                       {step.title[lang]}
                     </h3>
                   </div>
-                  <p className="text-muted-text text-sm leading-relaxed max-w-[38ch]">
+                  <p className="text-ink text-sm leading-relaxed max-w-[38ch]">
                     {step.desc[lang]}
                   </p>
                 </div>
