@@ -410,13 +410,15 @@ function HomePage() {
       ═══════════════════════════════════════════════════════════ */}
       <section
         id="how"
-        className="scroll-mt-20 bg-white"
-        style={{ paddingBlock: "var(--section-pad-v-mobile)" }}
+        className="scroll-mt-20 bg-white section-pad"
       >
-        <div className="ms-container" style={{ paddingBottom: "var(--section-pad-v)" }}>
-          <div className="text-center mb-16">
-            <h2 className="text-primary text-center mb-4">{howTitle[lang]}</h2>
-            <OrnamentDivider center />
+        <div className="ms-container">
+          <div className="text-center mb-12 sm:mb-16">
+            <span className="section-index block mb-3">04 / HOW IT WORKS</span>
+            <h2 className="text-center text-primary font-display font-semibold leading-[1.02]">
+              {howTitle[lang]}
+            </h2>
+            <OrnamentDivider center className="mt-5" />
           </div>
 
           {/* Desktop (>=1024px): 3 columns with thin vertical dividers */}
