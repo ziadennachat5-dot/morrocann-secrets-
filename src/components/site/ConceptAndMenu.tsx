@@ -453,7 +453,7 @@ export function ConceptSection({
       },
     },
     {
-      time: "19:30",
+      time: "02",
       title: {
         en: "Cooking together",
         fr: "Cuisiner ensemble",
@@ -461,7 +461,7 @@ export function ConceptSection({
       },
     },
     {
-      time: "20:30",
+      time: "03",
       title: {
         en: "Dinner around the table",
         fr: "Dîner autour de la table",
@@ -469,7 +469,7 @@ export function ConceptSection({
       },
     },
     {
-      time: "21:30",
+      time: "04",
       title: {
         en: "Stories, music and dessert",
         fr: "Histoires, musique et dessert",
