@@ -469,9 +469,9 @@ function HomePage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════
-          2. WHAT IS IT? (off-white, 4 pillars, timeline, good to know)
+          2. THE EXPERIENCE — More than a meal
       ═══════════════════════════════════════════════════════════ */}
-      <ConceptSection conceptPhoto={conceptPhoto} />
+      <ConceptSection photos={data.photos.photos} conceptPhoto={conceptPhoto} />
 
       {/* ═══════════════════════════════════════════════════════════
           3. MENU (full-width burgundy)

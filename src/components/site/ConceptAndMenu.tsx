@@ -11,13 +11,18 @@ import {
   Shirt,
   AlertCircle,
   CakeSlice,
-  Home,
-  ChefHat,
-  ChevronDown,
   Clock,
   Check,
+  Home,
+  ChefHat,
 } from "lucide-react";
-import { OrnamentDivider } from "@/components/site/Brand";
+import {
+  OrnamentDivider,
+  ZelligeLineArtStar,
+  ZelligeStarSvg,
+  IconLocalFamilies,
+  IconHomeCooked,
+} from "@/components/site/Brand";
 
 export const MAIN_DISHES = [
   {
@@ -324,12 +329,117 @@ export const MENU_TEXT = {
   },
 } as const;
 
-type ConceptFact = { num: string; label: { en: string; fr: string; ar: string } };
+const EXPERIENCE_TEXT = {
+  eyebrow: {
+    en: "THE EXPERIENCE",
+    fr: "L'EXPÉRIENCE",
+    ar: "التجربة",
+  },
+  title: {
+    en: "More than a meal.",
+    fr: "Plus qu'un repas.",
+    ar: "أكثر من مجرد وجبة.",
+  },
+  lead: {
+    en: "It's an invitation into Moroccan life — where food brings people together, traditions are shared, and every meal has a story.",
+    fr: "Une invitation au cœur de la vie marocaine — où la cuisine rassemble, les traditions se partagent et chaque plat a son histoire.",
+    ar: "دعوة إلى عمق الحياة المغربية — حيث يجمع الطعام القلوب، وتتقاسم التقاليد، ولكل وجبة حكاية.",
+  },
+  cards: [
+    {
+      sourceFile: "10.jpeg",
+      icon: IconLocalFamilies,
+      title: {
+        en: "Meet your hosts",
+        fr: "Rencontrez vos hôtes",
+        ar: "تعرف على مضيفيك",
+      },
+      text: {
+        en: "Warm families, genuine conversations, a true sense of belonging.",
+        fr: "Des familles chaleureuses, des conversations sincères, un vrai sentiment d'appartenance.",
+        ar: "عائلات دافئة، محادثات صادقة، وإحساس حقيقي بالانتماء.",
+      },
+    },
+    {
+      sourceFile: "4.jpeg",
+      icon: IconHomeCooked,
+      title: {
+        en: "Taste family recipes",
+        fr: "Savourez des recettes familiales",
+        ar: "تذوق وصفات عائلية",
+      },
+      text: {
+        en: "Generations-old dishes, prepared with love and fresh local ingredients.",
+        fr: "Des plats transmis de génération en génération, préparés avec amour et produits frais.",
+        ar: "أطباق متوارثة عبر الأجيال، محضرة بحب ومكونات محلية طازجة.",
+      },
+    },
+    {
+      sourceFile: "11.jpeg",
+      icon: ZelligeStarSvg,
+      title: {
+        en: "Discover local traditions",
+        fr: "Découvrez les traditions locales",
+        ar: "اكتشف التقاليد المحلية",
+      },
+      text: {
+        en: "From tea rituals to Moroccan hospitality, experience the culture beyond the guidebooks.",
+        fr: "Du rituel du thé à l'hospitalité marocaine, vivez la culture bien au-delà des guides.",
+        ar: "من طقوس الشاي إلى كرم الضيافة المغربية، عش أصالة الثقافة بعيداً عن الكتيبات.",
+      },
+    },
+  ],
+};
+
+export function ExperienceCardPhoto({
+  photo,
+  sourceFile,
+  alt,
+}: {
+  photo?: { url: string; srcSet?: string | undefined; alt?: { en: string; fr: string; ar: string } } | undefined;
+  sourceFile: string;
+  alt: string;
+}) {
+  if (photo?.url) {
+    return (
+      <div className="w-full h-44 sm:h-48 overflow-hidden rounded-[14px] bg-sand">
+        <img
+          src={photo.url}
+          srcSet={photo.srcSet}
+          alt={alt}
+          loading="lazy"
+          className="w-full h-full object-cover object-center transition-transform duration-500 hover:scale-105"
+        />
+      </div>
+    );
+  }
+
+  // Neutral placeholder: oxblood with zellige pattern
+  return (
+    <div
+      className="w-full h-44 sm:h-48 overflow-hidden rounded-[14px] bg-oxblood zellige-burgundy flex flex-col items-center justify-center p-4 text-center relative"
+      aria-label={`Photo (${sourceFile}) pending consent`}
+    >
+      <ZelligeStarSvg className="w-8 h-8 text-gold/40 mb-2" />
+      <span className="text-[11px] font-medium text-white/50 tracking-wider uppercase">
+        Moroccan Secrets
+      </span>
+    </div>
+  );
+}
 
 export function ConceptSection({
+  photos = [],
   conceptPhoto,
 }: {
-  conceptPhoto?: { url: string; alt: string; srcSet?: string } | undefined;
+  photos?: Array<{
+    source_file?: string | null | undefined;
+    guest_consent_confirmed: boolean;
+    url: string;
+    srcSet?: string | undefined;
+    alt: { en: string; fr: string; ar: string };
+  }> | undefined;
+  conceptPhoto?: { url: string; alt: string; srcSet?: string | undefined } | undefined;
 }) {
   const { lang } = useI18n();
 
@@ -370,119 +480,115 @@ export function ConceptSection({
 
   return (
     <section
-      id="concept"
-      className="scroll-mt-20 bg-paper relative z-0"
-      style={{ paddingBlock: "var(--section-pad-v)" }}
+      id="experience"
+      className="scroll-mt-20 bg-cream relative z-0 section-pad"
     >
+      <span id="concept" className="sr-only" aria-hidden="true" />
       <div className="ms-container">
-        {/* --- Top: Two Columns (Left sticky text, Right 4 pillars + tall zellige-cut photo) --- */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
-          {/* Left: Sticky text */}
+        {/* Top: Two Columns */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
+          {/* Left: Text + Star ornament (col-span-12 lg:col-span-4) */}
           <div
-            className="lg:col-span-5 lg:sticky lg:top-28 space-y-6"
+            className="lg:col-span-4 flex flex-col items-start h-full justify-between"
             dir={lang === "ar" ? "rtl" : "ltr"}
           >
-            <span className="section-index">01 / CONCEPT</span>
-            <h2 className="text-primary font-display font-semibold leading-[1.02]">
-              {WHAT_IS_IT_TEXT.title[lang]}
-            </h2>
-            <OrnamentDivider />
-            <p className="font-display text-2xl sm:text-3xl text-primary font-semibold leading-snug">
-              {WHAT_IS_IT_TEXT.lead[lang]}
-            </p>
-            <p className="text-foreground/80 text-base sm:text-[1.125rem] leading-[1.7] max-w-[52ch]">
-              {WHAT_IS_IT_TEXT.body[lang]}
-            </p>
-          </div>
-
-          {/* Right: Vertical stack of the 4 pillars + Tall photo with zellige-cut mask */}
-          <div className="lg:col-span-7 grid grid-cols-1 md:grid-cols-12 gap-8 items-stretch">
-            {/* Four pillars as large numbered rows (01 to 04) separated by hairlines */}
-            <div
-              className="md:col-span-7 flex flex-col justify-between divide-y divide-stone-300/70 border-y border-stone-300/70"
-              dir={lang === "ar" ? "rtl" : "ltr"}
-            >
-              {WHAT_IS_IT_TEXT.pillars.map((pillar, idx) => (
-                <div key={pillar.id} className="py-6 flex items-start gap-4">
-                  <span className="font-display text-2xl sm:text-3xl font-bold text-gold shrink-0 w-8">
-                    {String(idx + 1).padStart(2, "0")}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-3">
-                      <h3 className="font-display text-xl sm:text-2xl font-bold text-foreground">
-                        {pillar.title[lang]}
-                      </h3>
-                      <Check
-                        className="h-4 w-4 text-accent shrink-0 stroke-[2.5]"
-                        aria-hidden="true"
-                      />
-                    </div>
-                    <p className="text-foreground/75 text-sm sm:text-base leading-relaxed mt-1">
-                      {pillar.desc[lang]}
-                    </p>
-                  </div>
-                </div>
-              ))}
+            <div>
+              <span className="tracked-label mb-3 text-gold">
+                {EXPERIENCE_TEXT.eyebrow[lang]}
+              </span>
+              <h2 className="text-oxblood font-display font-semibold leading-[1.0] text-4xl sm:text-5xl lg:text-5xl tracking-[-0.02em] mt-2 mb-5">
+                {EXPERIENCE_TEXT.title[lang]}
+              </h2>
+              <p className="text-muted-text text-base sm:text-lg leading-[1.65] max-w-[36ch]">
+                {EXPERIENCE_TEXT.lead[lang]}
+              </p>
+              <div className="mt-6 mb-8">
+                <span className="gold-line" />
+              </div>
             </div>
 
-            {/* Next to the pillars: Tall photo with zellige-cut mask and slow reveal (or deep-red pull quote panel) */}
-            <div className="md:col-span-5 relative min-h-[380px] md:min-h-full">
-              {conceptPhoto?.url ? (
-                <div className="w-full h-full min-h-[380px] md:min-h-full overflow-hidden flex items-center justify-center image-reveal">
-                  <img
-                    src={conceptPhoto.url}
-                    srcSet={conceptPhoto.srcSet}
-                    alt={conceptPhoto.alt}
-                    className="w-full h-full object-cover zellige-cut-mask shadow-photo"
-                    loading="lazy"
-                  />
-                </div>
-              ) : (
-                <div className="w-full h-full min-h-[380px] md:min-h-full bg-[#4A0E0E] zellige-pattern zellige-cut-mask p-8 flex items-center justify-center text-center shadow-photo image-reveal">
-                  <p className="font-display text-xl sm:text-2xl italic leading-snug text-white/95 drop-shadow-sm">
-                    "{WHAT_IS_IT_TEXT.lead[lang]}"
-                  </p>
-                </div>
-              )}
+            {/* Large gold line-art star at bottom-left */}
+            <div className="hidden lg:block pt-4 rtl:scale-x-[-1]">
+              <ZelligeLineArtStar className="w-36 h-36 xl:w-44 xl:h-44 text-gold" opacity={0.35} />
+            </div>
+          </div>
+
+          {/* Right: Three white cards (col-span-12 lg:col-span-8) */}
+          <div className="lg:col-span-8">
+            <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 -mx-5 px-5 scrollbar-none md:grid md:grid-cols-3 md:gap-6 md:mx-0 md:px-0">
+              {EXPERIENCE_TEXT.cards.map((card, idx) => {
+                const Icon = card.icon;
+                const matchedPhoto = photos.find(
+                  (p) => p.source_file === card.sourceFile && p.guest_consent_confirmed,
+                );
+                return (
+                  <div
+                    key={idx}
+                    className="min-w-[260px] sm:min-w-[280px] snap-center shrink-0 md:min-w-0 md:shrink rounded-[20px] bg-white p-5 shadow-soft flex flex-col justify-between border border-stone-200/50"
+                    dir={lang === "ar" ? "rtl" : "ltr"}
+                  >
+                    <div>
+                      {/* Photo slot */}
+                      <ExperienceCardPhoto
+                        photo={matchedPhoto}
+                        sourceFile={card.sourceFile}
+                        alt={card.title[lang]}
+                      />
+                      {/* Icon */}
+                      <div className="mt-4 mb-2 flex items-center">
+                        <Icon className="w-5 h-5 text-gold" />
+                      </div>
+                      {/* Title */}
+                      <h3 className="font-display text-xl font-bold text-ink leading-tight mb-2">
+                        {card.title[lang]}
+                      </h3>
+                      {/* Short text */}
+                      <p className="text-xs sm:text-sm text-muted-text leading-relaxed">
+                        {card.text[lang]}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
 
-        {/* --- An evening at a glance: horizontal timeline with big gold times (vertical on phones) --- */}
+        {/* --- An evening at a glance timeline (restyled as slim gold-line timeline) --- */}
         <div
-          className="mt-20 sm:mt-28 pt-14 border-t border-stone-300/60"
+          className="mt-16 sm:mt-24 pt-12 border-t border-stone-300/60"
           dir={lang === "ar" ? "rtl" : "ltr"}
         >
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-12">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10">
             <div>
-              <h3 className="font-display text-2xl sm:text-3xl font-bold text-primary mb-2">
+              <h3 className="font-display text-2xl sm:text-3xl font-bold text-oxblood mb-2">
                 {WHAT_IS_IT_TEXT.eveningGlance.title[lang]}
               </h3>
-              <OrnamentDivider />
+              <span className="gold-line" />
             </div>
-            <div className="inline-flex items-center gap-2 self-start sm:self-auto rounded-full bg-primary/10 border border-primary/20 px-4 py-1.5 text-xs font-bold text-primary">
-              <Clock className="h-3.5 w-3.5" aria-hidden="true" />
+            <div className="inline-flex items-center gap-2 self-start sm:self-auto rounded-full bg-cream border border-gold/40 px-4 py-1.5 text-xs font-semibold text-oxblood shadow-2xs">
+              <Clock className="h-3.5 w-3.5 text-gold" aria-hidden="true" />
               <span>{WHAT_IS_IT_TEXT.eveningGlance.duration[lang]}</span>
             </div>
           </div>
 
           {/* Desktop timeline (horizontal) */}
-          <div className="hidden lg:block relative pt-4 pb-2">
+          <div className="hidden lg:block relative pt-6 pb-2">
             <div
               className="absolute top-10 start-[12.5%] end-[12.5%] h-px bg-gold/50 z-0"
               aria-hidden="true"
             />
             <div className="grid grid-cols-4 gap-6 relative z-10 text-center">
               {eveningStops.map((stop, idx) => (
-                <div key={idx} className="flex flex-col items-center px-3">
+                <div key={idx} className="flex flex-col items-center px-2">
                   <div
-                    className="h-3.5 w-3.5 rounded-full bg-primary ring-4 ring-paper shadow-2xs mb-4"
+                    className="h-3.5 w-3.5 rounded-full bg-oxblood ring-4 ring-cream shadow-2xs mb-4"
                     aria-hidden="true"
                   />
-                  <span className="font-display text-3xl xl:text-4xl font-bold text-gold block leading-none mb-2">
+                  <span className="font-display text-2xl xl:text-3xl font-bold text-gold block leading-none mb-2">
                     {stop.time}
                   </span>
-                  <h4 className="font-display text-lg font-bold text-foreground leading-snug">
+                  <h4 className="font-display text-base xl:text-lg font-bold text-ink leading-snug">
                     {stop.title[lang]}
                   </h4>
                 </div>
@@ -491,75 +597,23 @@ export function ConceptSection({
           </div>
 
           {/* Mobile timeline (vertical) */}
-          <div className="lg:hidden relative border-s border-gold/50 ms-4 ps-7 space-y-8">
+          <div className="lg:hidden relative border-s border-gold/50 ms-4 ps-6 space-y-7">
             {eveningStops.map((stop, idx) => (
               <div key={idx} className="relative">
                 <div
-                  className="absolute -start-[35px] top-2 h-3.5 w-3.5 rounded-full bg-primary ring-4 ring-paper shadow-2xs"
+                  className="absolute -start-[31px] top-1.5 h-3 w-3 rounded-full bg-oxblood ring-4 ring-cream shadow-2xs"
                   aria-hidden="true"
                 />
-                <span className="font-display text-2xl sm:text-3xl font-bold text-gold block leading-none mb-1">
+                <span className="font-display text-xl sm:text-2xl font-bold text-gold block leading-none mb-1">
                   {stop.time}
                 </span>
-                <h4 className="font-display text-lg font-bold text-foreground leading-snug">
+                <h4 className="font-display text-base font-bold text-ink leading-snug">
                   {stop.title[lang]}
                 </h4>
               </div>
             ))}
           </div>
         </div>
-
-        {/* --- Good to know block: 4 short Q&A items --- */}
-        <div className="mt-16 sm:mt-24 pt-12 sm:pt-16 border-t border-stone-300/60">
-          <div className="text-center mb-10">
-            <h3 className="font-display text-2xl sm:text-3xl font-bold text-primary mb-3">
-              {WHAT_IS_IT_TEXT.goodToKnow.title[lang]}
-            </h3>
-            <OrnamentDivider center />
-          </div>
-
-          {/* Desktop (open 2x2 grid) */}
-          <div className="hidden md:grid md:grid-cols-2 gap-6" dir={lang === "ar" ? "rtl" : "ltr"}>
-            {WHAT_IS_IT_TEXT.goodToKnow.items.map((item, idx) => (
-              <div
-                key={idx}
-                className="rounded-[24px] bg-white p-7 shadow-soft border border-stone-200/70 flex flex-col items-start"
-              >
-                <h4 className="font-display text-lg font-bold text-foreground mb-2.5 flex items-center gap-2.5">
-                  <span className="h-2 w-2 rounded-full bg-accent shrink-0" aria-hidden="true" />
-                  <span>{item.q[lang]}</span>
-                </h4>
-                <p className="text-foreground/75 text-sm sm:text-base leading-relaxed">
-                  {item.a[lang]}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          {/* Phones (accordion) */}
-          <div className="md:hidden space-y-3" dir={lang === "ar" ? "rtl" : "ltr"}>
-            {WHAT_IS_IT_TEXT.goodToKnow.items.map((item, idx) => (
-              <details
-                key={idx}
-                className="group rounded-[20px] bg-white p-4 sm:p-5 border border-stone-200/70 shadow-soft transition-colors"
-              >
-                <summary className="flex items-center justify-between font-display font-semibold text-foreground text-base cursor-pointer list-none select-none">
-                  <span className="flex items-center gap-2.5 pe-3">
-                    <span className="h-2 w-2 rounded-full bg-accent shrink-0" aria-hidden="true" />
-                    <span>{item.q[lang]}</span>
-                  </span>
-                  <ChevronDown className="h-4 w-4 text-primary transition-transform duration-200 group-open:rotate-180 shrink-0" />
-                </summary>
-                <p className="mt-3 text-sm text-foreground/75 leading-relaxed ps-4 border-s border-primary/20">
-                  {item.a[lang]}
-                </p>
-              </details>
-            ))}
-          </div>
-        </div>
-
-        {/* Small decorative divider between sections */}
-        <OrnamentDivider center className="mt-20 sm:mt-28" />
       </div>
     </section>
   );
