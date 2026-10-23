@@ -1,4 +1,4 @@
-﻿import { Link, useLocation } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Menu, X, MessageCircle } from "lucide-react";
 import { useI18n, LANGS } from "@/lib/i18n";
@@ -36,7 +36,7 @@ function LangSwitch() {
     <div
       role="group"
       aria-label={t.language}
-      className="flex rounded-full border border-border bg-offwhite p-0.5 text-xs font-semibold"
+      className="flex rounded-full border border-border/80 bg-offwhite p-0.5 text-xs font-medium"
     >
       {LANGS.map((l) => (
         <button
@@ -44,10 +44,8 @@ function LangSwitch() {
           type="button"
           onClick={() => setLang(l)}
           aria-pressed={lang === l}
-          className={`rounded-full px-2.5 py-1 uppercase transition-colors ${
-            lang === l
-              ? "bg-primary text-white font-bold shadow-xs"
-              : "text-foreground/80 hover:bg-muted"
+          className={`rounded-full px-2 py-0.5 uppercase transition-colors text-[11px] font-semibold ${
+            lang === l ? "bg-primary text-white shadow-2xs" : "text-foreground/75 hover:bg-muted"
           }`}
         >
           {l === "ar" ? (
@@ -67,12 +65,26 @@ function Header() {
   const { lang, t } = useI18n();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [activeSection, setActiveSection] = useState<string>("");
   const menuRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    const sectionIds = ["concept", "menu", "photos", "booking", "how"];
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 8);
+      const scrollPos = window.scrollY + 130;
+      for (const id of [...sectionIds].reverse()) {
+        const el = document.getElementById(id);
+        if (el && el.offsetTop <= scrollPos) {
+          setActiveSection(id);
+          return;
+        }
+      }
+      if (window.scrollY < 200) setActiveSection("");
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   // Close mobile menu on Escape
@@ -87,10 +99,11 @@ function Header() {
 
   return (
     <header
-      className={`sticky top-0 z-50 bg-white border-b border-border/60 transition-shadow duration-200 ${scrolled ? "header-scrolled" : ""}`}
+      className={`sticky top-0 z-50 bg-white/85 backdrop-blur-md transition-shadow duration-300 ${
+        scrolled ? "shadow-[0_4px_24px_-2px_rgba(36,26,26,0.07)]" : "shadow-none"
+      }`}
     >
-      {/* Skip to content */}
-      <div className="mx-auto flex max-w-[1200px] items-center justify-between gap-4 px-5 py-3 sm:px-10">
+      <div className="mx-auto flex h-16 lg:h-[76px] max-w-[1240px] items-center justify-between gap-4 px-5 sm:px-10">
         {/* Logo */}
         <a
           href="/"
@@ -101,34 +114,45 @@ function Header() {
           <HeaderLogo />
         </a>
 
-        {/* Desktop Nav — centred */}
-        <nav aria-label="Main" className="hidden items-center gap-8 md:flex flex-1 justify-center">
+        {/* Desktop Nav — centred with active red dot */}
+        <nav aria-label="Main" className="hidden items-center gap-9 md:flex flex-1 justify-center">
           {siteNavItems
             .filter((item) => !item.isBook)
-            .map((item) => (
-              <a
-                key={item.href}
-                href={item.href}
-                className="nav-link transition-colors hover:text-primary"
-              >
-                {item.label[lang]}
-              </a>
-            ))}
+            .map((item) => {
+              const isActive = activeSection === item.href.replace("/#", "");
+              return (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  className={`relative text-[0.9375rem] font-medium transition-colors hover:text-primary py-1 ${
+                    isActive ? "text-primary font-semibold" : "text-foreground/80"
+                  }`}
+                >
+                  <span>{item.label[lang]}</span>
+                  {isActive && (
+                    <span
+                      className="absolute -bottom-1 left-1/2 -translate-x-1/2 h-1.5 w-1.5 rounded-full bg-primary"
+                      aria-hidden="true"
+                    />
+                  )}
+                </a>
+              );
+            })}
         </nav>
 
-        {/* Right: lang switch + Book button */}
-        <div className="flex items-center gap-3 shrink-0">
+        {/* Right: compact lang switch + solid burgundy Book button (>=44px high) */}
+        <div className="flex items-center gap-3.5 shrink-0">
           <LangSwitch />
           <a
             href="/#booking"
-            className="btn btn-primary hidden md:inline-flex !h-10 !text-sm !px-5"
+            className="hidden md:inline-flex items-center justify-center h-11 min-h-[44px] px-6 rounded-full bg-primary text-white text-sm font-bold shadow-xs hover:bg-primary-dark active:scale-[0.98] transition-all duration-200"
           >
             {t.nav.book}
           </a>
           {/* Mobile hamburger */}
           <button
             type="button"
-            className="rounded-md p-2 text-foreground hover:bg-muted md:hidden"
+            className="rounded-full p-2 text-foreground hover:bg-muted md:hidden transition-colors"
             aria-label={open ? "Close menu" : "Open menu"}
             aria-expanded={open}
             aria-controls="mobile-nav"
