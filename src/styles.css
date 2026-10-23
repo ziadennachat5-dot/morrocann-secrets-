@@ -558,8 +558,14 @@
   padding-bottom: var(--cookie-banner-height, 72px);
 }
 
+/* --- Hide floating WhatsApp button when cookie banner is visible --- */
+body[data-cookie-banner="open"] .whatsapp-fab {
+  display: none !important;
+}
+
 /* --- Legal text (below 14px only for legal) --- */
 .legal-text {
   font-size: 0.75rem;
   color: var(--muted-foreground);
 }
+

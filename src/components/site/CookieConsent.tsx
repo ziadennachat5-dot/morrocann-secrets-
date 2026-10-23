@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
 
@@ -27,8 +27,10 @@ export function CookieConsent() {
     const banner = bannerRef.current;
     if (!banner) {
       document.body.style.removeProperty("padding-bottom");
+      document.body.removeAttribute("data-cookie-banner");
       return;
     }
+    document.body.setAttribute("data-cookie-banner", "open");
     const measure = () => {
       document.body.style.setProperty("padding-bottom", `${banner.offsetHeight + 8}px`);
     };
@@ -38,6 +40,7 @@ export function CookieConsent() {
     return () => {
       ro.disconnect();
       document.body.style.removeProperty("padding-bottom");
+      document.body.removeAttribute("data-cookie-banner");
     };
   }, [consent, showPreferences]);
 

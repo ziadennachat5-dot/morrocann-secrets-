@@ -215,13 +215,14 @@ function ContactBand() {
   return (
     <section
       id="contact"
-      className="scroll-mt-20 zellige-burgundy bg-primary px-5 py-16 text-white sm:py-20"
+      className="scroll-mt-20 zellige-burgundy px-5 py-20 text-white sm:py-24"
+      style={{ backgroundColor: "#5E1010" }}
     >
       <div className="mx-auto max-w-2xl text-center">
         <OrnamentDivider center light />
         <h2
-          className="mt-6 font-display text-white"
-          style={{ fontSize: "clamp(2.2rem,4.5vw,3.8rem)" }}
+          className="mt-6 font-display font-semibold text-white tracking-[-0.02em]"
+          style={{ fontSize: "clamp(2.5rem, 5.5vw, 4.2rem)", lineHeight: 1.05 }}
         >
           {questionsTitle[lang]}
         </h2>
@@ -232,14 +233,14 @@ function ContactBand() {
         <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
           {links?.whatsapp && (
             <a
-              className="inline-flex items-center gap-2.5 rounded-full bg-white px-7 py-3.5 text-base font-bold text-primary shadow-md transition hover:bg-offwhite"
+              className="inline-flex items-center gap-2.5 rounded-full bg-white px-8 py-3.5 text-base font-bold text-primary shadow-md transition-all duration-200 hover:bg-offwhite hover:-translate-y-0.5 active:translate-y-0"
               style={{ minHeight: "52px" }}
               href={`https://wa.me/${links.whatsapp}`}
               target="_blank"
               rel="noreferrer"
             >
               <MessageCircle className="h-5 w-5 text-accent" aria-hidden />
-              WhatsApp
+              <span>WhatsApp</span>
             </a>
           )}
           {links?.email && (
@@ -262,13 +263,16 @@ function Footer() {
   const { links } = useContactLinks();
 
   return (
-    <footer className="bg-primary-dark text-white" style={{ paddingBottom: "40px" }}>
-      <div className="mx-auto max-w-[1200px] px-5 pt-10 pb-2 sm:px-10">
+    <footer
+      className="text-white pb-10 sm:pb-8 border-t border-white/10"
+      style={{ backgroundColor: "#5E1010" }}
+    >
+      <div className="mx-auto max-w-[1240px] px-5 pt-12 pb-2 sm:px-10">
         {/* Top row: logo + nav */}
         <div className="flex flex-col items-center gap-8 md:flex-row md:items-start md:justify-between">
-          {/* Logo — light version, never cropped */}
+          {/* Logo — light version, fully visible, never cropped */}
           <a href="/" aria-label={BRAND_NAME} className="flex items-center shrink-0">
-            <FooterLogo className="h-20 w-auto object-contain" />
+            <FooterLogo className="h-20 sm:h-24 w-auto object-contain" />
           </a>
 
           {/* Nav links */}
@@ -333,9 +337,9 @@ function WhatsAppFab() {
       target="_blank"
       rel="noopener noreferrer"
       aria-label={t.whatsappLabel}
-      className="fixed bottom-20 end-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-accent text-white shadow-xl transition-transform hover:scale-105 sm:bottom-5"
+      className="whatsapp-fab fixed bottom-4 right-4 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-accent text-white shadow-lg transition-transform hover:scale-105 active:scale-95"
     >
-      <MessageCircle className="h-7 w-7" />
+      <MessageCircle className="h-6 w-6" />
     </a>
   );
 }
