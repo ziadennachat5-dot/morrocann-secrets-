@@ -29,16 +29,15 @@ export function GuestPhotoGallery({ photos }: { photos: PublicGuestPhoto[] }) {
     );
   }
 
-  // Masonry: 2 columns on mobile, 3 on sm, 4 on lg
-  const cols2 = distributeToColumns(photos, 2);
-  const cols3 = distributeToColumns(photos, 3);
-  const cols4 = distributeToColumns(photos, 4);
+  const largePhoto = photos[0];
+  const mediumPhotos = photos.slice(1, 3);
+  const smallPhotos = photos.slice(3);
 
   return (
     <div>
-      {/* Mobile (<640px): Full-width horizontal scroll-snap gallery */}
+      {/* Phones & Tablets (<1024px): Horizontal scroll-snap carousel */}
       <div
-        className="sm:hidden flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4 -mx-5 px-5 scrollbar-none"
+        className="lg:hidden flex gap-4 sm:gap-6 overflow-x-auto snap-x snap-mandatory pb-4 -mx-4 px-4 sm:-mx-6 sm:px-6 scrollbar-none"
         style={{ scrollPaddingLeft: "20px" }}
       >
         {photos.map((photo, index) => (
@@ -47,67 +46,94 @@ export function GuestPhotoGallery({ photos }: { photos: PublicGuestPhoto[] }) {
             type="button"
             aria-label={`${t.gallery.openPhoto}: ${getAlt(photo, lang)}`}
             onClick={() => setSelectedIndex(index)}
-            className="group flex-shrink-0 w-[78vw] max-w-[300px] snap-center overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded-[24px] shadow-sm"
+            className="group shrink-0 w-[78vw] max-w-[340px] snap-center overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded-[28px] shadow-soft cursor-pointer"
             style={{ aspectRatio: "4/5" }}
           >
             <img
               src={photo.url}
               srcSet={photo.srcSet || undefined}
-              sizes="80vw"
+              sizes="(max-width: 640px) 80vw, 340px"
               alt={getAlt(photo, lang)}
               loading="lazy"
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-103 rounded-[24px]"
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02] rounded-[28px] image-reveal"
             />
           </button>
         ))}
       </div>
 
-      {/* 3 columns — sm to lg */}
-      <div style={{ columnCount: 3, columnGap: "16px" }} className="hidden sm:block lg:hidden">
-        {photos.map((photo, index) => (
-          <button
-            key={photo.id}
-            type="button"
-            aria-label={`${t.gallery.openPhoto}: ${getAlt(photo, lang)}`}
-            onClick={() => setSelectedIndex(index)}
-            className="group block w-full mb-4 overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded-[24px] shadow-sm"
-            style={{ breakInside: "avoid" }}
-          >
-            <img
-              src={photo.url}
-              srcSet={photo.srcSet || undefined}
-              sizes="33vw"
-              alt={getAlt(photo, lang)}
-              loading="lazy"
-              className="w-full object-cover transition-transform duration-300 group-hover:scale-103 rounded-[24px]"
-              style={{ display: "block" }}
-            />
-          </button>
-        ))}
-      </div>
+      {/* Desktop (>=1024px): Asymmetric Editorial Collage (1 large, 2 medium, small below) */}
+      <div className="hidden lg:flex flex-col gap-6">
+        {/* Top row: 1 Large (7 cols) + 2 Medium stacked (5 cols) */}
+        {largePhoto && (
+          <div className="grid grid-cols-12 gap-6 items-stretch">
+            {/* 1 Large Photo */}
+            <div className={mediumPhotos.length > 0 ? "col-span-7" : "col-span-12"}>
+              <button
+                type="button"
+                aria-label={`${t.gallery.openPhoto}: ${getAlt(largePhoto, lang)}`}
+                onClick={() => setSelectedIndex(0)}
+                className="group w-full h-full min-h-[540px] max-h-[580px] overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded-[28px] shadow-soft cursor-pointer block relative"
+              >
+                <img
+                  src={largePhoto.url}
+                  srcSet={largePhoto.srcSet || undefined}
+                  sizes="(min-width: 1024px) 58vw, 800px"
+                  alt={getAlt(largePhoto, lang)}
+                  loading="lazy"
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02] rounded-[28px] image-reveal"
+                />
+              </button>
+            </div>
 
-      {/* 4 columns — lg+ */}
-      <div style={{ columnCount: 4, columnGap: "16px" }} className="hidden lg:block">
-        {photos.map((photo, index) => (
-          <button
-            key={photo.id}
-            type="button"
-            aria-label={`${t.gallery.openPhoto}: ${getAlt(photo, lang)}`}
-            onClick={() => setSelectedIndex(index)}
-            className="group block w-full mb-4 overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded-[24px] shadow-sm"
-            style={{ breakInside: "avoid" }}
-          >
-            <img
-              src={photo.url}
-              srcSet={photo.srcSet || undefined}
-              sizes="25vw"
-              alt={getAlt(photo, lang)}
-              loading="lazy"
-              className="w-full object-cover transition-transform duration-300 group-hover:scale-103 rounded-[24px]"
-              style={{ display: "block" }}
-            />
-          </button>
-        ))}
+            {/* 2 Medium Photos stacked */}
+            {mediumPhotos.length > 0 && (
+              <div className="col-span-5 flex flex-col gap-6 justify-between">
+                {mediumPhotos.map((photo, mIdx) => (
+                  <button
+                    key={photo.id}
+                    type="button"
+                    aria-label={`${t.gallery.openPhoto}: ${getAlt(photo, lang)}`}
+                    onClick={() => setSelectedIndex(1 + mIdx)}
+                    className="group w-full h-[258px] overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded-[28px] shadow-soft cursor-pointer block relative"
+                  >
+                    <img
+                      src={photo.url}
+                      srcSet={photo.srcSet || undefined}
+                      sizes="(min-width: 1024px) 42vw, 550px"
+                      alt={getAlt(photo, lang)}
+                      loading="lazy"
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02] rounded-[28px] image-reveal"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Bottom row: Small Photos in a clean grid */}
+        {smallPhotos.length > 0 && (
+          <div className={`grid gap-6 ${smallPhotos.length === 1 ? "grid-cols-1" : smallPhotos.length === 2 ? "grid-cols-2" : smallPhotos.length === 3 ? "grid-cols-3" : "grid-cols-4"}`}>
+            {smallPhotos.map((photo, sIdx) => (
+              <button
+                key={photo.id}
+                type="button"
+                aria-label={`${t.gallery.openPhoto}: ${getAlt(photo, lang)}`}
+                onClick={() => setSelectedIndex(3 + sIdx)}
+                className="group w-full h-[240px] overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded-[28px] shadow-soft cursor-pointer block relative"
+              >
+                <img
+                  src={photo.url}
+                  srcSet={photo.srcSet || undefined}
+                  sizes="(min-width: 1024px) 25vw, 320px"
+                  alt={getAlt(photo, lang)}
+                  loading="lazy"
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02] rounded-[28px] image-reveal"
+                />
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <Dialog
@@ -118,8 +144,8 @@ export function GuestPhotoGallery({ photos }: { photos: PublicGuestPhoto[] }) {
       >
         <DialogContent
           closeLabel={t.gallery.close}
-          className="w-[calc(100vw-2rem)] max-w-5xl border-none bg-[#1c1010] p-4 text-white sm:p-8"
-          style={{ borderRadius: "24px" }}
+          className="w-[calc(100vw-2rem)] max-w-5xl border-none bg-[#1D1414] p-4 text-white sm:p-8"
+          style={{ borderRadius: "28px" }}
           onKeyDown={(event) => {
             if (event.key === "ArrowRight") {
               event.preventDefault();

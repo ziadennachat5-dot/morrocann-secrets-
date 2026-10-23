@@ -390,12 +390,16 @@ function HomePage() {
       {galleryPhotos.length > 0 && (
         <section
           id="photos"
-          className="scroll-mt-20 bg-white"
-          style={{ paddingBlock: "var(--section-pad-v-mobile)" }}
+          className="scroll-mt-20 bg-white section-pad"
         >
           <div className="ms-container">
-            <h2 className="text-center text-primary mb-4">{photosTitle[lang]}</h2>
-            <OrnamentDivider center className="mb-12" />
+            <div className="text-center mb-12 sm:mb-16">
+              <span className="section-index block mb-3">03 / PHOTOS</span>
+              <h2 className="text-center text-primary font-display font-semibold leading-[1.02]">
+                {photosTitle[lang]}
+              </h2>
+              <OrnamentDivider center className="mt-5" />
+            </div>
             <GuestPhotoGallery photos={galleryPhotos} />
           </div>
         </section>
