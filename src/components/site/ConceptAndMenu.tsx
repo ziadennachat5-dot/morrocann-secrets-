@@ -572,12 +572,12 @@ function SmallMenuCard({
   children: ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-start text-start rounded-[24px] bg-white text-foreground p-7 shadow-card">
-      <div className="flex items-center gap-3 mb-3">
-        <Icon className="h-6 w-6 text-accent shrink-0" aria-hidden="true" />
+    <div className="flex flex-col items-start text-start rounded-[28px] bg-paper text-foreground p-6 sm:p-7 shadow-soft border border-stone-300/40">
+      <div className="flex items-center gap-3 mb-2">
+        <Icon className="h-5 w-5 text-accent shrink-0 stroke-[2]" aria-hidden="true" />
         <h4 className="font-display text-xl font-bold text-foreground">{title}</h4>
       </div>
-      <div className="text-base leading-relaxed text-foreground/80">{children}</div>
+      <div className="text-sm sm:text-base leading-relaxed text-foreground/80">{children}</div>
     </div>
   );
 }
@@ -587,31 +587,46 @@ export function MenuSection() {
 
   return (
     <>
-      {/* Main menu section: deep red #5E1010 with very subtle zellige */}
+      {/* Main menu section: deep red #4A0E0E with very subtle zellige at 5% opacity and cropped star outline in corner */}
       <section
         id="menu"
         className="scroll-mt-20 text-white relative overflow-hidden"
         style={{
-          backgroundColor: "#5E1010",
+          backgroundColor: "#4A0E0E",
           paddingBlock: "var(--section-pad-v)",
         }}
       >
-        {/* Subtle zellige pattern overlay */}
+        {/* Subtle zellige pattern overlay at 5% opacity */}
         <div
           aria-hidden="true"
           className="zellige-burgundy absolute inset-0 pointer-events-none"
-          style={{ opacity: 0.08 }}
+          style={{ opacity: 0.05 }}
         />
 
+        {/* Large cropped star outline in the corner */}
+        <div
+          className="absolute -top-28 -end-28 w-80 h-80 sm:w-96 sm:h-96 pointer-events-none text-gold/15 rotate-12"
+          aria-hidden="true"
+        >
+          <svg viewBox="0 0 24 24" className="w-full h-full fill-none stroke-current" strokeWidth="0.75">
+            <polygon points="12,0 15.51,3.51 20.49,3.51 20.49,8.49 24,12 20.49,15.51 20.49,20.49 15.51,20.49 12,24 8.49,20.49 3.51,20.49 3.51,15.51 0,12 3.51,8.49 3.51,3.51 8.49,3.51" />
+          </svg>
+        </div>
+
         <div className="ms-container relative z-10">
-          {/* Section title */}
-          <h2 className="text-center text-white font-display">{MENU_TEXT.sectionTitle[lang]}</h2>
-          <OrnamentDivider center light className="mt-5 mb-14" />
+          {/* Section index & Huge white title */}
+          <div className="text-center mb-12 sm:mb-14">
+            <span className="section-index text-gold block mb-3">02 / MENU</span>
+            <h2 className="text-center text-white font-display font-semibold leading-[1.02]">
+              {MENU_TEXT.sectionTitle[lang]}
+            </h2>
+            <OrnamentDivider center light className="mt-5" />
+          </div>
 
           <div className="grid gap-8 lg:grid-cols-12 items-start">
-            {/* Left: ONE large white card for main dishes (numbered 01 to 07 in serif, dotted leaders) */}
-            <div className="lg:col-span-7 rounded-[24px] bg-white text-foreground p-8 sm:p-10 shadow-card">
-              <div className="flex items-center gap-3 pb-6 mb-6 border-b border-border/70">
+            {/* Left: ONE big paper-colored menu card with 7 main dishes numbered 01 to 07 in gold serif with dotted leaders */}
+            <div className="lg:col-span-7 rounded-[28px] bg-paper text-foreground p-8 sm:p-10 shadow-soft border border-stone-300/40">
+              <div className="flex items-center gap-3 pb-6 mb-6 border-b border-stone-300/60">
                 <Utensils className="h-6 w-6 text-primary shrink-0" aria-hidden="true" />
                 <h3 className="font-display text-2xl font-bold text-primary">
                   {MENU_TEXT.mainCoursesTitle[lang]}
@@ -625,14 +640,14 @@ export function MenuSection() {
                     key={dish.id}
                     className="flex items-baseline gap-3 py-2 text-base text-foreground/90"
                   >
-                    <span className="font-display text-primary text-xl font-bold shrink-0 w-8">
+                    <span className="font-display text-gold text-xl font-bold shrink-0 w-8">
                       {String(idx + 1).padStart(2, "0")}
                     </span>
-                    <span className="font-semibold text-foreground text-base sm:text-lg shrink-0">
+                    <span className="font-display font-bold text-foreground text-base sm:text-lg shrink-0">
                       {dish.label[lang]}
                     </span>
                     <span
-                      className="flex-1 border-b border-dotted border-stone-300 min-w-[20px] mb-1"
+                      className="flex-1 border-b border-dotted border-stone-400/60 min-w-[20px] mb-1.5"
                       aria-hidden="true"
                     />
                   </li>
@@ -640,8 +655,8 @@ export function MenuSection() {
               </ul>
             </div>
 
-            {/* Right: Three compact white cards for starters, drinks and dessert */}
-            <div className="lg:col-span-5 grid content-start gap-6">
+            {/* Right: Three stacked compact cards for starters, drinks and dessert + calm allergy note */}
+            <div className="lg:col-span-5 grid content-start gap-5">
               <SmallMenuCard icon={Soup} title={MENU_TEXT.starters.title[lang]}>
                 <p>{MENU_TEXT.starters.desc[lang]}</p>
               </SmallMenuCard>
@@ -653,14 +668,20 @@ export function MenuSection() {
               <SmallMenuCard icon={CakeSlice} title={MENU_TEXT.dessert.title[lang]}>
                 <p>{MENU_TEXT.dessert.desc[lang]}</p>
               </SmallMenuCard>
+
+              {/* Calm allergy note with icon */}
+              <div className="flex items-center gap-3 text-white/90 text-sm sm:text-base pt-2 px-1">
+                <AlertCircle className="h-5 w-5 text-gold shrink-0" aria-hidden="true" />
+                <span className="leading-snug">{MENU_TEXT.allergyNote[lang]}</span>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Highlights: separate white strip below as 5 items in a row with green line icons, NO circles or boxes */}
+      {/* Highlights: separate white strip below as a row of 5 items with green line icons, NO boxes or circles */}
       <section
-        className="bg-white border-b border-border/40 py-14 sm:py-16"
+        className="bg-white border-b border-stone-200/50 py-14 sm:py-16"
         aria-label={MENU_TEXT.highlightsTitle[lang]}
       >
         <div className="ms-container">
