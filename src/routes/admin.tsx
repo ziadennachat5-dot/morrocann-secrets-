@@ -7,6 +7,7 @@ import { CatalogManager } from "@/components/admin/CatalogManager";
 import { GuestPhotoManager } from "@/components/admin/GuestPhotoManager";
 import { parseCancellationTiers, type CancellationTier } from "@/lib/booking-pricing";
 import { getCalendarSlotState, nextCalendarSlotState } from "@/lib/admin-calendar";
+import { updateAdminAvailabilitySlot } from "@/lib/admin.functions";
 
 type Booking = Tables<"bookings">;
 type Availability = Tables<"availability">;
@@ -412,20 +413,25 @@ function AdminPage() {
     const currentState = getCalendarSlotState(slot ?? null, activeGuests);
     const nextState = nextCalendarSlotState(currentState);
     const capacity = Number(availabilityCapacity) || 8;
+    const targetStatus = nextState === "full" ? "booked" : nextState;
 
-    const { error: saveError } = await supabase.from("availability").upsert(
-      {
-        date,
-        experience_id: availabilityExperience,
-        capacity,
-        status: nextState === "full" ? "booked" : nextState,
-      },
-      { onConflict: "date,experience_id" },
-    );
-    if (saveError) {
-      setError(`Could not update ${date}: ${saveError.message}`);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      await updateAdminAvailabilitySlot({
+        data: {
+          accessToken: sessionData.session?.access_token,
+          date,
+          experienceId: availabilityExperience,
+          capacity,
+          status: targetStatus,
+        },
+      });
+    } catch (saveError: unknown) {
+      const msg = saveError instanceof Error ? saveError.message : String(saveError);
+      setError(`Could not update ${date}: ${msg}`);
       return;
     }
+
     setCalendarMessage(
       `${date}: ${nextState === "full" ? t.fullyBooked : nextState === "closed" ? t.closed : t.available}`,
     );
