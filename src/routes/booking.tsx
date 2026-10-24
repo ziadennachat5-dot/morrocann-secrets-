@@ -16,6 +16,8 @@ import {
   Clock,
   ShieldCheck,
   MapPin,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
@@ -144,13 +146,50 @@ export function BookingFlow({
     }
   }, [initialOptions]);
 
-  const targetExperienceId =
-    initialExperienceId || options?.experiences[0]?.id || "family-dinner-marrakech";
+  const [selectedExperienceId, setSelectedExperienceId] = useState<string>(
+    initialExperienceId || "family-dinner-marrakech",
+  );
+
+  useEffect(() => {
+    if (initialExperienceId) {
+      setSelectedExperienceId(initialExperienceId);
+    } else if (options?.experiences && options.experiences.length > 0) {
+      if (!options.experiences.some((e) => e.id === selectedExperienceId)) {
+        setSelectedExperienceId(options.experiences[0]!.id);
+      }
+    }
+  }, [initialExperienceId, options]);
+
+  const targetExperienceId = selectedExperienceId;
   const targetExperience =
-    options?.experiences.find((e) => e.id === targetExperienceId) ?? options?.experiences[0] ?? null;
-  const startTimeDisplay = targetExperience?.start_time
-    ? targetExperience.start_time.slice(0, 5)
-    : "19:30";
+    options?.experiences.find((e) => e.id === targetExperienceId) ??
+    options?.experiences[0] ??
+    null;
+
+  const startTimeDisplay = useMemo(() => {
+    if (targetExperience?.id === "family-lunch-marrakech" || targetExperience?.start_time?.slice(0, 5) === "14:00") {
+      return lang === "fr" ? "14h00 – 16h00" : "14:00 – 16:00";
+    }
+    if (targetExperience?.id === "family-dinner-marrakech" || targetExperience?.start_time?.slice(0, 5) === "19:30") {
+      return lang === "fr" ? "19h30 – 21h30" : "19:30 – 21:30";
+    }
+    return targetExperience?.start_time?.slice(0, 5) || "19:30";
+  }, [targetExperience, lang]);
+
+  const experienceSubtitle = useMemo(() => {
+    if (targetExperience?.id === "family-lunch-marrakech") {
+      return lang === "fr"
+        ? "Déjeuner chez une famille locale à Marrakech"
+        : lang === "ar"
+          ? "غداء عند عائلة محلية في مراكش"
+          : "Lunch with a local family in Marrakech";
+    }
+    return lang === "fr"
+      ? "Dîner chez une famille locale à Marrakech"
+      : lang === "ar"
+        ? "عشاء عند عائلة محلية في مراكش"
+        : "Dinner with a local family in Marrakech";
+  }, [targetExperience, lang]);
 
   // Filter slots for availability
   const relevantSlots = useMemo(
@@ -190,17 +229,25 @@ export function BookingFlow({
   const formattedDateAr = date ? formatDateInWords(date, "ar") : "";
 
   const whatsappMessage = useMemo(() => {
+    const isLunch = targetExperience?.id === "family-lunch-marrakech";
+    const mealEn = isLunch ? "lunch" : "dinner";
+    const mealFr = isLunch ? "déjeuner" : "dîner";
+    const mealAr = isLunch ? "غداء" : "عشاء";
+    const timeSlotEn = isLunch ? " (14:00 – 16:00)" : " (19:30 – 21:30)";
+    const timeSlotFr = isLunch ? " (14h00 – 16h00)" : " (19h30 – 21h30)";
+    const timeSlotAr = isLunch ? " (14:00 – 16:00)" : " (19:30 – 21:30)";
+
     if (lang === "fr") {
-      const datePart = formattedDateFr ? ` le ${formattedDateFr}` : "";
-      return `Bonjour, je souhaite réserver un dîner en famille marocaine pour ${guests} personne${guests > 1 ? "s" : ""}${datePart}.`;
+      const datePart = formattedDateFr ? ` le ${formattedDateFr}${timeSlotFr}` : "";
+      return `Bonjour, je souhaite réserver un ${mealFr} en famille marocaine pour ${guests} personne${guests > 1 ? "s" : ""}${datePart}.`;
     }
     if (lang === "ar") {
-      const datePart = formattedDateAr ? ` بتاريخ ${formattedDateAr}` : "";
-      return `مرحباً، أود حجز عشاء مع عائلة مغربية لـ ${guests} ضيوف${datePart}.`;
+      const datePart = formattedDateAr ? ` بتاريخ ${formattedDateAr}${timeSlotAr}` : "";
+      return `مرحباً، أود حجز ${mealAr} مع عائلة مغربية لـ ${guests} ضيوف${datePart}.`;
     }
-    const datePart = formattedDateEn ? ` on ${formattedDateEn}` : "";
-    return `Hello, I would like to book a dinner with a Moroccan family for ${guests} guest${guests > 1 ? "s" : ""}${datePart}.`;
-  }, [lang, guests, formattedDateEn, formattedDateFr, formattedDateAr]);
+    const datePart = formattedDateEn ? ` on ${formattedDateEn}${timeSlotEn}` : "";
+    return `Hello, I would like to book a ${mealEn} with a Moroccan family for ${guests} guest${guests > 1 ? "s" : ""}${datePart}.`;
+  }, [lang, guests, formattedDateEn, formattedDateFr, formattedDateAr, targetExperience]);
 
   const waHref = options?.whatsapp
     ? `https://wa.me/${options.whatsapp}?text=${encodeURIComponent(whatsappMessage)}`
@@ -327,6 +374,14 @@ export function BookingFlow({
                   : "Your booking recap"}
             </h3>
             <dl className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 text-sm">
+              <div className="sm:col-span-2">
+                <dt className="text-xs text-muted-foreground font-medium">
+                  {lang === "fr" ? "Expérience" : lang === "ar" ? "التجربة" : "Experience"}
+                </dt>
+                <dd className="font-bold text-foreground mt-0.5">
+                  {confirmation.experience_title[lang] || experienceSubtitle}
+                </dd>
+              </div>
               <div>
                 <dt className="text-xs text-muted-foreground font-medium">
                   {lang === "fr" ? "Date" : lang === "ar" ? "التاريخ" : "Date"}
@@ -647,7 +702,7 @@ export function BookingFlow({
           ========================================================= */}
           <div className="lg:col-span-7 space-y-10">
             {/* -------------------------------------------------------
-                SECTION 1: CALENDAR
+                SECTION 1: SEATING & CALENDAR
             ------------------------------------------------------- */}
             <div>
               <div className="flex items-center gap-3 mb-5 text-start">
@@ -656,11 +711,105 @@ export function BookingFlow({
                 </span>
                 <h3 className="font-display text-2xl font-bold text-foreground">
                   {lang === "fr"
-                    ? "Choisissez un jour"
+                    ? "Choisissez votre créneau et la date"
                     : lang === "ar"
-                      ? "اختر التاريخ"
-                      : "Pick a day"}
+                      ? "اختر موعد الوجبة والتاريخ"
+                      : "Choose seating & date"}
                 </h3>
+              </div>
+
+              {/* Seating / Time slot selector */}
+              <div className="mb-6">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 text-start">
+                  {lang === "fr"
+                    ? "Créneau au choix"
+                    : lang === "ar"
+                      ? "الموعد المفضل"
+                      : "Available daily seatings"}
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  {/* Lunch Option */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (selectedExperienceId !== "family-lunch-marrakech") {
+                        setSelectedExperienceId("family-lunch-marrakech");
+                      }
+                    }}
+                    className={`p-4 rounded-2xl border text-start transition-all cursor-pointer flex items-center justify-between gap-3 ${
+                      selectedExperienceId === "family-lunch-marrakech"
+                        ? "border-gold bg-gold/10 ring-2 ring-gold/40 shadow-xs"
+                        : "border-stone-200/90 hover:border-stone-300 bg-background"
+                    }`}
+                  >
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Sun className="h-4 w-4 text-gold shrink-0" />
+                        <span className="font-display font-bold text-foreground text-base">
+                          {lang === "fr" ? "Déjeuner" : lang === "ar" ? "الغداء" : "Lunch"}
+                        </span>
+                      </div>
+                      <p className="text-xs font-semibold text-oxblood">
+                        {lang === "fr" ? "14h00 – 16h00" : "14:00 – 16:00"}
+                      </p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                        {lang === "fr" ? "Environ 2 heures" : lang === "ar" ? "حوالي ساعتين" : "About 2 hours"}
+                      </p>
+                    </div>
+                    <div
+                      className={`h-5 w-5 rounded-full border flex items-center justify-center shrink-0 ${
+                        selectedExperienceId === "family-lunch-marrakech"
+                          ? "border-gold bg-gold text-oxblood"
+                          : "border-stone-300"
+                      }`}
+                    >
+                      {selectedExperienceId === "family-lunch-marrakech" && (
+                        <Check className="h-3 w-3 stroke-[3]" />
+                      )}
+                    </div>
+                  </button>
+
+                  {/* Dinner Option */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (selectedExperienceId !== "family-dinner-marrakech") {
+                        setSelectedExperienceId("family-dinner-marrakech");
+                      }
+                    }}
+                    className={`p-4 rounded-2xl border text-start transition-all cursor-pointer flex items-center justify-between gap-3 ${
+                      selectedExperienceId === "family-dinner-marrakech"
+                        ? "border-gold bg-gold/10 ring-2 ring-gold/40 shadow-xs"
+                        : "border-stone-200/90 hover:border-stone-300 bg-background"
+                    }`}
+                  >
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Moon className="h-4 w-4 text-oxblood shrink-0" />
+                        <span className="font-display font-bold text-foreground text-base">
+                          {lang === "fr" ? "Dîner" : lang === "ar" ? "العشاء" : "Dinner"}
+                        </span>
+                      </div>
+                      <p className="text-xs font-semibold text-oxblood">
+                        {lang === "fr" ? "19h30 – 21h30" : "19:30 – 21:30"}
+                      </p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                        {lang === "fr" ? "Environ 2 heures" : lang === "ar" ? "حوالي ساعتين" : "About 2 hours"}
+                      </p>
+                    </div>
+                    <div
+                      className={`h-5 w-5 rounded-full border flex items-center justify-center shrink-0 ${
+                        selectedExperienceId === "family-dinner-marrakech"
+                          ? "border-gold bg-gold text-oxblood"
+                          : "border-stone-300"
+                      }`}
+                    >
+                      {selectedExperienceId === "family-dinner-marrakech" && (
+                        <Check className="h-3 w-3 stroke-[3]" />
+                      )}
+                    </div>
+                  </button>
+                </div>
               </div>
 
               <div className="flex flex-col items-center">
@@ -1153,11 +1302,7 @@ export function BookingFlow({
                           : "Your booking"}
                     </h3>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {lang === "fr"
-                        ? "Dîner chez une famille locale à Marrakech"
-                        : lang === "ar"
-                          ? "عشاء عند عائلة محلية في مراكش"
-                          : "Dinner with a local family in Marrakech"}
+                      {experienceSubtitle}
                     </p>
                   </div>
 
@@ -1382,11 +1527,7 @@ export function BookingFlow({
                       : "Your booking"}
                 </h3>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {lang === "fr"
-                    ? "Dîner chez une famille locale à Marrakech"
-                    : lang === "ar"
-                      ? "عشاء عند عائلة محلية في مراكش"
-                      : "Dinner with a local family in Marrakech"}
+                  {experienceSubtitle}
                 </p>
               </div>
 

@@ -75,14 +75,14 @@ export type MainDishId = (typeof MAIN_DISHES)[number]["id"];
 
 export const WHAT_IS_IT_TEXT = {
   title: {
-    en: "What is a dinner with a local family?",
-    fr: "Qu'est-ce qu'un dîner chez une famille locale ?",
-    ar: "ما هو العشاء عند عائلة محلية؟",
+    en: "What is a meal with a local family?",
+    fr: "Qu'est-ce qu'un repas chez une famille locale ?",
+    ar: "ما هي التجربة عند عائلة محلية؟",
   },
   lead: {
-    en: "It is not a restaurant and it is not a cooking class. It is an evening at the table of a Moroccan family in Marrakech, where you are the guest.",
-    fr: "Ce n'est ni un restaurant ni un cours de cuisine. C'est une soirée à la table d'une famille marocaine à Marrakech, dont vous êtes l'invité.",
-    ar: "ليس مطعماً وليس درساً في الطبخ. إنها أمسية على مائدة عائلة مغربية في مراكش، وأنت ضيفها.",
+    en: "It is not a restaurant and it is not a cooking class. It is a shared moment at the table of a Moroccan family in Marrakech, where you are the guest.",
+    fr: "Ce n'est ni un restaurant ni un cours de cuisine. C'est un moment de partage à la table d'une famille marocaine à Marrakech, dont vous êtes l'invité.",
+    ar: "ليس مطعماً وليس درساً في الطبخ. إنها لحظة مشاركة على مائدة عائلة مغربية في مراكش، وأنت ضيفها.",
   },
   body: {
     en: "You are welcomed into a local family's home in Marrakech and share a traditional home-cooked meal at their table. You taste local dishes made with fresh local ingredients, and the family shares stories about daily life and Moroccan traditions.",
@@ -149,28 +149,28 @@ export const WHAT_IS_IT_TEXT = {
   ],
   eveningGlance: {
     title: {
-      en: "An evening at a glance",
-      fr: "Une soirée en un coup d'œil",
-      ar: "لمحة عن الأمسية",
+      en: "Daily seatings at a glance",
+      fr: "Les créneaux en un coup d'œil",
+      ar: "لمحة عن المواعيد اليومية",
     },
     duration: {
-      en: "About 2 hours",
-      fr: "Environ 2 heures",
-      ar: "حوالي ساعتين",
+      en: "Lunch 14:00–16:00 · Dinner 19:30–21:30",
+      fr: "Déjeuner 14h00–16h00 · Dîner 19h30–21h30",
+      ar: "الغداء 14:00–16:00 · العشاء 19:30–21:30",
     },
     stops: [
       {
         label: {
-          en: "19:30 Welcome into the family home",
-          fr: "19:30 Accueil dans la maison familiale",
-          ar: "19:30 الاستقبال في بيت العائلة",
+          en: "14:00 or 19:30 Welcome into the family home",
+          fr: "14h00 ou 19h30 Accueil dans la maison familiale",
+          ar: "14:00 أو 19:30 الاستقبال في بيت العائلة",
         },
       },
       {
         label: {
-          en: "Traditional dinner & local dishes",
-          fr: "Dîner traditionnel & plats locaux",
-          ar: "عشاء تقليدي وأطباق محلية",
+          en: "Traditional meal & local dishes",
+          fr: "Repas traditionnel & plats locaux",
+          ar: "وجبة تقليدية وأطباق محلية",
         },
       },
       {
@@ -203,9 +203,9 @@ export const WHAT_IS_IT_TEXT = {
           ar: "كم عدد الضيوف؟",
         },
         a: {
-          en: "From 1 to 8 guests per evening.",
-          fr: "De 1 à 8 invités par soirée.",
-          ar: "من ضيف واحد إلى 8 ضيوف في كل أمسية.",
+          en: "From 1 to 8 guests per seating.",
+          fr: "De 1 à 8 invités par créneau.",
+          ar: "من ضيف واحد إلى 8 ضيوف في كل موعد.",
         },
       },
       {
@@ -215,9 +215,9 @@ export const WHAT_IS_IT_TEXT = {
           ar: "كم تستغرق التجربة؟",
         },
         a: {
-          en: "About 2 hours, starting at 19:30.",
-          fr: "Environ 2 heures, à partir de 19h30.",
-          ar: "حوالي ساعتين، ابتداءً من الساعة 19:30.",
+          en: "About 2 hours. Choose between Lunch (14:00 to 16:00) or Dinner (19:30 to 21:30).",
+          fr: "Environ 2 heures. Au choix : Déjeuner (14h00 à 16h00) ou Dîner (19h30 à 21h30).",
+          ar: "حوالي ساعتين. يمكنك الاختيار بين الغداء (14:00 إلى 16:00) أو العشاء (19:30 إلى 21:30).",
         },
       },
       {
@@ -443,7 +443,7 @@ export function ConceptSection({
 
   const eveningStops = [
     {
-      time: "19:30",
+      time: "14:00 / 19:30",
       title: {
         en: "Welcome into the family home",
         fr: "Accueil dans la maison familiale",
@@ -453,9 +453,9 @@ export function ConceptSection({
     {
       time: "02",
       title: {
-        en: "Traditional home-cooked dinner",
-        fr: "Dîner traditionnel fait maison",
-        ar: "عشاء تقليدي منزلي",
+        en: "Traditional home-cooked meal",
+        fr: "Repas traditionnel fait maison",
+        ar: "وجبة تقليدية منزلية",
       },
     },
     {

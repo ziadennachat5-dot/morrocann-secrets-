@@ -202,9 +202,9 @@ function HomePage() {
   };
 
   const bookingBandLabel = {
-    en: "BOOK YOUR DINNER",
-    fr: "RÉSERVEZ VOTRE DÎNER",
-    ar: "احجز عشاءك",
+    en: "BOOK LUNCH OR DINNER",
+    fr: "RÉSERVEZ DÉJEUNER OU DÎNER",
+    ar: "احجز الغداء أو العشاء",
   };
 
   const bookingBandTitle = {
@@ -214,9 +214,9 @@ function HomePage() {
   };
 
   const bookingBandDesc = {
-    en: "Reserve your spot for an authentic Moroccan dinner with a local family.",
-    fr: "Réservez votre place pour un dîner marocain authentique chez une famille locale.",
-    ar: "احجز مكانك لعشاء مغربي أصيل في بيت عائلة محلية.",
+    en: "Reserve your spot for an authentic Moroccan lunch or dinner with a local family.",
+    fr: "Réservez votre place pour un déjeuner ou dîner marocain authentique chez une famille locale.",
+    ar: "احجز مكانك لغداء أو عشاء مغربي أصيل في بيت عائلة محلية.",
   };
 
   const bookingBandTagline = {
@@ -226,9 +226,9 @@ function HomePage() {
   };
 
   const bookingTitle = {
-    en: "Book your dinner",
-    fr: "Réservez votre dîner",
-    ar: "احجز عشاءك",
+    en: "Book lunch or dinner",
+    fr: "Réservez déjeuner ou dîner",
+    ar: "احجز الغداء أو العشاء",
   };
 
   const assignedFiles = new Set([
@@ -308,9 +308,9 @@ function HomePage() {
   ];
 
   const heroTrackedLabel = {
-    en: "LOCAL FAMILY DINNER / MARRAKECH",
-    fr: "DÎNER EN FAMILLE LOCALE / MARRAKECH",
-    ar: "عشاء عائلي أصيل / مراكش",
+    en: "LOCAL FAMILY MEAL / MARRAKECH",
+    fr: "REPAS EN FAMILLE LOCALE / MARRAKECH",
+    ar: "وجبة عائلية أصيلة / مراكش",
   };
 
   const heroH1Line1 = {
@@ -332,9 +332,9 @@ function HomePage() {
   };
 
   const heroBookingBtn = {
-    en: "Book your dinner",
-    fr: "Réservez votre dîner",
-    ar: "احجز عشاءك",
+    en: "Book lunch or dinner",
+    fr: "Réservez déjeuner ou dîner",
+    ar: "احجز الغداء أو العشاء",
   };
 
   const heroDiscoverBtn = {
@@ -345,11 +345,11 @@ function HomePage() {
 
   const heroFacts = [
     {
-      num: "19:30",
+      num: "14:00 & 19:30",
       label: {
-        en: "Start",
-        fr: "Début",
-        ar: "البداية",
+        en: "Lunch & Dinner",
+        fr: "Déjeuner & Dîner",
+        ar: "غداء وعشاء",
       },
     },
     {
