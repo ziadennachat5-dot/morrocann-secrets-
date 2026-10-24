@@ -14,6 +14,8 @@ import {
   ChevronDown,
   ChevronUp,
   Clock,
+  ShieldCheck,
+  MapPin,
 } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
@@ -24,7 +26,6 @@ import { pageHead } from "@/lib/seo";
 import { BRAND_NAME } from "@/lib/brand";
 import { getBookingOptions, submitBooking } from "@/lib/booking.functions";
 import type { BookingRequest } from "@/lib/booking-schema";
-import { MAIN_DISHES } from "@/components/site/ConceptAndMenu";
 
 type BookingOptions = Awaited<ReturnType<typeof getBookingOptions>>;
 
@@ -117,17 +118,14 @@ export function BookingFlow({
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [guests, setGuests] = useState<number>(2);
-  const [selectedDishes, setSelectedDishes] = useState<string[]>([]);
   const [allergies, setAllergies] = useState("");
   const [message, setMessage] = useState("");
   const [showExtras, setShowExtras] = useState(false);
-  const [dishWarning, setDishWarning] = useState(false);
 
   type TouchedState = {
     name?: boolean;
     phone?: boolean;
     email?: boolean;
-    dishes?: boolean;
     date?: boolean;
   };
   const [touched, setTouched] = useState<TouchedState>({});
@@ -146,9 +144,13 @@ export function BookingFlow({
     }
   }, [initialOptions]);
 
-  const targetExperience = options?.experiences[0] ?? null;
   const targetExperienceId =
-    initialExperienceId || targetExperience?.id || "family-dinner-marrakech";
+    initialExperienceId || options?.experiences[0]?.id || "family-dinner-marrakech";
+  const targetExperience =
+    options?.experiences.find((e) => e.id === targetExperienceId) ?? options?.experiences[0] ?? null;
+  const startTimeDisplay = targetExperience?.start_time
+    ? targetExperience.start_time.slice(0, 5)
+    : "19:30";
 
   // Filter slots for availability
   const relevantSlots = useMemo(
@@ -182,85 +184,43 @@ export function BookingFlow({
     [options, targetExperienceId],
   );
 
-  // WhatsApp prefilled link with chosen date, guests and dishes
+  // WhatsApp prefilled link with chosen date and guests
   const formattedDateEn = date ? formatDateInWords(date, "en") : "";
   const formattedDateFr = date ? formatDateInWords(date, "fr") : "";
   const formattedDateAr = date ? formatDateInWords(date, "ar") : "";
 
   const whatsappMessage = useMemo(() => {
-    const dishesList = selectedDishes.length > 0 ? selectedDishes.join(", ") : "";
     if (lang === "fr") {
       const datePart = formattedDateFr ? ` le ${formattedDateFr}` : "";
-      const dishPart = dishesList ? `. Plats : ${dishesList}` : "";
-      return `Bonjour, je souhaite réserver un dîner en famille marocaine pour ${guests} personne${guests > 1 ? "s" : ""}${datePart}${dishPart}.`;
+      return `Bonjour, je souhaite réserver un dîner en famille marocaine pour ${guests} personne${guests > 1 ? "s" : ""}${datePart}.`;
     }
     if (lang === "ar") {
       const datePart = formattedDateAr ? ` بتاريخ ${formattedDateAr}` : "";
-      const dishPart = dishesList ? `. الأطباق: ${dishesList}` : "";
-      return `مرحباً، أود حجز عشاء مع عائلة مغربية لـ ${guests} ضيوف${datePart}${dishPart}.`;
+      return `مرحباً، أود حجز عشاء مع عائلة مغربية لـ ${guests} ضيوف${datePart}.`;
     }
     const datePart = formattedDateEn ? ` on ${formattedDateEn}` : "";
-    const dishPart = dishesList ? `. Dishes: ${dishesList}` : "";
-    return `Hello, I would like to book a dinner with a Moroccan family for ${guests} guest${guests > 1 ? "s" : ""}${datePart}${dishPart}.`;
-  }, [lang, guests, formattedDateEn, formattedDateFr, formattedDateAr, selectedDishes]);
+    return `Hello, I would like to book a dinner with a Moroccan family for ${guests} guest${guests > 1 ? "s" : ""}${datePart}.`;
+  }, [lang, guests, formattedDateEn, formattedDateFr, formattedDateAr]);
 
   const waHref = options?.whatsapp
     ? `https://wa.me/${options.whatsapp}?text=${encodeURIComponent(whatsappMessage)}`
     : null;
 
-  const isDishSelected = (dish: (typeof MAIN_DISHES)[number]) => {
-    return selectedDishes.some(
-      (d) =>
-        d === dish.label[lang] ||
-        d === dish.label.en ||
-        d === dish.label.fr ||
-        d === dish.label.ar ||
-        d === dish.id,
-    );
-  };
-
-  const toggleDish = (dish: (typeof MAIN_DISHES)[number]) => {
-    setTouched((prev) => ({ ...prev, dishes: true }));
-    const isSelected = isDishSelected(dish);
-    if (isSelected) {
-      setDishWarning(false);
-      setSelectedDishes((prev) =>
-        prev.filter(
-          (d) =>
-            d !== dish.label[lang] &&
-            d !== dish.label.en &&
-            d !== dish.label.fr &&
-            d !== dish.label.ar &&
-            d !== dish.id,
-        ),
-      );
-    } else {
-      if (selectedDishes.length >= 2) {
-        setDishWarning(true);
-        return;
-      }
-      setDishWarning(false);
-      setSelectedDishes((prev) => [...prev, dish.label[lang]]);
-    }
-  };
-
   const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   const isNameValid = name.trim().length >= 2;
   const isPhoneValid = phone.trim().length >= 3;
-  const isDishesValid = selectedDishes.length === 2;
   const isDateValid = Boolean(date);
 
   // Stepper completion checks
   const step1Complete = isDateValid;
-  const step2Complete = guests >= 1 && isDishesValid;
+  const step2Complete = guests >= 1;
   const step3Complete = isNameValid && isPhoneValid && isEmailValid;
 
-  const canSubmit =
-    isDateValid && isNameValid && isPhoneValid && isEmailValid && guests >= 1 && isDishesValid;
+  const canSubmit = isDateValid && isNameValid && isPhoneValid && isEmailValid && guests >= 1;
 
   const handleSubmit = async (event?: React.FormEvent) => {
     if (event) event.preventDefault();
-    setTouched({ name: true, phone: true, email: true, dishes: true, date: true });
+    setTouched({ name: true, phone: true, email: true, date: true });
 
     if (!canSubmit) return;
 
@@ -276,7 +236,7 @@ export function BookingFlow({
       adults: guests,
       children: 0,
       infants: 0,
-      mealChoice: selectedDishes.join(", "),
+      mealChoice: "",
       privateGroup: false,
       dietaryNeeds: allergies.trim(),
       message: message.trim(),
@@ -379,7 +339,7 @@ export function BookingFlow({
                 <dt className="text-xs text-muted-foreground font-medium">
                   {lang === "fr" ? "Heure de début" : lang === "ar" ? "وقت البداية" : "Start time"}
                 </dt>
-                <dd className="font-bold text-foreground mt-0.5">19:00</dd>
+                <dd className="font-bold text-foreground mt-0.5">{startTimeDisplay}</dd>
               </div>
               <div>
                 <dt className="text-xs text-muted-foreground font-medium">
@@ -411,13 +371,29 @@ export function BookingFlow({
               <div className="sm:col-span-2">
                 <dt className="text-xs text-muted-foreground font-medium">
                   {lang === "fr"
-                    ? "Plats choisis (2)"
+                    ? "Conditions d'annulation"
                     : lang === "ar"
-                      ? "الأطباق المختارة (2)"
-                      : "Selected main dishes (2)"}
+                      ? "سياسة الإلغاء"
+                      : "Cancellation policy"}
                 </dt>
-                <dd className="font-semibold text-primary mt-0.5">
-                  {selectedDishes.join(", ") || "—"}
+                <dd className="font-medium text-foreground mt-0.5">
+                  {lang === "fr"
+                    ? "Remboursement intégral en annulant au moins 1 jour (24 h) avant ; aucun remboursement après."
+                    : lang === "ar"
+                      ? "استرداد كامل عند الإلغاء قبل يوم واحد (24 ساعة) على الأقل؛ ولا استرداد بعد ذلك."
+                      : "Full refund when cancelling at least 1 day (24 hours) before; nothing after."}
+                </dd>
+              </div>
+              <div className="sm:col-span-2">
+                <dt className="text-xs text-muted-foreground font-medium">
+                  {lang === "fr"
+                    ? "Lieu de rendez-vous public"
+                    : lang === "ar"
+                      ? "منطقة اللقاء العامة"
+                      : "Public meeting area"}
+                </dt>
+                <dd className="font-medium text-foreground mt-0.5">
+                  Bab Ghmat, Marrakech
                 </dd>
               </div>
               {allergies && (
@@ -499,10 +475,10 @@ export function BookingFlow({
                         : "3. You enjoy the evening."}
                   </strong>{" "}
                   {lang === "fr"
-                    ? "Accueil au thé, cuisine partagée, grand dîner et musique traditionnelle."
+                    ? "Dîner traditionnel fait maison, plats locaux et échanges culturels."
                     : lang === "ar"
-                      ? "استقبال بالشاي، مشاركة في الطبخ، عشاء أصيل وموسيقى تراثية."
-                      : "Welcome mint tea, cooking together, authentic table and traditional music."}
+                      ? "عشاء تقليدي منزلي، أطباق محلية وتبادل ثقافي."
+                      : "Traditional home-cooked dinner, local dishes and cultural exchange."}
                 </span>
               </li>
             </ol>
@@ -526,7 +502,6 @@ export function BookingFlow({
               onClick={() => {
                 setConfirmation(null);
                 setDate("");
-                setSelectedDishes([]);
                 setAllergies("");
                 setMessage("");
                 setTouched({});
@@ -602,7 +577,7 @@ export function BookingFlow({
               }`}
             />
 
-            {/* Step 2: Guests & dishes */}
+            {/* Step 2: Guests */}
             <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
               <div
                 className={`flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-full text-xs sm:text-sm font-bold transition-all ${
@@ -624,11 +599,7 @@ export function BookingFlow({
                       : "text-stone-400"
                 }`}
               >
-                {lang === "fr"
-                  ? "Invités & plats"
-                  : lang === "ar"
-                    ? "الضيوف والأطباق"
-                    : "Guests & dishes"}
+                {lang === "fr" ? "Invités" : lang === "ar" ? "الضيوف" : "Guests"}
               </span>
             </div>
 
@@ -826,7 +797,7 @@ export function BookingFlow({
             </div>
 
             {/* -------------------------------------------------------
-                SECTION 2: GUESTS & DISHES
+                SECTION 2: GUESTS
             ------------------------------------------------------- */}
             <div className="pt-6 border-t border-border/70 space-y-7">
               <div className="flex items-center gap-3 text-start">
@@ -835,10 +806,10 @@ export function BookingFlow({
                 </span>
                 <h3 className="font-display text-2xl font-bold text-foreground">
                   {lang === "fr"
-                    ? "Invités & plats"
+                    ? "Nombre d'invités"
                     : lang === "ar"
-                      ? "الضيوف والأطباق"
-                      : "Guests & dishes"}
+                      ? "عدد الضيوف"
+                      : "Number of guests"}
                 </h3>
               </div>
 
@@ -894,104 +865,6 @@ export function BookingFlow({
                         : "(1 to 8 guests per evening)"}
                   </span>
                 </div>
-              </div>
-
-              {/* Dishes selection: 7 tappable cards in two columns with green check and 1/2 counter */}
-              <div>
-                <div className="flex items-center justify-between gap-2">
-                  <Label className="text-sm font-semibold text-foreground">
-                    {lang === "fr"
-                      ? "Plats principaux (choix de 2)"
-                      : lang === "ar"
-                        ? "الأطباق الرئيسية (اختر طبقين)"
-                        : "Main dishes (choose 2)"}{" "}
-                    *
-                  </Label>
-                  <span
-                    className={`rounded-full px-3 py-1 text-xs font-bold transition-colors ${
-                      selectedDishes.length === 2
-                        ? "bg-gold text-oxblood border border-gold"
-                        : "bg-stone-100 text-stone-600 border border-stone-200"
-                    }`}
-                  >
-                    {selectedDishes.length}/2
-                  </span>
-                </div>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {lang === "fr"
-                    ? "Choisissez 2 plats qui seront préparés et partagés autour de la table."
-                    : lang === "ar"
-                      ? "اختر طبقين رئيسيين سيتم إعدادهما ومشاركتهما على المائدة."
-                      : "Choose 2 dishes to be prepared and shared around the family table."}
-                </p>
-
-                {/* Gentle 3rd selection blocking notice */}
-                {dishWarning && (
-                  <div
-                    role="status"
-                    className="mt-3 flex items-center gap-2 rounded-xl bg-amber-500/10 border border-amber-500/30 px-3.5 py-2.5 text-xs text-amber-900 font-medium"
-                  >
-                    <AlertCircle className="h-4 w-4 shrink-0 text-amber-700" />
-                    <span>
-                      {lang === "fr"
-                        ? "Vous pouvez choisir 2 plats maximum. Décochez-en un pour en choisir un autre."
-                        : lang === "ar"
-                          ? "يمكنك اختيار طبقين رئيسيين كحد أقصى. قم بإلغاء تحديد طبق لاختيار غيره."
-                          : "You can select up to 2 main dishes. Deselect one to pick another."}
-                    </span>
-                  </div>
-                )}
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mt-3">
-                  {MAIN_DISHES.map((dish) => {
-                    const checked = isDishSelected(dish);
-                    return (
-                      <button
-                        key={dish.id}
-                        type="button"
-                        onClick={() => toggleDish(dish)}
-                        className={`group relative flex items-center justify-between gap-3 rounded-xl border p-3.5 text-start transition-all cursor-pointer ${
-                          checked
-                            ? "border-oxblood bg-oxblood/5 shadow-xs ring-1 ring-oxblood"
-                            : "border-border/80 bg-white hover:border-oxblood/50 hover:bg-stone-50/50"
-                        }`}
-                      >
-                        <span
-                          className={`text-sm leading-snug ${
-                            checked ? "font-bold text-oxblood" : "font-medium text-foreground"
-                          }`}
-                        >
-                          {dish.label[lang]}
-                        </span>
-                        <span
-                          className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition-all ${
-                            checked
-                              ? "bg-oxblood text-white"
-                              : "border border-border/80 bg-stone-50 group-hover:border-oxblood/40"
-                          }`}
-                        >
-                          {checked && <Check className="h-3.5 w-3.5 stroke-[3]" />}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {touched.dishes && !isDishesValid && (
-                  <p
-                    role="alert"
-                    className="mt-2 text-xs font-semibold text-destructive flex items-center gap-1.5"
-                  >
-                    <AlertCircle className="h-4 w-4 shrink-0" />
-                    <span>
-                      {lang === "fr"
-                        ? "Veuillez choisir exactement 2 plats principaux."
-                        : lang === "ar"
-                          ? "يرجى اختيار طبقين رئيسيين بالضبط."
-                          : "Please choose exactly 2 main dishes."}
-                    </span>
-                  </p>
-                )}
               </div>
             </div>
 
@@ -1315,7 +1188,7 @@ export function BookingFlow({
                         <Clock className="h-4 w-4 text-primary shrink-0" />
                         <span>{lang === "fr" ? "Heure" : lang === "ar" ? "الوقت" : "Time"}</span>
                       </dt>
-                      <dd className="font-semibold text-foreground">19:00</dd>
+                      <dd className="font-semibold text-foreground">{startTimeDisplay}</dd>
                     </div>
 
                     <div className="flex items-center justify-between gap-3">
@@ -1341,46 +1214,39 @@ export function BookingFlow({
                       </dd>
                     </div>
 
-                    <div className="pt-2 border-t border-stone-200/60">
-                      <dt className="text-muted-foreground font-medium mb-1.5">
-                        {lang === "fr"
-                          ? "Plats principaux (2)"
-                          : lang === "ar"
-                            ? "الأطباق الرئيسية (2)"
-                            : "Main dishes (2)"}
-                        :
+                    <div className="flex items-center justify-between gap-3 pt-2 border-t border-stone-200/60">
+                      <dt className="text-muted-foreground font-medium flex items-center gap-1.5">
+                        <MapPin className="h-4 w-4 text-primary shrink-0" />
+                        <span>
+                          {lang === "fr"
+                            ? "Lieu de rendez-vous"
+                            : lang === "ar"
+                              ? "منطقة اللقاء"
+                              : "Meeting area"}
+                        </span>
                       </dt>
-                      <dd className="font-medium text-foreground">
-                        {selectedDishes.length > 0 ? (
-                          <ul className="space-y-1">
-                            {selectedDishes.map((dish, i) => (
-                              <li
-                                key={i}
-                                className="flex items-center gap-2 text-xs font-semibold text-primary"
-                              >
-                                <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-                                {dish}
-                              </li>
-                            ))}
-                            {selectedDishes.length < 2 && (
-                              <li className="text-xs text-muted-foreground italic">
-                                {lang === "fr"
-                                  ? "+ Choisissez encore 1 plat"
-                                  : lang === "ar"
-                                    ? "+ اختر طبقاً إضافياً"
-                                    : "+ Pick 1 more dish"}
-                              </li>
-                            )}
-                          </ul>
-                        ) : (
-                          <span className="text-xs text-muted-foreground italic font-normal">
-                            {lang === "fr"
-                              ? "Aucun plat sélectionné"
-                              : lang === "ar"
-                                ? "لم يتم تحديد أطباق بعد"
-                                : "No dishes selected yet"}
-                          </span>
-                        )}
+                      <dd className="font-semibold text-foreground text-end">
+                        Bab Ghmat, Marrakech
+                      </dd>
+                    </div>
+
+                    <div className="pt-2 border-t border-stone-200/60">
+                      <dt className="text-muted-foreground font-medium flex items-center gap-1.5 mb-1">
+                        <ShieldCheck className="h-4 w-4 text-primary shrink-0" />
+                        <span>
+                          {lang === "fr"
+                            ? "Conditions d'annulation"
+                            : lang === "ar"
+                              ? "سياسة الإلغاء"
+                              : "Cancellation policy"}
+                        </span>
+                      </dt>
+                      <dd className="font-medium text-foreground text-xs leading-relaxed">
+                        {lang === "fr"
+                          ? "Remboursement intégral en annulant au moins 1 jour (24 h) avant ; aucun remboursement après."
+                          : lang === "ar"
+                            ? "استرداد كامل عند الإلغاء قبل يوم واحد (24 ساعة) على الأقل؛ ولا استرداد بعد ذلك."
+                            : "Full refund when cancelling at least 1 day (24 hours) before; nothing after."}
                       </dd>
                     </div>
                   </dl>
@@ -1444,17 +1310,11 @@ export function BookingFlow({
                             : lang === "ar"
                               ? "اختر يوماً"
                               : "Pick a day"
-                          : selectedDishes.length !== 2
-                            ? lang === "fr"
-                              ? "Choisissez 2 plats"
-                              : lang === "ar"
-                                ? "اختر طبقين"
-                                : "Choose 2 dishes"
-                            : lang === "fr"
-                              ? "Complétez vos coordonnées"
-                              : lang === "ar"
-                                ? "أكمل بياناتك"
-                                : "Fill in your details"}
+                          : lang === "fr"
+                            ? "Complétez vos coordonnées"
+                            : lang === "ar"
+                              ? "أكمل بياناتك"
+                              : "Fill in your details"}
                       </p>
                     )}
                     <Button
@@ -1557,7 +1417,7 @@ export function BookingFlow({
                     <Clock className="h-4 w-4 text-primary shrink-0" />
                     <span>{lang === "fr" ? "Heure" : lang === "ar" ? "الوقت" : "Time"}</span>
                   </dt>
-                  <dd className="font-semibold text-foreground">19:00</dd>
+                  <dd className="font-semibold text-foreground">{startTimeDisplay}</dd>
                 </div>
 
                 <div className="flex items-center justify-between gap-3">
@@ -1581,46 +1441,39 @@ export function BookingFlow({
                   </dd>
                 </div>
 
-                <div className="pt-2 border-t border-stone-200/60">
-                  <dt className="text-muted-foreground font-medium mb-1.5">
-                    {lang === "fr"
-                      ? "Plats principaux (2)"
-                      : lang === "ar"
-                        ? "الأطباق الرئيسية (2)"
-                        : "Main dishes (2)"}
-                    :
+                <div className="flex items-center justify-between gap-3 pt-2 border-t border-stone-200/60">
+                  <dt className="text-muted-foreground font-medium flex items-center gap-1.5">
+                    <MapPin className="h-4 w-4 text-primary shrink-0" />
+                    <span>
+                      {lang === "fr"
+                        ? "Lieu de rendez-vous"
+                        : lang === "ar"
+                          ? "منطقة اللقاء"
+                          : "Meeting area"}
+                    </span>
                   </dt>
-                  <dd className="font-medium text-foreground">
-                    {selectedDishes.length > 0 ? (
-                      <ul className="space-y-1">
-                        {selectedDishes.map((dish, i) => (
-                          <li
-                            key={i}
-                            className="flex items-center gap-2 text-xs font-semibold text-primary"
-                          >
-                            <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-                            {dish}
-                          </li>
-                        ))}
-                        {selectedDishes.length < 2 && (
-                          <li className="text-xs text-muted-foreground italic">
-                            {lang === "fr"
-                              ? "+ Choisissez encore 1 plat"
-                              : lang === "ar"
-                                ? "+ اختر طبقاً إضافياً"
-                                : "+ Pick 1 more dish"}
-                          </li>
-                        )}
-                      </ul>
-                    ) : (
-                      <span className="text-xs text-muted-foreground italic font-normal">
-                        {lang === "fr"
-                          ? "Aucun plat sélectionné"
-                          : lang === "ar"
-                            ? "لم يتم تحديد أطباق بعد"
-                            : "No dishes selected yet"}
-                      </span>
-                    )}
+                  <dd className="font-semibold text-foreground text-end">
+                    Bab Ghmat, Marrakech
+                  </dd>
+                </div>
+
+                <div className="pt-2 border-t border-stone-200/60">
+                  <dt className="text-muted-foreground font-medium flex items-center gap-1.5 mb-1">
+                    <ShieldCheck className="h-4 w-4 text-primary shrink-0" />
+                    <span>
+                      {lang === "fr"
+                        ? "Conditions d'annulation"
+                        : lang === "ar"
+                          ? "سياسة الإلغاء"
+                          : "Cancellation policy"}
+                    </span>
+                  </dt>
+                  <dd className="font-medium text-foreground text-xs leading-relaxed">
+                    {lang === "fr"
+                      ? "Remboursement intégral en annulant au moins 1 jour (24 h) avant ; aucun remboursement après."
+                      : lang === "ar"
+                        ? "استرداد كامل عند الإلغاء قبل يوم واحد (24 ساعة) على الأقل؛ ولا استرداد بعد ذلك."
+                        : "Full refund when cancelling at least 1 day (24 hours) before; nothing after."}
                   </dd>
                 </div>
               </dl>

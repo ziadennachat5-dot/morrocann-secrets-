@@ -24,11 +24,20 @@ function CancellationPolicyPage() {
     <article className="mx-auto max-w-4xl px-5 py-16">
       <SectionHead eyebrow={t.booking.cancellationPolicy} title={t.booking.cancellationPolicy} />
       {tiers.length > 0 ? (
-        <ul className="mt-8 list-disc space-y-3 ps-5">
-          {formatCancellationTiers(tiers, lang).map((tier) => (
-            <li key={tier}>{tier}</li>
-          ))}
-        </ul>
+        <div className="mt-8 space-y-4">
+          <ul className="list-disc space-y-3 ps-5 text-foreground">
+            {formatCancellationTiers(tiers, lang).map((tier) => (
+              <li key={tier}>{tier}</li>
+            ))}
+          </ul>
+          <p className="text-sm text-muted-foreground">
+            {lang === "fr"
+              ? "Remboursement intégral en cas d'annulation au moins 1 jour (24 heures) avant le début ; aucun remboursement après ce délai."
+              : lang === "ar"
+                ? "استرداد كامل للمبلغ عند الإلغاء قبل يوم واحد (24 ساعة) على الأقل من موعد البداية؛ ولا يُسترد أي مبلغ بعد ذلك."
+                : "Full refund when cancelling at least 1 day (24 hours) before the start; no refund for cancellations made after that deadline."}
+          </p>
+        </div>
       ) : (
         <p role="status" className="mt-6 text-muted-foreground">
           {t.booking.policyMissing}

@@ -197,7 +197,7 @@ export const submitBooking = createServerFn({ method: "POST" })
       .eq("id", data.experienceId)
       .maybeSingle();
 
-    let mealChoiceParam = data.mealChoice || null;
+    let mealChoiceParam: string | null = null;
     const expMealOptions = Array.isArray(expResult.data?.meal_options)
       ? (expResult.data.meal_options as Array<Record<string, string>>)
       : [];
@@ -206,9 +206,11 @@ export const submitBooking = createServerFn({ method: "POST" })
         const val = opt[data.language] || opt["en"];
         return val === data.mealChoice;
       });
-      if (!match) {
-        mealChoiceParam = expMealOptions[0]?.[data.language] || expMealOptions[0]?.["en"] || null;
-      }
+      mealChoiceParam = match
+        ? data.mealChoice
+        : expMealOptions[0]?.[data.language] || expMealOptions[0]?.["en"] || null;
+    } else {
+      mealChoiceParam = null;
     }
 
     const booking = await supabaseAdmin.rpc("book_experience_atomic", {
