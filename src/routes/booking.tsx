@@ -962,7 +962,7 @@ export function BookingFlow({
                 </h3>
               </div>
 
-              {/* Number of guests stepper (- / number / +) limited to 1 to 8 */}
+              {/* Number of guests stepper (- / number / +) */}
               <div>
                 <Label className="text-sm font-semibold text-foreground mb-2 block">
                   {lang === "fr"
@@ -1000,18 +1000,18 @@ export function BookingFlow({
                           ? "زيادة عدد الضيوف"
                           : "Increase number of guests"
                     }
-                    disabled={guests >= 8}
-                    onClick={() => setGuests((g) => Math.min(8, g + 1))}
+                    disabled={guests >= 25}
+                    onClick={() => setGuests((g) => Math.min(25, g + 1))}
                     className="flex h-12 w-12 sm:h-13 sm:w-13 items-center justify-center rounded-full border border-stone-300 bg-white text-oxblood shadow-2xs hover:bg-stone-100 active:scale-95 transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
                   >
                     <Plus className="h-5 w-5" />
                   </button>
                   <span className="text-xs sm:text-sm text-muted-foreground ms-2">
                     {lang === "fr"
-                      ? "(1 à 8 personnes par soirée)"
+                      ? "(Aucune limite d'invités)"
                       : lang === "ar"
-                        ? "(من 1 إلى 8 ضيوف لكل أمسية)"
-                        : "(1 to 8 guests per evening)"}
+                        ? "(لا يوجد حد أقصى للضيوف)"
+                        : "(No guest limit)"}
                   </span>
                 </div>
               </div>

@@ -58,8 +58,8 @@ const experienceRecord = {
     ar: "حوالي 3 ساعات",
   },
   price: 23,
-  max_guests: 8,
-  min_guests: 2,
+  max_guests: 25,
+  min_guests: 1,
   start_time: "19:00",
   meal_options: [],
   included: [

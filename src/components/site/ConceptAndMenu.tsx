@@ -203,9 +203,9 @@ export const WHAT_IS_IT_TEXT = {
           ar: "كم عدد الضيوف؟",
         },
         a: {
-          en: "From 1 to 8 guests per seating.",
-          fr: "De 1 à 8 invités par créneau.",
-          ar: "من ضيف واحد إلى 8 ضيوف في كل موعد.",
+          en: "There is no limit for guests. Solo travelers, couples, families, and larger groups are all welcome.",
+          fr: "Il n'y a pas de limite d'invités. Voyageurs solos, couples, familles et grands groupes sont tous les bienvenus.",
+          ar: "لا يوجد حد لعدد الضيوف. نرحب بالمسافرين بمفردهم والأزواج والعائلات والمجموعات الكبيرة.",
         },
       },
       {

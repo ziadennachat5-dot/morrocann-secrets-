@@ -372,14 +372,6 @@ function HomePage() {
         ar: "طهي منزلي",
       },
     },
-    {
-      num: "8",
-      label: {
-        en: "Guests max",
-        fr: "Invités max",
-        ar: "ضيوف كحد أقصى",
-      },
-    },
   ];
 
   const sandBandItems = [
@@ -403,11 +395,11 @@ function HomePage() {
     },
     {
       icon: IconSmallGroups,
-      title: { en: "Small groups", fr: "Petits groupes", ar: "مجموعات صغيرة" },
+      title: { en: "Warm hospitality", fr: "Accueil chaleureux", ar: "ضيافة دافئة" },
       desc: {
-        en: "Meaningful, intimate experiences (1 to 8 guests)",
-        fr: "Expériences intimes et chaleureuses (1 à 8 personnes)",
-        ar: "تجارب حميمة وهادفة (من 1 إلى 8 ضيوف)",
+        en: "Meaningful, intimate experiences for everyone",
+        fr: "Expériences intimes et chaleureuses pour tous",
+        ar: "تجارب حميمة وأصيلة للجميع",
       },
     },
   ];
@@ -491,22 +483,17 @@ function HomePage() {
           <div className="w-full flex flex-col items-center">
             {/* Facts glass bar */}
             <div className="w-full rounded-2xl backdrop-blur-md bg-white/[0.12] border border-white/20 shadow-xl p-3 sm:p-4 lg:p-5 mt-4 sm:mt-6">
-              <div className="grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x rtl:sm:divide-x-reverse divide-white/20">
+              <div className="grid grid-cols-3 divide-x rtl:divide-x-reverse divide-white/20">
                 {heroFacts.map((fact, idx) => {
-                  const isOdd = idx % 2 === 0;
                   return (
                     <div
                       key={idx}
-                      className={`flex flex-col items-center justify-center text-center py-2 px-2 sm:px-4 ${
-                        isOdd
-                          ? "border-r rtl:border-r-0 rtl:border-l border-white/20 sm:border-0"
-                          : ""
-                      } ${idx >= 2 ? "pt-3 sm:pt-2" : "pb-3 sm:pb-2"}`}
+                      className="flex flex-col items-center justify-center text-center py-2 px-1 sm:px-4"
                     >
-                      <span className="font-display text-2xl sm:text-3xl lg:text-4xl font-semibold text-white tracking-tight leading-none">
+                      <span className="font-display text-xl sm:text-3xl lg:text-4xl font-semibold text-white tracking-tight leading-none">
                         {typeof fact.num === "string" ? fact.num : fact.num[lang]}
                       </span>
-                      <span className="text-xs sm:text-sm text-white/85 font-sans mt-1 sm:mt-1.5 font-medium tracking-wide">
+                      <span className="text-[11px] sm:text-sm text-white/85 font-sans mt-1 sm:mt-1.5 font-medium tracking-wide">
                         {fact.label[lang]}
                       </span>
                     </div>
