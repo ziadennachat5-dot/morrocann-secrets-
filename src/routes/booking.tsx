@@ -167,13 +167,13 @@ export function BookingFlow({
     null;
 
   const startTimeDisplay = useMemo(() => {
-    if (targetExperience?.id === "family-lunch-marrakech" || targetExperience?.start_time?.slice(0, 5) === "14:00") {
-      return lang === "fr" ? "14h00 – 16h00" : "14:00 – 16:00";
+    if (targetExperience?.id === "family-lunch-marrakech" || targetExperience?.start_time?.slice(0, 5) === "14:30") {
+      return lang === "fr" ? "14h30 – 17h00" : "14:30 – 17:00";
     }
-    if (targetExperience?.id === "family-dinner-marrakech" || targetExperience?.start_time?.slice(0, 5) === "19:30") {
-      return lang === "fr" ? "19h30 – 21h30" : "19:30 – 21:30";
+    if (targetExperience?.id === "family-dinner-marrakech" || targetExperience?.start_time?.slice(0, 5) === "19:00") {
+      return lang === "fr" ? "19h00 – 22h00" : "19:00 – 22:00";
     }
-    return targetExperience?.start_time?.slice(0, 5) || "19:30";
+    return targetExperience?.start_time?.slice(0, 5) || "19:00";
   }, [targetExperience, lang]);
 
   const experienceSubtitle = useMemo(() => {
@@ -233,9 +233,9 @@ export function BookingFlow({
     const mealEn = isLunch ? "lunch" : "dinner";
     const mealFr = isLunch ? "déjeuner" : "dîner";
     const mealAr = isLunch ? "غداء" : "عشاء";
-    const timeSlotEn = isLunch ? " (14:00 – 16:00)" : " (19:30 – 21:30)";
-    const timeSlotFr = isLunch ? " (14h00 – 16h00)" : " (19h30 – 21h30)";
-    const timeSlotAr = isLunch ? " (14:00 – 16:00)" : " (19:30 – 21:30)";
+    const timeSlotEn = isLunch ? " (14:30 – 17:00)" : " (19:00 – 22:00)";
+    const timeSlotFr = isLunch ? " (14h30 – 17h00)" : " (19h00 – 22h00)";
+    const timeSlotAr = isLunch ? " (14:30 – 17:00)" : " (19:00 – 22:00)";
 
     if (lang === "fr") {
       const datePart = formattedDateFr ? ` le ${formattedDateFr}${timeSlotFr}` : "";
@@ -750,10 +750,10 @@ export function BookingFlow({
                         </span>
                       </div>
                       <p className="text-xs font-semibold text-oxblood">
-                        {lang === "fr" ? "14h00 – 16h00" : "14:00 – 16:00"}
+                        {lang === "fr" ? "14h30 – 17h00" : "14:30 – 17:00"}
                       </p>
                       <p className="text-[11px] text-muted-foreground mt-0.5">
-                        {lang === "fr" ? "Environ 2 heures" : lang === "ar" ? "حوالي ساعتين" : "About 2 hours"}
+                        {lang === "fr" ? "Environ 2h30" : lang === "ar" ? "حوالي ساعتين ونصف" : "About 2.5 hours"}
                       </p>
                     </div>
                     <div
@@ -791,10 +791,10 @@ export function BookingFlow({
                         </span>
                       </div>
                       <p className="text-xs font-semibold text-oxblood">
-                        {lang === "fr" ? "19h30 – 21h30" : "19:30 – 21:30"}
+                        {lang === "fr" ? "19h00 – 22h00" : "19:00 – 22:00"}
                       </p>
                       <p className="text-[11px] text-muted-foreground mt-0.5">
-                        {lang === "fr" ? "Environ 2 heures" : lang === "ar" ? "حوالي ساعتين" : "About 2 hours"}
+                        {lang === "fr" ? "Environ 3 heures" : lang === "ar" ? "حوالي 3 ساعات" : "About 3 hours"}
                       </p>
                     </div>
                     <div

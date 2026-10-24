@@ -53,14 +53,14 @@ const experienceRecord = {
     ar: "يُستقبَل بكم في بيت عائلة مغربية في مراكش وتتقاسمون وجبة تقليدية منزلية على مائدتها. تتذوقون أطباقًا محلية معدّة بمكوّنات طازجة، وتحكي لكم العائلة عن حياتها اليومية وعن التقاليد المغربية.",
   },
   duration: {
-    en: "About 2 hours",
-    fr: "Environ 2 heures",
-    ar: "حوالي ساعتين",
+    en: "About 3 hours",
+    fr: "Environ 3 heures",
+    ar: "حوالي 3 ساعات",
   },
-  price: 500,
+  price: 23,
   max_guests: 8,
   min_guests: 2,
-  start_time: "19:30",
+  start_time: "19:00",
   meal_options: [],
   included: [
     {

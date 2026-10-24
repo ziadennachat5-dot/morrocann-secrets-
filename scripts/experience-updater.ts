@@ -46,11 +46,11 @@ export const UPDATED_DINNER_CONTENT = {
     ar: "يُستقبَل بكم في بيت عائلة مغربية في مراكش وتتقاسمون وجبة تقليدية منزلية على مائدتها. تتذوقون أطباقًا محلية معدّة بمكوّنات طازجة، وتحكي لكم العائلة عن حياتها اليومية وعن التقاليد المغربية.",
   },
   duration: {
-    en: "About 2 hours",
-    fr: "Environ 2 heures",
-    ar: "حوالي ساعتين",
+    en: "About 3 hours",
+    fr: "Environ 3 heures",
+    ar: "حوالي 3 ساعات",
   },
-  start_time: "19:30:00",
+  start_time: "19:00:00",
   included: [
     {
       en: "Home-cooked traditional dinner",
@@ -147,7 +147,7 @@ export function buildDinnerUpdate(existing: ExperienceRecord): Partial<Experienc
 
 /**
  * Creates the duplicate lunch experience from the updated dinner experience.
- * Starts at 14:00, unpublished, without a photo.
+ * Starts at 14:30, unpublished, without a photo.
  */
 export function buildLunchDuplicate(dinner: ExperienceRecord): Omit<ExperienceRecord, "created_at" | "updated_at"> {
   return {
@@ -158,7 +158,11 @@ export function buildLunchDuplicate(dinner: ExperienceRecord): Omit<ExperienceRe
       ar: "غداء مع عائلة مغربية",
     },
     blurb: dinner.blurb,
-    duration: dinner.duration,
+    duration: {
+      en: "About 2.5 hours",
+      fr: "Environ 2h30",
+      ar: "حوالي ساعتين ونصف",
+    },
     price: dinner.price,
     child_price: dinner.child_price,
     child_age_min: dinner.child_age_min ?? null,
@@ -166,7 +170,7 @@ export function buildLunchDuplicate(dinner: ExperienceRecord): Omit<ExperienceRe
     min_guests: dinner.min_guests,
     deposit_amount: dinner.deposit_amount ?? 0,
     max_guests: dinner.max_guests,
-    start_time: "14:00:00",
+    start_time: "14:30:00",
     meal_options: [],
     why_love: dinner.why_love,
     what_to_expect: dinner.what_to_expect,

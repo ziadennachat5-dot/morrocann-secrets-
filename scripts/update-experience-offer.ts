@@ -119,7 +119,7 @@ const { error: lunchError } = await supabaseAdmin.from("experiences").upsert(
 if (lunchError) {
   throw new Error(`Failed to upsert duplicate lunch experience: ${lunchError.message}`);
 }
-console.info(`[SUCCESS] Configured duplicate experience '${LUNCH_EXPERIENCE_ID}' (14:00, UNPUBLISHED, no photo).`);
+console.info(`[SUCCESS] Configured duplicate experience '${LUNCH_EXPERIENCE_ID}' (14:30, UNPUBLISHED, no photo).`);
 
 // 4. Create / update duplicate Ramadan iftar experience
 const iftarRecord = buildIftarDuplicate(updatedDinner as ExperienceRecord);

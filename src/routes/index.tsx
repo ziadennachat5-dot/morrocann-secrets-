@@ -345,7 +345,7 @@ function HomePage() {
 
   const heroFacts = [
     {
-      num: "14:00 & 19:30",
+      num: "14:30 & 19:00",
       label: {
         en: "Lunch & Dinner",
         fr: "Déjeuner & Dîner",
@@ -354,9 +354,9 @@ function HomePage() {
     },
     {
       num: {
-        en: "2h",
-        fr: "2h",
-        ar: "ساعتان",
+        en: "2.5h – 3h",
+        fr: "2h30 – 3h",
+        ar: "2.5 – 3 ساعات",
       },
       label: {
         en: "Duration",

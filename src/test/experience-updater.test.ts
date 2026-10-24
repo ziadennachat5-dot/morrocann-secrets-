@@ -66,17 +66,17 @@ describe("experience updater logic", () => {
     // Assert that status is unpublished
     expect(update.is_published).toBe(false);
 
-    // Assert updated start time is 19:30
-    expect(update.start_time).toBe("19:30:00");
+    // Assert updated start time is 19:00
+    expect(update.start_time).toBe("19:00:00");
 
     // Assert unconfirmed meal options are emptied
     expect(update.meal_options).toEqual([]);
 
     // Assert updated duration
     expect(update.duration).toEqual({
-      en: "About 2 hours",
-      fr: "Environ 2 heures",
-      ar: "حوالي ساعتين",
+      en: "About 3 hours",
+      fr: "Environ 3 heures",
+      ar: "حوالي 3 ساعات",
     });
 
     // Assert description removes cooking together / mint tea
@@ -112,7 +112,7 @@ describe("experience updater logic", () => {
     });
   });
 
-  it("builds lunch duplicate with start time 14:00, unpublished, and without photo", () => {
+  it("builds lunch duplicate with start time 14:30, unpublished, and without photo", () => {
     const updatedDinner: ExperienceRecord = {
       ...existingDinnerRecord,
       ...buildDinnerUpdate(existingDinnerRecord),
@@ -126,7 +126,12 @@ describe("experience updater logic", () => {
       fr: "Déjeuner chez une famille marocaine",
       ar: "غداء مع عائلة مغربية",
     });
-    expect(lunch.start_time).toBe("14:00:00");
+    expect(lunch.start_time).toBe("14:30:00");
+    expect(lunch.duration).toEqual({
+      en: "About 2.5 hours",
+      fr: "Environ 2h30",
+      ar: "حوالي ساعتين ونصف",
+    });
     expect(lunch.is_published).toBe(false);
     expect(lunch.image_url).toBe("");
     expect(lunch.image_alt).toBeNull();

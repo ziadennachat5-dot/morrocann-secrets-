@@ -154,16 +154,16 @@ export const WHAT_IS_IT_TEXT = {
       ar: "لمحة عن المواعيد اليومية",
     },
     duration: {
-      en: "Lunch 14:00–16:00 · Dinner 19:30–21:30",
-      fr: "Déjeuner 14h00–16h00 · Dîner 19h30–21h30",
-      ar: "الغداء 14:00–16:00 · العشاء 19:30–21:30",
+      en: "Lunch 14:30–17:00 · Dinner 19:00–22:00",
+      fr: "Déjeuner 14h30–17h00 · Dîner 19h00–22h00",
+      ar: "الغداء 14:30–17:00 · العشاء 19:00–22:00",
     },
     stops: [
       {
         label: {
-          en: "14:00 or 19:30 Welcome into the family home",
-          fr: "14h00 ou 19h30 Accueil dans la maison familiale",
-          ar: "14:00 أو 19:30 الاستقبال في بيت العائلة",
+          en: "14:30 or 19:00 Welcome into the family home",
+          fr: "14h30 ou 19h00 Accueil dans la maison familiale",
+          ar: "14:30 أو 19:00 الاستقبال في بيت العائلة",
         },
       },
       {
@@ -215,9 +215,9 @@ export const WHAT_IS_IT_TEXT = {
           ar: "كم تستغرق التجربة؟",
         },
         a: {
-          en: "About 2 hours. Choose between Lunch (14:00 to 16:00) or Dinner (19:30 to 21:30).",
-          fr: "Environ 2 heures. Au choix : Déjeuner (14h00 à 16h00) ou Dîner (19h30 à 21h30).",
-          ar: "حوالي ساعتين. يمكنك الاختيار بين الغداء (14:00 إلى 16:00) أو العشاء (19:30 إلى 21:30).",
+          en: "Lunch from 14:30 to 17:00 (about 2.5 hours), or Dinner from 19:00 to 22:00 (about 3 hours).",
+          fr: "Déjeuner de 14h30 à 17h00 (environ 2h30), ou Dîner de 19h00 à 22h00 (environ 3 heures).",
+          ar: "الغداء من 14:30 إلى 17:00 (حوالي ساعتين ونصف)، أو العشاء من 19:00 إلى 22:00 (حوالي 3 ساعات).",
         },
       },
       {
@@ -443,7 +443,7 @@ export function ConceptSection({
 
   const eveningStops = [
     {
-      time: "14:00 / 19:30",
+      time: "14:30 / 19:00",
       title: {
         en: "Welcome into the family home",
         fr: "Accueil dans la maison familiale",
