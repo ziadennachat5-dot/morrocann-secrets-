@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import type { Json, Tables } from "@/integrations/supabase/types";
 import { CatalogManager } from "@/components/admin/CatalogManager";
-import { GuestPhotoManager } from "@/components/admin/GuestPhotoManager";
 import { parseCancellationTiers, type CancellationTier } from "@/lib/booking-pricing";
 import { getCalendarSlotState, nextCalendarSlotState } from "@/lib/admin-calendar";
 import { updateAdminAvailabilitySlot } from "@/lib/admin.functions";
@@ -185,7 +184,6 @@ function AdminPage() {
   const [experiences, setExperiences] = useState<Tables<"experiences">[]>([]);
   const [availability, setAvailability] = useState<Availability[]>([]);
   const [settings, setSettings] = useState<SiteSetting[]>([]);
-  const [guestPhotos, setGuestPhotos] = useState<Tables<"guest_photos">[]>([]);
 
   // Calendar state
   const [availabilityExperience, setAvailabilityExperience] = useState("");
@@ -231,13 +229,12 @@ function AdminPage() {
   const refresh = useCallback(async () => {
     setBusy(true);
     setError("");
-    const [bookingResult, experienceResult, availabilityResult, settingsResult, guestPhotoResult] =
+    const [bookingResult, experienceResult, availabilityResult, settingsResult] =
       await Promise.all([
         supabase.from("bookings").select("*").order("date", { ascending: false }),
         supabase.from("experiences").select("*").order("id"),
         supabase.from("availability").select("*").order("date", { ascending: true }),
         supabase.from("site_settings").select("*").order("setting_key"),
-        supabase.from("guest_photos").select("*").order("sort_order", { ascending: true }),
       ]);
 
     const failure =
@@ -256,7 +253,6 @@ function AdminPage() {
     setExperiences(experienceResult.data ?? []);
     setAvailability(availabilityResult.data ?? []);
     setSettings(settingsResult.data ?? []);
-    setGuestPhotos(guestPhotoResult.data ?? []);
 
     if (experienceResult.data?.length) {
       setAvailabilityExperience((curr) => curr || experienceResult.data[0]!.id);
@@ -624,7 +620,6 @@ function AdminPage() {
               ["#admin-bookings", t.bookings],
               ["#admin-calendar", t.calendar],
               ["#admin-experiences", t.experiences],
-              ["#admin-photos", t.photos],
               ["#admin-settings", t.settings],
             ].map(([href, label]) => (
               <a
@@ -985,23 +980,7 @@ function AdminPage() {
         </section>
 
         {/* ====================================================================
-            SECTION 4: PHOTOS
-        ==================================================================== */}
-        <section id="admin-photos" className="mt-12 scroll-mt-24 border-t pt-8">
-          <div className="border-b pb-4">
-            <h2 className="text-2xl font-bold text-foreground">{t.photos}</h2>
-            <p className="text-sm text-muted-foreground">
-              Manage website gallery photos, guest consent, and folder sync
-            </p>
-          </div>
-
-          <div className="mt-6">
-            <GuestPhotoManager photos={guestPhotos} onRefresh={refresh} onError={setError} />
-          </div>
-        </section>
-
-        {/* ====================================================================
-            SECTION 5: SETTINGS
+            SECTION 4: SETTINGS
         ==================================================================== */}
         <section id="admin-settings" className="mt-12 scroll-mt-24 border-t pt-8 pb-16">
           <div className="border-b pb-4">
