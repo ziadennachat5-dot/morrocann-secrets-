@@ -12,12 +12,20 @@ export type HomepageVisibility = {
 
 export const DEFAULT_HOW_STEPS = [
   {
-    en: "Arrive and enjoy tea",
-    fr: "Arriver et partager un thé",
-    ar: "الوصول والاستمتاع بالشاي",
+    en: "Arrive and meet the family",
+    fr: "Arrivez et rencontrez la famille",
+    ar: "الوصول والتعرف على العائلة",
   },
-  { en: "Cook together", fr: "Cuisiner ensemble", ar: "الطبخ معًا" },
-  { en: "Eat slowly", fr: "Prendre le temps de manger", ar: "تناول الطعام على مهل" },
+  {
+    en: "Share the meal and taste local dishes",
+    fr: "Partagez le repas et goûtez les plats locaux",
+    ar: "مشاركة الوجبة وتذوق الأطباق المحلية",
+  },
+  {
+    en: "Hear their stories and traditions",
+    fr: "Écoutez leurs histoires et traditions",
+    ar: "الاستماع إلى قصصهم وتقاليدهم",
+  },
 ] as const;
 
 export function visibleHomepageSections(content: HomepageVisibility): string[] {

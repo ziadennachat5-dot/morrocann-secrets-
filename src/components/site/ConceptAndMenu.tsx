@@ -85,9 +85,9 @@ export const WHAT_IS_IT_TEXT = {
     ar: "ليس مطعماً وليس درساً في الطبخ. إنها أمسية على مائدة عائلة مغربية في مراكش، وأنت ضيفها.",
   },
   body: {
-    en: "You are welcomed into the family home with mint tea, you join in preparing the meal, and then you share the table, the stories and the music. You leave having tasted real home cooking and met real people.",
-    fr: "Vous êtes accueilli dans la maison avec un thé à la menthe, vous participez à la préparation du repas, puis vous partagez la table, les histoires et la musique. Vous repartez avec le goût d'une vraie cuisine de maison et de vraies rencontres.",
-    ar: "تُستقبل في بيت العائلة بكأس شاي بالنعناع، وتشارك في تحضير الوجبة، ثم تتقاسم المائدة والحكايات والموسيقى. تغادر وقد تذوقت طبخاً منزلياً حقيقياً والتقيت بأناس حقيقيين.",
+    en: "You are welcomed into a local family's home in Marrakech and share a traditional home-cooked meal at their table. You taste local dishes made with fresh local ingredients, and the family shares stories about daily life and Moroccan traditions.",
+    fr: "Vous êtes accueilli dans la maison d'une famille locale à Marrakech et partagez un repas traditionnel fait maison à sa table. Vous goûtez des plats locaux préparés avec des ingrédients frais, et la famille vous raconte son quotidien et les traditions marocaines.",
+    ar: "يُستقبَل بكم في بيت عائلة مغربية في مراكش وتتقاسمون وجبة تقليدية منزلية على مائدتها. تتذوقون أطباقًا محلية معدّة بمكوّنات طازجة، وتحكي لكم العائلة عن حياتها اليومية وعن التقاليد المغربية.",
   },
   pillars: [
     {
@@ -105,17 +105,17 @@ export const WHAT_IS_IT_TEXT = {
       },
     },
     {
-      id: "cook",
+      id: "homecooked",
       icon: ChefHat,
       title: {
-        en: "Cook together",
-        fr: "Cuisinez ensemble",
-        ar: "الطبخ معاً",
+        en: "Home-cooked meal",
+        fr: "Repas fait maison",
+        ar: "وجبة منزلية تقليدية",
       },
       desc: {
-        en: "Join the family in the kitchen and help prepare the meal.",
-        fr: "Rejoignez la famille en cuisine et aidez à préparer le repas.",
-        ar: "انضم إلى العائلة في المطبخ وساعد في تحضير الوجبة.",
+        en: "Enjoy authentic dishes prepared with fresh local ingredients.",
+        fr: "Savourez des plats authentiques préparés avec des ingrédients locaux frais.",
+        ar: "استمتعوا بأطباق أصيلة معدّة بمكونات محلية طازجة.",
       },
     },
     {
@@ -136,14 +136,14 @@ export const WHAT_IS_IT_TEXT = {
       id: "menu",
       icon: Utensils,
       title: {
-        en: "Your menu, your choice",
-        fr: "Votre menu, votre choix",
-        ar: "قائمتك، اختيارك",
+        en: "Traditional local dishes",
+        fr: "Plats traditionnels locaux",
+        ar: "أطباق محلية تقليدية",
       },
       desc: {
-        en: "Choose 2 of 7 main dishes. Starters, drinks and dessert are included. Tell us about allergies or diets in advance.",
-        fr: "Choisissez 2 plats parmi 7. Entrées, boissons et dessert inclus. Prévenez-nous à l'avance pour toute allergie ou régime.",
-        ar: "اختر طبقين من سبعة أطباق رئيسية. المقبلات والمشروبات والحلوى مشمولة. أخبرنا مسبقاً بأي حساسية أو نظام غذائي.",
+        en: "Home-cooked dishes made with fresh ingredients. Please let us know of any allergies or dietary needs in advance.",
+        fr: "Des plats faits maison préparés avec des ingrédients frais. Merci de nous signaler toute allergie à l'avance.",
+        ar: "أطباق منزلية بمكونات طازجة. يرجى إبلاغنا بأي حساسية أو متطلبات غذائية مسبقاً.",
       },
     },
   ],
@@ -154,37 +154,37 @@ export const WHAT_IS_IT_TEXT = {
       ar: "لمحة عن الأمسية",
     },
     duration: {
-      en: "About 3 hours",
-      fr: "Environ 3 heures",
-      ar: "حوالي 3 ساعات",
+      en: "About 2 hours",
+      fr: "Environ 2 heures",
+      ar: "حوالي ساعتين",
     },
     stops: [
       {
         label: {
-          en: "19:00 Welcome with mint tea",
-          fr: "19:00 Accueil au thé à la menthe",
-          ar: "19:00 الاستقبال بالشاي بالنعناع",
+          en: "19:30 Welcome into the family home",
+          fr: "19:30 Accueil dans la maison familiale",
+          ar: "19:30 الاستقبال في بيت العائلة",
         },
       },
       {
         label: {
-          en: "Cooking together",
-          fr: "Cuisiner ensemble",
-          ar: "الطبخ معاً",
+          en: "Traditional dinner & local dishes",
+          fr: "Dîner traditionnel & plats locaux",
+          ar: "عشاء تقليدي وأطباق محلية",
         },
       },
       {
         label: {
-          en: "Dinner around the table",
-          fr: "Dîner autour de la table",
-          ar: "العشاء حول المائدة",
+          en: "Stories, daily life & traditions",
+          fr: "Histoires, quotidien & traditions",
+          ar: "حكايات ويوميات وتقاليد",
         },
       },
       {
         label: {
-          en: "Stories, music and dessert",
-          fr: "Histoires, musique et dessert",
-          ar: "حكايات وموسيقى وحلوى",
+          en: "A sweet Moroccan dessert",
+          fr: "Dessert marocain",
+          ar: "تحلية مغربية",
         },
       },
     ],
@@ -215,9 +215,9 @@ export const WHAT_IS_IT_TEXT = {
           ar: "كم تستغرق التجربة؟",
         },
         a: {
-          en: "About 3 hours, starting at 19:00.",
-          fr: "Environ 3 heures, à partir de 19h00.",
-          ar: "حوالي 3 ساعات، ابتداءً من الساعة 19:00.",
+          en: "About 2 hours, starting at 19:30.",
+          fr: "Environ 2 heures, à partir de 19h30.",
+          ar: "حوالي ساعتين، ابتداءً من الساعة 19:30.",
         },
       },
       {
@@ -227,9 +227,9 @@ export const WHAT_IS_IT_TEXT = {
           ar: "أنا نباتي أو لدي حساسية غذائية.",
         },
         a: {
-          en: "A vegetarian tagine is on the menu. Tell us about allergies or other needs when you book.",
-          fr: "Un tajine végétarien est au menu. Indiquez-nous vos allergies ou régimes lors de votre réservation.",
-          ar: "يوجد طاجين نباتي في القائمة. أخبرنا بأي حساسية أو احتياجات عند الحجز.",
+          en: "Local dishes made with fresh ingredients can accommodate dietary needs. Please tell us about any allergies when you book.",
+          fr: "Les plats locaux préparés avec des ingrédients frais peuvent s'adapter. Merci de nous signaler toute allergie lors de la réservation.",
+          ar: "يمكن تكييف الأطباق المحلية الطازجة. يرجى إبلاغنا بأي حساسية عند الحجز.",
         },
       },
       {
@@ -257,9 +257,9 @@ export const CONCEPT_TEXT = {
 export const MENU_TEXT = {
   sectionTitle: { en: "The Menu", fr: "Le Menu", ar: "قائمة الطعام" },
   mainCoursesTitle: {
-    en: "Main course, choose 2",
-    fr: "Plat principal, choisissez-en 2",
-    ar: "الطبق الرئيسي، اختر 2",
+    en: "Main courses",
+    fr: "Plats principaux",
+    ar: "الأطباق الرئيسية",
   },
   includedTitle: {
     en: "Included with every meal",
@@ -277,9 +277,9 @@ export const MENU_TEXT = {
   drinks: {
     title: { en: "Drinks", fr: "Boissons", ar: "المشروبات" },
     desc: {
-      en: "Traditional Moroccan mint tea, mineral water",
-      fr: "Thé à la menthe marocain traditionnel, eau minérale",
-      ar: "شاي مغربي تقليدي بالنعناع، ومياه معدنية",
+      en: "Traditional beverages, mineral water",
+      fr: "Boissons traditionnelles, eau minérale",
+      ar: "مشروبات تقليدية، ومياه معدنية",
     },
   },
   dessert: {
@@ -386,9 +386,9 @@ const EXPERIENCE_TEXT = {
         ar: "اكتشف التقاليد المحلية",
       },
       text: {
-        en: "From tea rituals to Moroccan hospitality, experience the culture beyond the guidebooks.",
-        fr: "Du rituel du thé à l'hospitalité marocaine, vivez la culture bien au-delà des guides.",
-        ar: "من طقوس الشاي إلى كرم الضيافة المغربية، عش أصالة الثقافة بعيداً عن الكتيبات.",
+        en: "Discover genuine Moroccan hospitality and experience the culture beyond the guidebooks.",
+        fr: "Découvrez la véritable hospitalité marocaine et vivez la culture bien au-delà des guides.",
+        ar: "اكتشفوا كرم الضيافة المغربية الأصيلة وعيشوا الثقافة بعيداً عن الكتيبات السياحية.",
       },
     },
   ],
@@ -443,35 +443,35 @@ export function ConceptSection({
 
   const eveningStops = [
     {
-      time: "19:00",
+      time: "19:30",
       title: {
-        en: "Welcome with mint tea",
-        fr: "Accueil au thé à la menthe",
-        ar: "الاستقبال بالشاي بالنعناع",
+        en: "Welcome into the family home",
+        fr: "Accueil dans la maison familiale",
+        ar: "الاستقبال في بيت العائلة",
       },
     },
     {
       time: "02",
       title: {
-        en: "Cooking together",
-        fr: "Cuisiner ensemble",
-        ar: "الطبخ معاً",
+        en: "Traditional home-cooked dinner",
+        fr: "Dîner traditionnel fait maison",
+        ar: "عشاء تقليدي منزلي",
       },
     },
     {
       time: "03",
       title: {
-        en: "Dinner around the table",
-        fr: "Dîner autour de la table",
-        ar: "العشاء حول المائدة",
+        en: "Taste fresh local dishes",
+        fr: "Dégustation de plats locaux",
+        ar: "تذوق أطباق محلية طازجة",
       },
     },
     {
       time: "04",
       title: {
-        en: "Stories, music and dessert",
-        fr: "Histoires, musique et dessert",
-        ar: "حكايات وموسيقى وحلوى",
+        en: "Stories, daily life and traditions",
+        fr: "Histoires, quotidien et traditions",
+        ar: "قصص ويوميات وتقاليد",
       },
     },
   ];
@@ -641,9 +641,9 @@ export function MenuSection({
     eyebrow: { en: "THE MENU", fr: "LE MENU", ar: "قائمة الطعام" },
     title: { en: "A taste of Morocco.", fr: "Un goût du Maroc.", ar: "مذاق المغرب الأصيل." },
     chooseDishes: {
-      en: "Choose 2 main dishes",
-      fr: "Choisissez 2 plats principaux",
-      ar: "اختر طبقين رئيسيين",
+      en: "Traditional Moroccan dishes",
+      fr: "Plats marocains traditionnels",
+      ar: "أطباق مغربية تقليدية",
     },
     included: {
       en: "Included with every meal: starters, drinks, dessert",
@@ -678,7 +678,7 @@ export function MenuSection({
           </h2>
           <span className="gold-line mb-8" />
 
-          {/* Choose 2 main dishes */}
+          {/* Traditional main dishes */}
           <h3 className="font-display text-xl xl:text-2xl font-bold text-gold mb-4">
             {menuHeadings.chooseDishes[lang]}
           </h3>
@@ -794,7 +794,7 @@ export function MenuSection({
           </h2>
           <span className="gold-line mb-6" />
 
-          {/* Choose 2 main dishes */}
+          {/* Traditional main dishes */}
           <h3 className="font-display text-lg sm:text-xl font-bold text-gold mb-3">
             {menuHeadings.chooseDishes[lang]}
           </h3>

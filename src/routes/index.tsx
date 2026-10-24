@@ -65,40 +65,6 @@ export const Route = createFileRoute("/")({
   component: HomePage,
 });
 
-const HOW_IT_WORKS_STEPS = [
-  {
-    num: "01",
-    title: {
-      en: "Arrive and enjoy tea",
-      fr: "Arrivez et savourez le thé",
-      ar: "الوصول والاستمتاع بالشاي",
-    },
-    desc: {
-      en: "You are welcomed into the family home with Moroccan mint tea.",
-      fr: "Vous êtes accueillis dans la maison familiale avec un thé à la menthe marocain traditionnel.",
-      ar: "تستقبلكم العائلة في بيتها بالشاي المغربي الأصيل بالنعناع.",
-    },
-  },
-  {
-    num: "02",
-    title: { en: "Cook together", fr: "Cuisinez ensemble", ar: "الطبخ معاً" },
-    desc: {
-      en: "Join the family in the kitchen and help prepare the meal.",
-      fr: "Rejoignez la famille en cuisine et participez à la préparation du repas.",
-      ar: "شارك العائلة في المطبخ وساهم في إعداد وجبة العشاء.",
-    },
-  },
-  {
-    num: "03",
-    title: { en: "Eat slowly", fr: "Prenez le temps de manger", ar: "تناول الطعام بهدوء" },
-    desc: {
-      en: "Share the table, the stories and the music.",
-      fr: "Partagez la table, les anecdotes et la musique authentique.",
-      ar: "شارك المائدة، والحكايات العائلية والموسيقى الأصيلة.",
-    },
-  },
-] as const;
-
 function HeroVideo() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [reduceMotion, setReduceMotion] = useState(false);
@@ -299,44 +265,44 @@ function HomePage() {
   const howItWorksSteps = [
     {
       num: "1",
-      icon: IconStepCalendar,
+      icon: IconLocalFamilies,
       title: {
-        en: "Choose your date",
-        fr: "Choisissez votre date",
-        ar: "اختر موعدك",
+        en: "Arrive and meet the family",
+        fr: "Arrivez et rencontrez la famille",
+        ar: "الوصول والتعرف على العائلة",
       },
       desc: {
-        en: "Pick an available evening that fits your schedule in Marrakech.",
-        fr: "Sélectionnez une soirée disponible selon vos dates de séjour à Marrakech.",
-        ar: "اختر أمسية متاحة تناسب برنامج رحلتك في مراكش.",
+        en: "You are welcomed into a local family's home in Marrakech.",
+        fr: "Vous êtes accueilli dans la maison d'une famille locale à Marrakech.",
+        ar: "يُستقبل بكم في بيت عائلة محلية في مراكش.",
       },
     },
     {
       num: "2",
-      icon: IconStepConfirm,
+      icon: IconHomeCooked,
       title: {
-        en: "Send your request, the host confirms",
-        fr: "Envoyez votre demande, l'hôte confirme",
-        ar: "أرسل طلبك، والمضيف يؤكد",
+        en: "Share the meal and taste local dishes",
+        fr: "Partagez le repas et goûtez les plats locaux",
+        ar: "مشاركة الوجبة وتذوق الأطباق المحلية",
       },
       desc: {
-        en: "Fill in your details and dishes; the local family confirms your table.",
-        fr: "Indiquez vos plats choisis et coordonnées ; la famille locale confirme votre table.",
-        ar: "حدد أطباقك المفضلة وبياناتك، وستؤكد العائلة المحلية حجزك.",
+        en: "Share a traditional home-cooked meal made with fresh local ingredients at their table.",
+        fr: "Partagez un repas traditionnel fait maison à sa table et goûtez des plats locaux préparés avec des ingrédients frais.",
+        ar: "تتقاسمون وجبة تقليدية منزلية على مائدتها وتتذوقون أطباقًا محلية معدّة بمكوّنات طازجة.",
       },
     },
     {
       num: "3",
       icon: IconStepEnjoy,
       title: {
-        en: "Enjoy the evening",
-        fr: "Profitez de la soirée",
-        ar: "استمتع بالأمسية",
+        en: "Hear their stories and traditions",
+        fr: "Écoutez leurs histoires et traditions",
+        ar: "الاستماع إلى قصصهم وتقاليدهم",
       },
       desc: {
-        en: "Share tea, cook together, and gather around the family table.",
-        fr: "Partagez le thé, cuisinez ensemble et savourez le dîner autour de la table.",
-        ar: "شارك الشاي، اطبخوا معاً، واجتمعوا حول مائدة العائلة الدافئة.",
+        en: "The family shares stories about daily life and Moroccan traditions.",
+        fr: "La famille vous raconte son quotidien et les traditions marocaines.",
+        ar: "تحكي لكم العائلة عن حياتها اليومية وعن التقاليد المغربية.",
       },
     },
   ];
@@ -379,7 +345,7 @@ function HomePage() {
 
   const heroFacts = [
     {
-      num: "19:00",
+      num: "19:30",
       label: {
         en: "Start",
         fr: "Début",
@@ -388,22 +354,22 @@ function HomePage() {
     },
     {
       num: {
-        en: "3h",
-        fr: "3h",
-        ar: "3 ساعات",
+        en: "2h",
+        fr: "2h",
+        ar: "ساعتان",
       },
       label: {
-        en: "Together",
-        fr: "Ensemble",
-        ar: "معاً",
+        en: "Duration",
+        fr: "Durée",
+        ar: "المدة",
       },
     },
     {
-      num: "2",
+      num: "100%",
       label: {
-        en: "Dishes to choose",
-        fr: "Plats au choix",
-        ar: "أطباق للاختيار",
+        en: "Home-cooked",
+        fr: "Fait maison",
+        ar: "طهي منزلي",
       },
     },
     {

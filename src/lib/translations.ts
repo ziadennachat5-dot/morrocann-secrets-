@@ -9,7 +9,7 @@ const en = {
     },
     experiences: {
       title: "Moroccan home dining experiences in Marrakesh",
-      description: "Explore the dining and cooking experiences currently published by our hosts.",
+      description: "Explore the home dining experiences currently published by our hosts.",
     },
     families: {
       title: "Meet our Moroccan host families",
@@ -85,7 +85,7 @@ const en = {
     eyebrow: "Marrakesh · Home dining",
     title: "Sit at a Moroccan family's table",
     subtitle:
-      "Cook, laugh and share a slow evening meal in the riad of a local family — the Morocco guidebooks can't show you.",
+      "Share a warm traditional home-cooked meal in the home of a local family — the Morocco guidebooks can't show you.",
     cta: "Book your evening",
     secondary: "See experiences",
   },
@@ -94,16 +94,16 @@ const en = {
     title: "One evening, three gentle moments",
     steps: [
       {
-        t: "Arrive & mint tea",
-        d: "You're welcomed at the riad door and poured sweet mint tea from on high, the way it's always been done.",
+        t: "Arrive and meet the family",
+        d: "You are welcomed into a local family's home in Marrakech.",
       },
       {
-        t: "Cook together",
-        d: "Roll couscous, fold briouates and spice the tagine side by side with your hosts in their kitchen.",
+        t: "Share the meal and taste local dishes",
+        d: "Share a traditional home-cooked meal made with fresh local ingredients at the family table.",
       },
       {
-        t: "Eat slowly",
-        d: "Gather around one shared table in the courtyard. No rush, no script — just conversation.",
+        t: "Hear their stories and traditions",
+        d: "The family shares stories about daily life and Moroccan traditions.",
       },
     ],
   },
@@ -386,7 +386,7 @@ const fr: Dict = {
     experiences: {
       title: "Expériences culinaires chez l'habitant à Marrakech",
       description:
-        "Découvrez les expériences de cuisine et de repas actuellement publiées par nos hôtes.",
+        "Découvrez les expériences de repas traditionnels actuellement publiées par nos hôtes.",
     },
     families: {
       title: "Rencontrez nos familles d'accueil marocaines",
@@ -467,7 +467,7 @@ const fr: Dict = {
     eyebrow: "Marrakech · Dîner chez l'habitant",
     title: "Prenez place à la table d'une famille marocaine",
     subtitle:
-      "Cuisinez, riez et partagez un dîner sans hâte dans le riad d'une famille locale — le Maroc que les guides ne montrent pas.",
+      "Partagez un repas traditionnel fait maison dans la maison d'une famille locale — le Maroc que les guides ne montrent pas.",
     cta: "Réservez votre soirée",
     secondary: "Voir les expériences",
   },
@@ -476,16 +476,16 @@ const fr: Dict = {
     title: "Une soirée, trois moments doux",
     steps: [
       {
-        t: "Arrivée & thé à la menthe",
-        d: "On vous accueille à la porte du riad avec un thé à la menthe versé de haut, comme le veut la tradition.",
+        t: "Arrivez et rencontrez la famille",
+        d: "Vous êtes accueilli dans la maison d'une famille locale à Marrakech.",
       },
       {
-        t: "Cuisiner ensemble",
-        d: "Roulez le couscous, pliez les briouates et épicez le tajine aux côtés de vos hôtes.",
+        t: "Partagez le repas et goûtez les plats locaux",
+        d: "Partagez un repas traditionnel fait maison à sa table et goûtez des plats locaux préparés avec des ingrédients frais.",
       },
       {
-        t: "Manger lentement",
-        d: "Réunis autour d'une grande table dans le patio. Pas de hâte, pas de script — juste la conversation.",
+        t: "Écoutez leurs histoires et traditions",
+        d: "La famille vous raconte son quotidien et les traditions marocaines.",
       },
     ],
   },
@@ -771,7 +771,7 @@ const ar: Dict = {
     },
     experiences: {
       title: "تجارب تناول الطعام المنزلي في مراكش",
-      description: "اكتشف تجارب الطعام والطهي المنشورة حالياً من قبل مضيفينا.",
+      description: "اكتشف تجارب الطعام المنزلي المنشورة حالياً من قبل مضيفينا.",
     },
     families: {
       title: "تعرّف على عائلاتنا المغربية المضيفة",
@@ -845,7 +845,7 @@ const ar: Dict = {
     eyebrow: "مراكش · عشاء في البيت",
     title: "اجلس إلى مائدة عائلة مغربية",
     subtitle:
-      "اطبخ واضحك وشارك عشاءً هادئاً في رياض عائلة محلية — المغرب الذي لا تُريك إياه الكتب السياحية.",
+      "شارك وجبة تقليدية منزلية دافئة في بيت عائلة محلية — المغرب الذي لا تريك إياه الكتب السياحية.",
     cta: "احجز أمسيتك",
     secondary: "اكتشف التجارب",
   },
@@ -854,11 +854,17 @@ const ar: Dict = {
     title: "أمسية واحدة، ثلاث لحظات دافئة",
     steps: [
       {
-        t: "الوصول وأتاي بالنعناع",
-        d: "نستقبلك عند باب الرياض بكأس أتاي بالنعناع يُصب من عَلٍ كما جرت العادة.",
+        t: "الوصول والتعرف على العائلة",
+        d: "يُستقبل بكم في بيت عائلة محلية في مراكش.",
       },
-      { t: "نطبخ معاً", d: "افتل الكسكس، ولُفّ البريوات، وتبّل الطاجين جنباً إلى جنب مع مضيفيك." },
-      { t: "نأكل على مهل", d: "نجتمع حول مائدة واحدة في صحن الرياض. بلا استعجال — فقط حديث طيب." },
+      {
+        t: "مشاركة الوجبة وتذوق الأطباق المحلية",
+        d: "تتقاسمون وجبة تقليدية منزلية على مائدتها وتتذوقون أطباقًا محلية معدّة بمكوّنات طازجة.",
+      },
+      {
+        t: "الاستماع إلى قصصهم وتقاليدهم",
+        d: "تحكي لكم العائلة عن حياتها اليومية وعن التقاليد المغربية.",
+      },
     ],
   },
   menu: {

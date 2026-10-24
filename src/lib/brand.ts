@@ -7,7 +7,7 @@ export const BRAND_NAME = "Moroccan Secrets Riad";
 export const BRAND_SHORT = "Riad";
 export const TAGLINE = "Dine with a Moroccan family in Marrakesh";
 export const BRAND_DESCRIPTION =
-  "Sit at a Moroccan family's table: mint tea, cooking together and a slow home-cooked dinner in a Marrakesh riad.";
+  "Sit at a Moroccan family's table: share a traditional home-cooked meal, taste local dishes and discover authentic Moroccan traditions.";
 
 export const BRAND_META = {
   name: BRAND_NAME,
