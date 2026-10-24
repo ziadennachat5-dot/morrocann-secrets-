@@ -196,10 +196,10 @@ export function BookingFlow({
     () =>
       options
         ? options.availability.filter(
-            (slot) => slot.experienceId === targetExperienceId && slot.remaining >= guests,
+            (slot) => slot.experienceId === targetExperienceId && slot.remaining > 0,
           )
         : [],
-    [options, targetExperienceId, guests],
+    [options, targetExperienceId],
   );
 
   const availableDates = useMemo(
@@ -815,6 +815,7 @@ export function BookingFlow({
               <div className="flex flex-col items-center">
                 <Calendar
                   mode="single"
+                  required
                   startMonth={new Date()}
                   dir={lang === "ar" ? "rtl" : "ltr"}
                   selected={date ? new Date(`${date}T12:00:00`) : undefined}
@@ -825,8 +826,6 @@ export function BookingFlow({
                       const m = String(selected.getMonth() + 1).padStart(2, "0");
                       const d = String(selected.getDate()).padStart(2, "0");
                       setDate(`${y}-${m}-${d}`);
-                    } else {
-                      setDate("");
                     }
                   }}
                   disabled={(d) =>
@@ -910,7 +909,7 @@ export function BookingFlow({
                       <div className="text-end shrink-0">
                         <span className="inline-flex items-center gap-1.5 rounded-full bg-primary text-white px-3.5 py-1.5 text-xs font-bold shadow-xs">
                           <Clock className="h-3.5 w-3.5" />
-                          19:00
+                          {targetExperience?.id === "family-lunch-marrakech" ? "14:30" : "19:00"}
                         </span>
                       </div>
                     </div>
