@@ -4,9 +4,14 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import type { Json, Tables } from "@/integrations/supabase/types";
 import { CatalogManager } from "@/components/admin/CatalogManager";
-import { parseCancellationTiers, type CancellationTier } from "@/lib/booking-pricing";
-import { getCalendarSlotState, nextCalendarSlotState } from "@/lib/admin-calendar";
-import { updateAdminAvailabilitySlot } from "@/lib/admin.functions";
+import {
+  filterDatesByDayType,
+  getCalendarSlotState,
+  getDatesInMonth,
+  getDatesInRange,
+  nextCalendarSlotState,
+} from "@/lib/admin-calendar";
+import { updateAdminAvailabilityBatch, updateAdminAvailabilitySlot } from "@/lib/admin.functions";
 
 type Booking = Tables<"bookings">;
 type Availability = Tables<"availability">;
@@ -50,12 +55,34 @@ const ADMIN_I18N = {
     noBookings: "No booking requests yet.",
     calendarTitle: "Availability calendar",
     calendarDesc:
-      "Tap any day to cycle: Available (Green) → Fully booked (Orange) → Closed (Grey). Changes appear immediately on the website.",
+      "Tap days to change availability, or use the quick bulk tools below to set all days at once.",
     available: "Available",
     fullyBooked: "Fully booked",
     closed: "Closed",
     capacity: "Capacity per day",
     selectExperience: "Choose experience",
+    bulkUpdate: "Bulk update days",
+    targetStatus: "Choose status to apply",
+    applyToMonth: "All days in this month",
+    applyToUpcoming: "From today onwards",
+    applyToWeekdays: "Weekdays (Mon–Fri)",
+    applyToWeekends: "Weekends (Sat–Sun)",
+    applyToSelected: "Apply to selected days",
+    customRange: "Date range",
+    fromDate: "From",
+    toDate: "To",
+    allExperiences: "Apply to all experiences",
+    applyChanges: "Apply",
+    applying: "Applying…",
+    bulkSuccess: "Successfully updated availability",
+    bulkError: "Could not update availability",
+    clickAction: "Tap behavior",
+    clickActionDirect: "Direct apply chosen status",
+    clickActionCycle: "Cycle status on tap",
+    multiSelect: "Multi-select days",
+    selectAllMonth: "Select all in month",
+    clearSelection: "Clear selection",
+    daysSelected: "days selected",
     whatsappNumber: "WhatsApp number (with country code, e.g. 212600123456)",
     publicEmail: "Public contact email",
     cancellationPolicy: "Cancellation policy",
@@ -96,12 +123,34 @@ const ADMIN_I18N = {
     noBookings: "Aucune demande de réservation pour le moment.",
     calendarTitle: "Calendrier des disponibilités",
     calendarDesc:
-      "Appuyez sur un jour pour changer : Disponible (Vert) → Complet (Orange) → Fermé (Gris). Visible immédiatement sur le site.",
+      "Appuyez sur un jour pour changer sa disponibilité, ou utilisez les outils ci-dessous pour modifier tous les jours à la fois.",
     available: "Disponible",
     fullyBooked: "Complet",
     closed: "Fermé",
     capacity: "Capacité par jour",
     selectExperience: "Choisir l'expérience",
+    bulkUpdate: "Modifier plusieurs jours",
+    targetStatus: "Statut à appliquer",
+    applyToMonth: "Tous les jours du mois",
+    applyToUpcoming: "À partir d'aujourd'hui",
+    applyToWeekdays: "Jours de semaine (Lun–Ven)",
+    applyToWeekends: "Week-ends uniquement (Sam–Dim)",
+    applyToSelected: "Appliquer aux jours sélectionnés",
+    customRange: "Plage de dates",
+    fromDate: "Du",
+    toDate: "Au",
+    allExperiences: "Appliquer à toutes les expériences",
+    applyChanges: "Appliquer",
+    applying: "Application en cours…",
+    bulkSuccess: "Disponibilité mise à jour avec succès",
+    bulkError: "Impossible de mettre à jour les disponibilités",
+    clickAction: "Mode de clic",
+    clickActionDirect: "Appliquer directement le statut choisi",
+    clickActionCycle: "Changer en boucle (Disponible → Complet → Fermé)",
+    multiSelect: "Sélection multiple",
+    selectAllMonth: "Tout sélectionner ce mois",
+    clearSelection: "Effacer la sélection",
+    daysSelected: "jours sélectionnés",
     whatsappNumber: "Numéro WhatsApp (avec indicatif, ex. 212600123456)",
     publicEmail: "E-mail public de contact",
     cancellationPolicy: "Politique d'annulation",
@@ -142,12 +191,34 @@ const ADMIN_I18N = {
     noBookings: "لا توجد طلبات حجز بعد.",
     calendarTitle: "تقويم المواعيد المتاحة",
     calendarDesc:
-      "انقر على أي يوم لتغيير حالته: متاح (أخضر) ← محجوز بالكامل (برتقالي) ← مغلق (رمادي). التغيير يظهر فوراً في الموقع.",
+      "انقر على أي يوم لتغيير توفره، أو استخدم أدوات التحديث الجماعي لتعديل جميع الأيام دفعة واحدة.",
     available: "متاح",
     fullyBooked: "محجوز بالكامل",
     closed: "مغلق",
     capacity: "السعة اليومية",
     selectExperience: "اختر التجربة",
+    bulkUpdate: "تحديث جماعي للأيام",
+    targetStatus: "الحالة المراد تطبيقها",
+    applyToMonth: "جميع أيام هذا الشهر",
+    applyToUpcoming: "ابتداءً من اليوم",
+    applyToWeekdays: "أيام الأسبوع (الإثنين–الجمعة)",
+    applyToWeekends: "عطلة نهاية الأسبوع (السبت–الأحد)",
+    applyToSelected: "تطبيق على الأيام المحددة",
+    customRange: "نطاق تواريخ مخصص",
+    fromDate: "من",
+    toDate: "إلى",
+    allExperiences: "تطبيق على جميع التجارب",
+    applyChanges: "تطبيق",
+    applying: "جارٍ التطبيق…",
+    bulkSuccess: "تم تحديث التوفر بنجاح",
+    bulkError: "تعذر تحديث التوفر",
+    clickAction: "سلوك النقر",
+    clickActionDirect: "تطبيق الحالة المحددة مباشرة",
+    clickActionCycle: "التبديل دورياً (متاح ← محجوز ← مغلق)",
+    multiSelect: "تحديد أيام متعددة",
+    selectAllMonth: "تحديد كل أيام الشهر",
+    clearSelection: "إلغاء التحديد",
+    daysSelected: "أيام محددة",
     whatsappNumber: "رقم واتساب (مع رمز الدولة، مثلاً 212600123456)",
     publicEmail: "البريد الإلكتروني للتواصل",
     cancellationPolicy: "شروط الإلغاء",
@@ -187,11 +258,27 @@ function AdminPage() {
 
   // Calendar state
   const [availabilityExperience, setAvailabilityExperience] = useState("");
-  const [availabilityCapacity, setAvailabilityCapacity] = useState("8");
+  const [availabilityCapacity, setAvailabilityCapacity] = useState("25");
   const [calendarMonth, setCalendarMonth] = useState(
     () => new Date(new Date().getFullYear(), new Date().getMonth(), 1),
   );
   const [calendarMessage, setCalendarMessage] = useState("");
+  const [targetStatus, setTargetStatus] = useState<"available" | "booked" | "closed">("available");
+  const [clickMode, setClickMode] = useState<"direct" | "cycle">("direct");
+  const [multiSelectMode, setMultiSelectMode] = useState(false);
+  const [selectedDates, setSelectedDates] = useState<Set<string>>(new Set());
+  const [rangeStart, setRangeStart] = useState("");
+  const [rangeEnd, setRangeEnd] = useState("");
+  const [applyToAllExps, setApplyToAllExps] = useState(false);
+  const [isBulkUpdating, setIsBulkUpdating] = useState(false);
+
+  useEffect(() => {
+    if (!availabilityExperience || experiences.length === 0) return;
+    const exp = experiences.find((e) => e.id === availabilityExperience);
+    if (exp?.max_guests) {
+      setAvailabilityCapacity(String(exp.max_guests));
+    }
+  }, [availabilityExperience, experiences]);
 
   // Settings form state
   const [settingWhatsapp, setSettingWhatsapp] = useState("");
@@ -229,13 +316,14 @@ function AdminPage() {
   const refresh = useCallback(async () => {
     setBusy(true);
     setError("");
-    const [bookingResult, experienceResult, availabilityResult, settingsResult] =
-      await Promise.all([
+    const [bookingResult, experienceResult, availabilityResult, settingsResult] = await Promise.all(
+      [
         supabase.from("bookings").select("*").order("date", { ascending: false }),
         supabase.from("experiences").select("*").order("id"),
         supabase.from("availability").select("*").order("date", { ascending: true }),
         supabase.from("site_settings").select("*").order("setting_key"),
-      ]);
+      ],
+    );
 
     const failure =
       bookingResult.error ||
@@ -408,8 +496,8 @@ function AdminPage() {
 
     const currentState = getCalendarSlotState(slot ?? null, activeGuests);
     const nextState = nextCalendarSlotState(currentState);
-    const capacity = Number(availabilityCapacity) || 8;
-    const targetStatus = nextState === "full" ? "booked" : nextState;
+    const capacity = Number(availabilityCapacity) || 25;
+    const targetStatusVal = nextState === "full" ? "booked" : nextState;
 
     try {
       const { data: sessionData } = await supabase.auth.getSession();
@@ -419,7 +507,7 @@ function AdminPage() {
           date,
           experienceId: availabilityExperience,
           capacity,
-          status: targetStatus,
+          status: targetStatusVal,
         },
       });
     } catch (saveError: unknown) {
@@ -432,6 +520,99 @@ function AdminPage() {
       `${date}: ${nextState === "full" ? t.fullyBooked : nextState === "closed" ? t.closed : t.available}`,
     );
     await refresh();
+  }
+
+  async function setCalendarDayDirect(date: string, status: "available" | "booked" | "closed") {
+    if (!availabilityExperience) {
+      setError("Choose an experience to manage its calendar.");
+      return;
+    }
+    const capacity = Number(availabilityCapacity) || 25;
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      await updateAdminAvailabilitySlot({
+        data: {
+          accessToken: sessionData.session?.access_token,
+          date,
+          experienceId: availabilityExperience,
+          capacity,
+          status,
+        },
+      });
+      const statusLabel =
+        status === "booked" ? t.fullyBooked : status === "closed" ? t.closed : t.available;
+      setCalendarMessage(`${date}: ${statusLabel}`);
+      await refresh();
+    } catch (saveError: unknown) {
+      const msg = saveError instanceof Error ? saveError.message : String(saveError);
+      setError(`Could not update ${date}: ${msg}`);
+    }
+  }
+
+  async function applyBulkStatus(datesToApply: string[]) {
+    if (datesToApply.length === 0) {
+      setError(`${t.bulkError}: No dates selected.`);
+      return;
+    }
+    if (!availabilityExperience && !applyToAllExps) {
+      setError("Choose an experience to manage its calendar.");
+      return;
+    }
+
+    setIsBulkUpdating(true);
+    setError("");
+    setCalendarMessage("");
+
+    const targetExps = applyToAllExps ? experiences.map((e) => e.id) : [availabilityExperience];
+    const capacity = Number(availabilityCapacity) || 25;
+
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      await updateAdminAvailabilityBatch({
+        data: {
+          accessToken: sessionData.session?.access_token,
+          dates: datesToApply,
+          experienceIds: targetExps,
+          capacity,
+          status: targetStatus,
+        },
+      });
+
+      const statusName =
+        targetStatus === "booked"
+          ? t.fullyBooked
+          : targetStatus === "closed"
+            ? t.closed
+            : t.available;
+      setCalendarMessage(
+        `${t.bulkSuccess} (${datesToApply.length} ${datesToApply.length === 1 ? t.date.toLowerCase() : t.date.toLowerCase() + "s"} → ${statusName})`,
+      );
+      setSelectedDates(new Set());
+      await refresh();
+    } catch (saveError: unknown) {
+      const msg = saveError instanceof Error ? saveError.message : String(saveError);
+      setError(`${t.bulkError}: ${msg}`);
+    } finally {
+      setIsBulkUpdating(false);
+    }
+  }
+
+  async function handleCalendarDayClick(dateVal: string) {
+    if (multiSelectMode) {
+      setSelectedDates((prev) => {
+        const next = new Set(prev);
+        if (next.has(dateVal)) next.delete(dateVal);
+        else next.add(dateVal);
+        return next;
+      });
+      return;
+    }
+
+    if (clickMode === "direct") {
+      await setCalendarDayDirect(dateVal, targetStatus);
+    } else {
+      await cycleCalendarDay(dateVal);
+    }
   }
 
   async function saveSettings(event: FormEvent<HTMLFormElement>) {
@@ -880,8 +1061,281 @@ function AdminPage() {
             </div>
           </div>
 
+          {/* ================================================================
+              BULK AVAILABILITY & DIRECT STATUS PANEL
+          ================================================================ */}
+          <div className="mt-6 rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-sm space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b pb-3">
+              <div>
+                <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+                  <span>⚡</span> {t.bulkUpdate}
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  {adminLang === "fr"
+                    ? "Sélectionnez un statut puis appliquez-le à tous les jours du mois ou à une sélection."
+                    : adminLang === "ar"
+                      ? "اختر الحالة المطلوبة وطبقها على جميع أيام الشهر أو نطاق محدد بنقرة واحدة."
+                      : "Choose a target status and apply it to all days in this month or a custom selection."}
+                </p>
+              </div>
+
+              {experiences.length > 1 && (
+                <label className="inline-flex items-center gap-2 cursor-pointer text-xs font-semibold text-muted-foreground hover:text-foreground">
+                  <input
+                    type="checkbox"
+                    checked={applyToAllExps}
+                    onChange={(e) => setApplyToAllExps(e.target.checked)}
+                    className="h-4 w-4 rounded border-input text-primary focus:ring-ring"
+                  />
+                  <span>{t.allExperiences}</span>
+                </label>
+              )}
+            </div>
+
+            {/* Target Status Selector */}
+            <div>
+              <span className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
+                {t.targetStatus}
+              </span>
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setTargetStatus("available")}
+                  className={`min-h-11 rounded-xl border p-2 flex items-center justify-center gap-2 font-bold text-xs sm:text-sm transition ${
+                    targetStatus === "available"
+                      ? "border-emerald-600 bg-emerald-100 text-emerald-950 ring-2 ring-emerald-500 shadow-sm"
+                      : "border-border bg-background text-foreground hover:bg-muted"
+                  }`}
+                >
+                  <span className="h-3 w-3 rounded-full bg-emerald-500 shrink-0" />
+                  <span>{t.available}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setTargetStatus("booked")}
+                  className={`min-h-11 rounded-xl border p-2 flex items-center justify-center gap-2 font-bold text-xs sm:text-sm transition ${
+                    targetStatus === "booked"
+                      ? "border-amber-600 bg-amber-100 text-amber-950 ring-2 ring-amber-500 shadow-sm"
+                      : "border-border bg-background text-foreground hover:bg-muted"
+                  }`}
+                >
+                  <span className="h-3 w-3 rounded-full bg-amber-500 shrink-0" />
+                  <span>{t.fullyBooked}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setTargetStatus("closed")}
+                  className={`min-h-11 rounded-xl border p-2 flex items-center justify-center gap-2 font-bold text-xs sm:text-sm transition ${
+                    targetStatus === "closed"
+                      ? "border-stone-500 bg-stone-300 text-stone-900 ring-2 ring-stone-400 shadow-sm"
+                      : "border-border bg-background text-foreground hover:bg-muted"
+                  }`}
+                >
+                  <span className="h-3 w-3 rounded-full bg-stone-500 shrink-0" />
+                  <span>{t.closed}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Bulk Action Buttons */}
+            <div>
+              <span className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
+                {adminLang === "fr"
+                  ? "Appliquer immédiatement"
+                  : adminLang === "ar"
+                    ? "تطبيق فوري"
+                    : "Apply immediately"}
+              </span>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  variant="default"
+                  disabled={isBulkUpdating || (!availabilityExperience && !applyToAllExps)}
+                  onClick={async () => {
+                    const monthDates = getDatesInMonth(
+                      calendarMonth.getFullYear(),
+                      calendarMonth.getMonth(),
+                    );
+                    await applyBulkStatus(monthDates);
+                  }}
+                  className="min-h-10 text-xs sm:text-sm font-bold bg-primary text-primary-foreground hover:bg-primary/90"
+                >
+                  📅 {t.applyToMonth}
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={isBulkUpdating || (!availabilityExperience && !applyToAllExps)}
+                  onClick={async () => {
+                    const monthDates = getDatesInMonth(
+                      calendarMonth.getFullYear(),
+                      calendarMonth.getMonth(),
+                    );
+                    const upcoming = filterDatesByDayType(monthDates, "upcoming");
+                    await applyBulkStatus(upcoming);
+                  }}
+                  className="min-h-10 text-xs sm:text-sm font-semibold"
+                >
+                  ⏳ {t.applyToUpcoming}
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={isBulkUpdating || (!availabilityExperience && !applyToAllExps)}
+                  onClick={async () => {
+                    const monthDates = getDatesInMonth(
+                      calendarMonth.getFullYear(),
+                      calendarMonth.getMonth(),
+                    );
+                    const weekdays = filterDatesByDayType(monthDates, "weekdays");
+                    await applyBulkStatus(weekdays);
+                  }}
+                  className="min-h-10 text-xs sm:text-sm font-semibold"
+                >
+                  💼 {t.applyToWeekdays}
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={isBulkUpdating || (!availabilityExperience && !applyToAllExps)}
+                  onClick={async () => {
+                    const monthDates = getDatesInMonth(
+                      calendarMonth.getFullYear(),
+                      calendarMonth.getMonth(),
+                    );
+                    const weekends = filterDatesByDayType(monthDates, "weekends");
+                    await applyBulkStatus(weekends);
+                  }}
+                  className="min-h-10 text-xs sm:text-sm font-semibold"
+                >
+                  🌴 {t.applyToWeekends}
+                </Button>
+              </div>
+            </div>
+
+            {/* Custom Date Range & Click Modes */}
+            <div className="border-t pt-3 flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-semibold text-muted-foreground">{t.customRange}:</span>
+                <input
+                  type="date"
+                  value={rangeStart}
+                  onChange={(e) => setRangeStart(e.target.value)}
+                  className="rounded-lg border border-input bg-background px-2 py-1 text-xs text-foreground min-h-9"
+                  placeholder={t.fromDate}
+                />
+                <span className="text-muted-foreground">→</span>
+                <input
+                  type="date"
+                  value={rangeEnd}
+                  onChange={(e) => setRangeEnd(e.target.value)}
+                  className="rounded-lg border border-input bg-background px-2 py-1 text-xs text-foreground min-h-9"
+                  placeholder={t.toDate}
+                />
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  disabled={!rangeStart || !rangeEnd || isBulkUpdating}
+                  onClick={async () => {
+                    const rangeDates = getDatesInRange(rangeStart, rangeEnd);
+                    await applyBulkStatus(rangeDates);
+                  }}
+                  className="min-h-9 font-bold"
+                >
+                  {t.applyChanges}
+                </Button>
+              </div>
+
+              {/* Behavior toggles */}
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setClickMode((m) => (m === "direct" ? "cycle" : "direct"))}
+                  className="px-2.5 py-1.5 rounded-lg border text-xs font-bold transition hover:bg-muted"
+                  title={t.clickAction}
+                >
+                  {clickMode === "direct"
+                    ? `🎯 ${t.clickActionDirect}`
+                    : `🔄 ${t.clickActionCycle}`}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMultiSelectMode((m) => !m);
+                    setSelectedDates(new Set());
+                  }}
+                  className={`px-2.5 py-1.5 rounded-lg border text-xs font-bold transition ${
+                    multiSelectMode
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "hover:bg-muted"
+                  }`}
+                >
+                  ☑️ {t.multiSelect}
+                </button>
+              </div>
+            </div>
+
+            {/* Multi-select active toolbar */}
+            {multiSelectMode && (
+              <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-muted/70 p-3 border text-xs sm:text-sm">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-foreground">
+                    {selectedDates.size} {t.daysSelected}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      const monthDates = getDatesInMonth(
+                        calendarMonth.getFullYear(),
+                        calendarMonth.getMonth(),
+                      );
+                      setSelectedDates(new Set(monthDates));
+                    }}
+                    className="h-8 text-xs font-semibold"
+                  >
+                    {t.selectAllMonth}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSelectedDates(new Set())}
+                    className="h-8 text-xs font-semibold text-muted-foreground"
+                  >
+                    {t.clearSelection}
+                  </Button>
+                </div>
+
+                <Button
+                  type="button"
+                  variant="default"
+                  size="sm"
+                  disabled={selectedDates.size === 0 || isBulkUpdating}
+                  onClick={async () => {
+                    await applyBulkStatus(Array.from(selectedDates));
+                  }}
+                  className="h-9 px-4 font-bold bg-primary text-primary-foreground"
+                >
+                  {t.applyToSelected} ({selectedDates.size})
+                </Button>
+              </div>
+            )}
+          </div>
+
           {calendarMessage && (
-            <p role="status" className="mt-3 text-sm font-semibold text-emerald-800">
+            <p
+              role="status"
+              className="mt-4 text-sm font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-xl p-3"
+            >
               {calendarMessage}
             </p>
           )}
@@ -929,18 +1383,30 @@ function AdminPage() {
                     : "bg-stone-200 text-stone-700 border-stone-400 hover:bg-stone-300";
 
                 const statusLabel = isAvailable ? t.available : isFull ? t.fullyBooked : t.closed;
+                const isSelected = selectedDates.has(dateVal);
 
                 return (
                   <button
                     key={dateVal}
                     type="button"
-                    onClick={() => void cycleCalendarDay(dateVal)}
-                    disabled={!availabilityExperience}
-                    aria-label={`${dateVal}, ${statusLabel}. Tap to change.`}
-                    className={`w-full min-h-[54px] sm:min-h-[64px] rounded-xl border p-1 flex flex-col items-center justify-center transition active:scale-95 ${stateStyle} ${
+                    onClick={() => void handleCalendarDayClick(dateVal)}
+                    disabled={(!availabilityExperience && !applyToAllExps) || isBulkUpdating}
+                    aria-label={`${dateVal}, ${statusLabel}.`}
+                    className={`relative w-full min-h-[54px] sm:min-h-[64px] rounded-xl border p-1 flex flex-col items-center justify-center transition active:scale-95 ${stateStyle} ${
                       !inMonth ? "opacity-35" : ""
-                    }`}
+                    } ${isSelected ? "ring-2 ring-primary ring-offset-2 scale-[1.02]" : ""}`}
                   >
+                    {multiSelectMode && (
+                      <span
+                        className={`absolute top-1 right-1 h-3.5 w-3.5 rounded-full border text-[9px] flex items-center justify-center font-bold ${
+                          isSelected
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "bg-background/80 border-border text-transparent"
+                        }`}
+                      >
+                        ✓
+                      </span>
+                    )}
                     <span className="font-bold text-sm sm:text-base leading-none">
                       {date.getDate()}
                     </span>
