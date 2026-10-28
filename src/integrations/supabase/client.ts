@@ -54,22 +54,41 @@ function createSupabaseFetch(supabaseUrl: string, supabaseKey: string): typeof f
   };
 }
 
-function createSupabaseClient() {
-  // Use import.meta.env for client-side (Vite build-time replacement)
-  // Fall back to process.env for SSR (server-side rendering)
-  const SUPABASE_URL = import.meta.env["VITE_SUPABASE_URL"] || process.env["SUPABASE_URL"];
-  const SUPABASE_PUBLISHABLE_KEY =
-    import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] || process.env["SUPABASE_PUBLISHABLE_KEY"];
+const DEFAULT_SUPABASE_URL = "https://umregmuatwniadteyxnv.supabase.co";
+const DEFAULT_SUPABASE_ANON_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVtcmVnbXVhdHduaWFkdGV5eG52Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0OTAyMjYsImV4cCI6MjEwODA2NjIyNn0.NMkDIQigUMBmhoI08WEO07AP6QwvKT0tjvMCsq_UPRk";
 
-  if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-    const missing = [
-      ...(!SUPABASE_URL ? ["SUPABASE_URL"] : []),
-      ...(!SUPABASE_PUBLISHABLE_KEY ? ["SUPABASE_PUBLISHABLE_KEY"] : []),
-    ];
-    const message = `Missing Supabase environment variable(s): ${missing.join(", ")}. Please check your .env configuration.`;
-    console.error(`[Supabase] ${message}`);
-    throw new Error(message);
+function getEnvUrl(): string {
+  const fromMeta = import.meta.env.VITE_SUPABASE_URL;
+  if (fromMeta && typeof fromMeta === "string" && fromMeta !== "undefined" && fromMeta.trim()) {
+    return fromMeta.trim();
   }
+  if (typeof process !== "undefined" && process.env) {
+    const fromProc = process.env["VITE_SUPABASE_URL"] || process.env["SUPABASE_URL"];
+    if (fromProc && typeof fromProc === "string" && fromProc !== "undefined" && fromProc.trim()) {
+      return fromProc.trim();
+    }
+  }
+  return DEFAULT_SUPABASE_URL;
+}
+
+function getEnvKey(): string {
+  const fromMeta = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  if (fromMeta && typeof fromMeta === "string" && fromMeta !== "undefined" && fromMeta.trim()) {
+    return fromMeta.trim();
+  }
+  if (typeof process !== "undefined" && process.env) {
+    const fromProc = process.env["VITE_SUPABASE_PUBLISHABLE_KEY"] || process.env["SUPABASE_PUBLISHABLE_KEY"];
+    if (fromProc && typeof fromProc === "string" && fromProc !== "undefined" && fromProc.trim()) {
+      return fromProc.trim();
+    }
+  }
+  return DEFAULT_SUPABASE_ANON_KEY;
+}
+
+function createSupabaseClient() {
+  const SUPABASE_URL = getEnvUrl();
+  const SUPABASE_PUBLISHABLE_KEY = getEnvKey();
 
   return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
     global: {
