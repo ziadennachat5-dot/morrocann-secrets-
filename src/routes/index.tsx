@@ -14,6 +14,7 @@ import { getHomepageContent } from "@/lib/homepage.functions";
 import { getPublicGuestPhotos, selectHeroAndGalleryPhotos } from "@/lib/guest-photos.functions";
 import { GuestPhotoGallery } from "@/components/site/GuestPhotoGallery";
 import { ConceptSection, MenuSection } from "@/components/site/ConceptAndMenu";
+import { GuestReviewsSection } from "@/components/site/GuestReviewsSection";
 import {
   OrnamentDivider,
   ZelligeStarSvg,
@@ -767,6 +768,11 @@ export function HomePage({ data: propData }: { data?: Awaited<ReturnType<typeof 
           </div>
         </div>
       </section>
+
+      {/* ═══════════════════════════════════════════════════════════
+          5b. REAL GOOGLE REVIEWS
+      ═══════════════════════════════════════════════════════════ */}
+      <GuestReviewsSection />
 
       {/* ═══════════════════════════════════════════════════════════
           FAQ (only when admin published FAQs exist)

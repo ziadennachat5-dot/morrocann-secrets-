@@ -90,6 +90,7 @@ export function getNavLinks(hasGallery: boolean, lang: Lang = "en") {
     ...(hasGallery
       ? [{ href: `${prefix}/#photos`, label: { en: "Photos", fr: "Photos", ar: "الصور" } }]
       : []),
+    { href: `${prefix}/#reviews`, label: { en: "Reviews", fr: "Avis", ar: "التقييمات" } },
     { href: `${prefix}/#booking`, label: { en: "Book", fr: "Réserver", ar: "احجز" } },
   ];
 }
@@ -120,7 +121,7 @@ export function Header() {
   };
 
   useEffect(() => {
-    const sectionIds = ["experience", "menu", "photos", "how", "booking"];
+    const sectionIds = ["experience", "menu", "photos", "how", "reviews", "booking"];
     const handleScroll = () => {
       setScrolled(window.scrollY > 80);
 
