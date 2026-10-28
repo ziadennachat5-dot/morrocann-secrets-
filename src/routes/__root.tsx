@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
   type ErrorComponentProps,
@@ -126,8 +127,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: ReactNode }) {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const lang = pathname.startsWith("/ar") ? "ar" : pathname.startsWith("/fr") ? "fr" : "en";
+  const dir = lang === "ar" ? "rtl" : "ltr";
   return (
-    <html lang="en" dir="ltr">
+    <html lang={lang} dir={dir}>
       <head>
         <HeadContent />
       </head>

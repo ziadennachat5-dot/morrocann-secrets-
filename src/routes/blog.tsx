@@ -2,18 +2,17 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 import { SectionHead } from "@/components/site/Brand";
 import { useI18n } from "@/lib/i18n";
 import { getPublishedPosts } from "@/lib/public-content.functions";
-import { pageHead } from "@/lib/seo";
-import { BRAND_NAME } from "@/lib/brand";
+import { pageHead, getLocalizedPath } from "@/lib/seo";
 
 export const Route = createFileRoute("/blog")({
   loader: () => getPublishedPosts(),
-  head: () =>
-    pageHead("/blog", `Journal — ${BRAND_NAME}`, "Guides and notes published by the host."),
+  head: () => pageHead("/blog", "en"),
   component: BlogPage,
 });
 
-function BlogPage() {
-  const posts = Route.useLoaderData();
+export function BlogPage({ posts: propPosts }: { posts?: Awaited<ReturnType<typeof getPublishedPosts>> } = {}) {
+  const loaderData = Route.useLoaderData();
+  const posts = propPosts ?? loaderData;
   const { t, lang } = useI18n();
 
   return (
@@ -25,15 +24,14 @@ function BlogPage() {
         <ul className="mt-10 grid gap-6 md:grid-cols-2">
           {posts.map((post) => (
             <li key={post.slug} className="rounded-2xl border border-border bg-card p-6">
-              <h2 className="font-display text-3xl">{post.title[lang]}</h2>
-              <p className="mt-3 text-muted-foreground">{post.summary[lang]}</p>
-              <Link
-                to="/blog/$slug"
-                params={{ slug: post.slug }}
+              <h2 className="font-display text-3xl">{post.title[lang] || post.title.en}</h2>
+              <p className="mt-3 text-muted-foreground">{post.summary[lang] || post.summary.en}</p>
+              <a
+                href={getLocalizedPath(`/blog/${post.slug}`, lang)}
                 className="btn btn-ghost mt-5 text-primary"
               >
                 {t.blogPage.readArticle}
-              </Link>
+              </a>
             </li>
           ))}
         </ul>

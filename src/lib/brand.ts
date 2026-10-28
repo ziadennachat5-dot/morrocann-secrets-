@@ -3,11 +3,11 @@
  * Single source of truth for brand names, descriptions and metadata.
  */
 
-export const BRAND_NAME = "Moroccan Secrets Riad";
-export const BRAND_SHORT = "Riad";
-export const TAGLINE = "Dine with a Moroccan family in Marrakesh";
+export const BRAND_NAME = "Moroccan Secrets";
+export const BRAND_SHORT = "Moroccan Secrets";
+export const TAGLINE = "Dinner with a local Moroccan family in Marrakech";
 export const BRAND_DESCRIPTION =
-  "Sit at a Moroccan family's table: share a traditional home-cooked meal, taste local dishes and discover authentic Moroccan traditions.";
+  "Share an authentic home dinner with a local Moroccan family in Marrakech. Traditional cuisine, hospitality, and cultural exchange.";
 
 export const BRAND_META = {
   name: BRAND_NAME,

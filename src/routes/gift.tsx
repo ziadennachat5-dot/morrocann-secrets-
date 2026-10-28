@@ -2,20 +2,14 @@ import { createFileRoute } from "@tanstack/react-router";
 import { InquiryForm } from "@/components/site/InquiryForm";
 import { SectionHead } from "@/components/site/Brand";
 import { useI18n } from "@/lib/i18n";
-import { BRAND_NAME } from "@/lib/brand";
 import { pageHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/gift")({
-  head: () =>
-    pageHead(
-      "/gift",
-      `Gift vouchers — ${BRAND_NAME}`,
-      "Ask about a gift voucher; no payment is taken.",
-    ),
+  head: () => pageHead("/gift", "en"),
   component: GiftPage,
 });
 
-function GiftPage() {
+export function GiftPage() {
   const { t } = useI18n();
   return (
     <section className="mx-auto max-w-3xl px-5 py-16">

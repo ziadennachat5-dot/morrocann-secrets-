@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { Link, useLocation } from "@tanstack/react-router";
-import { Menu, X, MessageCircle, Mail } from "lucide-react";
-import { useI18n, LANGS } from "@/lib/i18n";
+import { Menu, X, MessageCircle, Mail, MapPin } from "lucide-react";
+import { useI18n, LANGS, type Lang } from "@/lib/i18n";
 import { BRAND_NAME } from "@/lib/brand";
 import {
   HeaderLogo,
@@ -82,20 +82,27 @@ export function LangSwitch({ light = false }: { light?: boolean }) {
   );
 }
 
-export function getNavLinks(hasGallery: boolean) {
+export function getNavLinks(hasGallery: boolean, lang: Lang = "en") {
+  const prefix = lang === "en" ? "" : `/${lang}`;
   return [
-    { href: "/#experience", label: { en: "Experience", fr: "L'expérience", ar: "التجربة" } },
-    { href: "/#menu", label: { en: "The menu", fr: "Le menu", ar: "قائمة الطعام" } },
+    { href: `${prefix}/#experience`, label: { en: "Experience", fr: "L'expérience", ar: "التجربة" } },
+    { href: `${prefix}/#menu`, label: { en: "The menu", fr: "Le menu", ar: "قائمة الطعام" } },
     ...(hasGallery
-      ? [{ href: "/#photos", label: { en: "Photos", fr: "Photos", ar: "الصور" } }]
+      ? [{ href: `${prefix}/#photos`, label: { en: "Photos", fr: "Photos", ar: "الصور" } }]
       : []),
-    { href: "/#booking", label: { en: "Book", fr: "Réserver", ar: "احجز" } },
+    { href: `${prefix}/#booking`, label: { en: "Book", fr: "Réserver", ar: "احجز" } },
   ];
 }
 
 export function Header() {
   const location = useLocation();
-  const isHomePage = location.pathname === "/" || location.pathname === "";
+  const isHomePage =
+    location.pathname === "/" ||
+    location.pathname === "" ||
+    location.pathname === "/fr" ||
+    location.pathname === "/fr/" ||
+    location.pathname === "/ar" ||
+    location.pathname === "/ar/";
   const { lang, t } = useI18n();
   const { hasGallery } = useGalleryContext();
   const [open, setOpen] = useState(false);
@@ -104,7 +111,7 @@ export function Header() {
   const [scrollProgress, setScrollProgress] = useState(0);
 
   const isHeroTransparent = isHomePage && !scrolled;
-  const navLinks = getNavLinks(hasGallery);
+  const navLinks = getNavLinks(hasGallery, lang);
 
   const bookDinnerText = {
     en: "Book a dinner",
@@ -368,20 +375,29 @@ function Footer() {
   const { lang, t } = useI18n();
   const { hasGallery } = useGalleryContext();
   const { links } = useContactLinks();
-  const navLinks = getNavLinks(hasGallery);
+  const navLinks = getNavLinks(hasGallery, lang);
 
-  const whatsappHref = links?.whatsapp
-    ? `https://wa.me/${links.whatsapp}`
-    : "https://wa.me/212600000000";
+  const rawWhatsapp = links?.whatsapp?.trim();
+  const whatsappNumber = rawWhatsapp
+    ? rawWhatsapp.startsWith("+")
+      ? rawWhatsapp
+      : `+212 ${rawWhatsapp.replace(/^0/, "")}`
+    : null;
+  const whatsappHref = rawWhatsapp
+    ? `https://wa.me/${rawWhatsapp.replace(/[^0-9]/g, "")}`
+    : null;
 
-  const emailHref = links?.email ? `mailto:${links.email}` : "mailto:contact@moroccansecrets.com";
-  const emailLabel = links?.email ?? "contact@moroccansecrets.com";
+  const rawEmail = links?.email?.trim();
+  const emailHref = rawEmail && rawEmail.length > 0 ? `mailto:${rawEmail}` : null;
+  const emailLabel = rawEmail && rawEmail.length > 0 ? rawEmail : null;
 
   const hospitalityText = {
     en: "Moroccan hospitality, always.",
     fr: "L'hospitalité marocaine, toujours.",
     ar: "الضيافة المغربية، دوماً.",
   };
+
+  const homeHref = lang === "en" ? "/" : `/${lang}`;
 
   return (
     <footer
@@ -394,8 +410,8 @@ function Footer() {
       <div className="ms-container">
         {/* Main Footer Row: Logo left, Links center, Switcher right */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-10 border-b border-stone-300/60">
-          {/* Logo — our logo, fully visible */}
-          <a href="/" aria-label={BRAND_NAME} className="flex items-center shrink-0">
+          {/* Logo */}
+          <a href={homeHref} aria-label={BRAND_NAME} className="flex items-center shrink-0">
             <HeaderLogo className="h-10 sm:h-12 w-auto object-contain" />
           </a>
 
@@ -421,31 +437,34 @@ function Footer() {
           </div>
         </div>
 
-        {/* Optional contact row: WhatsApp and email only if set */}
-        {(links?.whatsapp || links?.email) && (
-          <div className="py-4 flex flex-wrap items-center justify-center gap-6 text-xs sm:text-sm text-muted-text border-b border-stone-300/40">
-            {links?.whatsapp && (
-              <a
-                href={whatsappHref}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 hover:text-oxblood transition-colors"
-              >
-                <MessageCircle className="h-3.5 w-3.5 text-oxblood" aria-hidden="true" />
-                <span>WhatsApp</span>
-              </a>
-            )}
-            {links?.email && (
-              <a
-                href={emailHref}
-                className="inline-flex items-center gap-2 hover:text-oxblood transition-colors"
-              >
-                <Mail className="h-3.5 w-3.5 text-oxblood" aria-hidden="true" />
-                <span>{emailLabel}</span>
-              </a>
-            )}
-          </div>
-        )}
+        {/* Local signals row: Business name, general area (Bab Ghmat, Marrakech), and contact details */}
+        <div className="py-4 flex flex-wrap items-center justify-center gap-6 text-xs sm:text-sm text-muted-text border-b border-stone-300/40">
+          <span className="font-semibold text-oxblood">{BRAND_NAME}</span>
+          <span className="flex items-center gap-1.5">
+            <MapPin className="h-3.5 w-3.5 text-gold shrink-0" aria-hidden="true" />
+            <span>Bab Ghmat, Marrakech</span>
+          </span>
+          {whatsappHref && (
+            <a
+              href={whatsappHref}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 hover:text-oxblood transition-colors"
+            >
+              <MessageCircle className="h-3.5 w-3.5 text-oxblood" aria-hidden="true" />
+              <span>{whatsappNumber ?? "WhatsApp"}</span>
+            </a>
+          )}
+          {emailHref && (
+            <a
+              href={emailHref}
+              className="inline-flex items-center gap-1.5 hover:text-oxblood transition-colors"
+            >
+              <Mail className="h-3.5 w-3.5 text-oxblood" aria-hidden="true" />
+              <span>{emailLabel}</span>
+            </a>
+          )}
+        </div>
 
         {/* Bottom row: copyright bottom-left, "Moroccan hospitality, always." with gold line bottom-right */}
         <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-start">
@@ -466,9 +485,9 @@ function Footer() {
 function WhatsAppFab() {
   const { t } = useI18n();
   const { links } = useContactLinks();
-  const whatsappHref = links?.whatsapp
-    ? `https://wa.me/${links.whatsapp}`
-    : "https://wa.me/212600000000";
+  const rawWhatsapp = links?.whatsapp?.trim();
+  if (!rawWhatsapp) return null;
+  const whatsappHref = `https://wa.me/${rawWhatsapp.replace(/[^0-9]/g, "")}`;
 
   return (
     <a

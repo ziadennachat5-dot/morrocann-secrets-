@@ -26,7 +26,7 @@ const sampleData = {
 describe("localized booking email templates", () => {
   it.each(languages)("renders accessible branded details in %s", (language) => {
     const email = renderBookingEmail("booking_received", language, sampleData);
-    expect(email.html).toContain('alt="Moroccan Secrets Riad"');
+    expect(email.html).toContain('alt="Moroccan Secrets"');
     expect(email.html).toContain(sampleData.logoUrl);
     expect(email.html).toContain(sampleData.whatsappUrl);
     expect(email.html).not.toContain(

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  calculateMonthStats,
   filterDatesByDayType,
   getCalendarSlotState,
   getDatesInMonth,
@@ -49,5 +50,31 @@ describe("availability calendar states", () => {
       "2026-10-25",
       "2026-10-26",
     ]);
+  });
+
+  it("calculates monthly statistics correctly", () => {
+    const monthDates = ["2026-10-01", "2026-10-02", "2026-10-03"];
+    const availability = [
+      { experience_id: "exp-1", date: "2026-10-01", status: "available" as const, capacity: 25, booked_count: 5 },
+      { experience_id: "exp-1", date: "2026-10-02", status: "booked" as const, capacity: 25, booked_count: 25 },
+      { experience_id: "exp-1", date: "2026-10-03", status: "closed" as const, capacity: 25, booked_count: 0 },
+    ];
+    const bookings = [
+      { experience_id: "exp-1", date: "2026-10-01", status: "confirmed", adults: 2, children: 1 },
+      { experience_id: "exp-1", date: "2026-10-02", status: "confirmed", adults: 4, children: 0 },
+    ];
+
+    const stats = calculateMonthStats({
+      monthDates,
+      experienceId: "exp-1",
+      availability,
+      bookings,
+    });
+
+    expect(stats.availableDays).toBe(1);
+    expect(stats.fullyBookedDays).toBe(1);
+    expect(stats.closedDays).toBe(1);
+    expect(stats.totalBookings).toBe(2);
+    expect(stats.totalGuestsBooked).toBe(7); // 3 + 4
   });
 });

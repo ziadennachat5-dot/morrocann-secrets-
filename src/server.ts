@@ -45,9 +45,26 @@ function isH3SwallowedErrorBody(body: string): boolean {
   }
 }
 
+import { getLocalizedPath } from "./lib/seo";
+import type { Lang } from "./lib/i18n";
+
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      const url = new URL(request.url);
+      const langParam = url.searchParams.get("lang");
+      if (langParam && (langParam === "en" || langParam === "fr" || langParam === "ar")) {
+        url.searchParams.delete("lang");
+        const targetPath = getLocalizedPath(url.pathname, langParam as Lang);
+        url.pathname = targetPath;
+        return new Response(null, {
+          status: 301,
+          headers: {
+            Location: url.toString(),
+          },
+        });
+      }
+
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       const normalizedResponse = await normalizeCatastrophicSsrResponse(response);

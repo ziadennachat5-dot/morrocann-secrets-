@@ -2,20 +2,14 @@ import { createFileRoute } from "@tanstack/react-router";
 import { InquiryForm } from "@/components/site/InquiryForm";
 import { SectionHead } from "@/components/site/Brand";
 import { useI18n } from "@/lib/i18n";
-import { BRAND_NAME } from "@/lib/brand";
 import { pageHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/partners")({
-  head: () =>
-    pageHead(
-      "/partners",
-      `Partners — ${BRAND_NAME}`,
-      "Hotels, riads, and guides can inquire about referring guests.",
-    ),
+  head: () => pageHead("/partners", "en"),
   component: PartnersPage,
 });
 
-function PartnersPage() {
+export function PartnersPage() {
   const { t } = useI18n();
   return (
     <section className="mx-auto max-w-3xl px-5 py-16">

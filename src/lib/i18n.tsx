@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { dict, type Dict } from "./translations";
 import { getPublicCopyOverrides } from "./copy.functions";
 import { applyCopyOverrides, type CopyOverride } from "./copy-utils";
-import { localizedSeo } from "./seo";
+import { getLocalizedPath } from "./seo";
 
 export type Lang = "en" | "fr" | "ar";
 export const LANGS: Lang[] = ["en", "fr", "ar"];
@@ -11,28 +11,48 @@ export type L10n = Record<Lang, string>;
 type Ctx = { lang: Lang; setLang: (l: Lang) => void; t: Dict; l: (v: L10n) => string };
 const I18nContext = createContext<Ctx | null>(null);
 
-export function I18nProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Lang>("en");
+export function detectLangFromPath(pathname: string): Lang {
+  if (pathname.startsWith("/ar/") || pathname === "/ar") return "ar";
+  if (pathname.startsWith("/fr/") || pathname === "/fr") return "fr";
+  return "en";
+}
+
+export function I18nProvider({ children, forcedLang }: { children: ReactNode; forcedLang?: Lang }) {
+  const [lang, setLangState] = useState<Lang>(() => {
+    if (forcedLang) return forcedLang;
+    if (typeof window !== "undefined") {
+      return detectLangFromPath(window.location.pathname);
+    }
+    return "en";
+  });
   const [copyOverrides, setCopyOverrides] = useState<CopyOverride[]>([]);
   const [copyLoadError, setCopyLoadError] = useState(false);
 
   useEffect(() => {
-    const requested = new URLSearchParams(window.location.search).get("lang");
-    const selected =
-      LANGS.find((language) => language === requested) ??
-      LANGS.find((language) => language === localStorage.getItem("ms-lang"));
-    if (!selected) return;
-    setLangState(selected);
-    if (requested !== selected) {
-      const url = new URL(window.location.href);
-      url.searchParams.set("lang", selected);
-      window.history.replaceState(window.history.state, "", url);
+    if (forcedLang) {
+      setLangState(forcedLang);
+      return;
     }
-  }, []);
+    const currentLang = detectLangFromPath(window.location.pathname);
+    setLangState(currentLang);
+
+    // If arrival had ?lang= parameter, redirect to the real language URL
+    const searchParams = new URLSearchParams(window.location.search);
+    const requested = searchParams.get("lang");
+    if (requested && (requested === "en" || requested === "fr" || requested === "ar")) {
+      searchParams.delete("lang");
+      const targetPath = getLocalizedPath(window.location.pathname, requested as Lang);
+      const searchStr = searchParams.toString();
+      const newUrl = `${targetPath}${searchStr ? `?${searchStr}` : ""}${window.location.hash}`;
+      window.location.replace(newUrl);
+    }
+  }, [forcedLang]);
 
   useEffect(() => {
-    document.documentElement.lang = lang;
-    document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+    if (typeof document !== "undefined") {
+      document.documentElement.lang = lang;
+      document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+    }
   }, [lang]);
 
   useEffect(() => {
@@ -46,34 +66,18 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   const setLang = (l: Lang) => {
     setLangState(l);
-    localStorage.setItem("ms-lang", l);
-    const url = new URL(window.location.href);
-    url.searchParams.set("lang", l);
-    window.history.replaceState(window.history.state, "", url);
-  };
-  const localizedDict = applyCopyOverrides(dict[lang], lang, copyOverrides);
-
-  useEffect(() => {
-    if (window.location.pathname.startsWith("/blog/")) return;
-    const metadata = localizedSeo(window.location.pathname, lang, localizedDict);
-    if (!metadata) return;
-    document.title = metadata.title;
-    const pageUrl = new URL(window.location.href);
-    pageUrl.searchParams.set("lang", lang);
-    document
-      .querySelector<HTMLLinkElement>('link[rel="canonical"]')
-      ?.setAttribute("href", pageUrl.toString());
-    for (const [selector, content] of [
-      ['meta[name="description"]', metadata.description],
-      ['meta[property="og:title"]', metadata.title],
-      ['meta[property="og:description"]', metadata.description],
-      ['meta[property="og:locale"]', lang === "ar" ? "ar_MA" : lang === "fr" ? "fr_FR" : "en_US"],
-      ['meta[name="twitter:title"]', metadata.title],
-      ['meta[name="twitter:description"]', metadata.description],
-    ] as const) {
-      document.querySelector<HTMLMetaElement>(selector)?.setAttribute("content", content);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("ms-lang", l);
+      const targetPath = getLocalizedPath(window.location.pathname, l);
+      const searchParams = new URLSearchParams(window.location.search);
+      searchParams.delete("lang");
+      const searchStr = searchParams.toString();
+      const newUrl = `${targetPath}${searchStr ? `?${searchStr}` : ""}${window.location.hash}`;
+      window.location.assign(newUrl);
     }
-  }, [lang, localizedDict]);
+  };
+
+  const localizedDict = applyCopyOverrides(dict[lang], lang, copyOverrides);
 
   return (
     <I18nContext.Provider

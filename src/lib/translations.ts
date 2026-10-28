@@ -4,54 +4,64 @@ const en = {
   copyLoadError: "Published page text could not be loaded.",
   seo: {
     home: {
-      title: "Moroccan Secrets | Experiences",
-      description: "View published experiences, check availability, and request a booking.",
+      title: "Dinner with a Local Family Marrakech | Moroccan Secrets",
+      description:
+        "Share an authentic home dinner with a local family in Marrakech. Homemade Moroccan food, warm hospitality, and genuine cultural exchange.",
     },
     experiences: {
-      title: "Moroccan home dining experiences in Marrakesh",
-      description: "Explore the home dining experiences currently published by our hosts.",
+      title: "Moroccan Family Dinner Experience | Moroccan Secrets",
+      description:
+        "Authentic Moroccan food experience in a family home in Marrakech Medina. Enjoy traditional tagines and home-cooked meals.",
     },
     families: {
-      title: "Meet our Moroccan host families",
-      description: "Meet the host families and profiles published by Moroccan Secrets Riad.",
+      title: "Eat with a Local Family in Morocco | Moroccan Secrets",
+      description:
+        "Meet the local host families in Marrakech who welcome travelers into their homes for authentic home-cooked meals.",
     },
     booking: {
-      title: "Request a booking — Moroccan Secrets Riad",
+      title: "Book a Moroccan Family Dinner | Moroccan Secrets",
       description:
-        "Choose a published home dining experience and an available date to request a booking.",
+        "Reserve your seat for an authentic Moroccan home dinner with a local family in Marrakech. Select dates and dietary preferences.",
     },
     faq: {
-      title: "Frequently asked questions — Moroccan Secrets Riad",
-      description: "Answers to questions published by the host about the experiences and visit.",
+      title: "Moroccan Home Dinner FAQ | Moroccan Secrets",
+      description:
+        "Frequently asked questions about dining with a local family in Marrakech: what to wear, dietary needs, children, and arrival.",
     },
     blog: {
-      title: "Guides to Moroccan home dining",
-      description: "Read published guides about Moroccan home dining and food.",
+      title: "Marrakech Home Dining Guides | Moroccan Secrets",
+      description:
+        "Practical guides to Moroccan family dinners in Marrakech: dining etiquette, traditional dishes, what to expect, and travel tips.",
     },
     privateEvents: {
-      title: "Private events in Marrakesh — Moroccan Secrets Riad",
-      description: "Send an inquiry about a private group event or dinner.",
+      title: "Private Family Dinners Marrakech | Moroccan Secrets",
+      description:
+        "Inquire about private Moroccan family dinners and intimate gatherings with a local host family in Marrakech Medina.",
     },
     gift: {
-      title: "Gift voucher inquiry — Moroccan Secrets Riad",
+      title: "Gift a Moroccan Dinner Experience | Moroccan Secrets",
       description:
-        "Ask about a Moroccan Secrets Riad gift voucher. Vouchers are currently inquiry-only.",
+        "Gift an authentic Moroccan home dinner experience in Marrakech. Inquire about personalised vouchers for friends and family.",
     },
     partners: {
-      title: "Partner with Moroccan Secrets Riad",
-      description: "Hotels, riads, and guides can send a partnership inquiry.",
+      title: "Partner with Our Local Family | Moroccan Secrets",
+      description:
+        "Partnership opportunities for boutique riads, hotels, and ethical travel guides in Marrakech.",
     },
     privacy: {
-      title: "Privacy notice draft — Moroccan Secrets Riad",
-      description: "Draft privacy information for Moroccan Secrets Riad; review before launch.",
+      title: "Privacy Policy | Moroccan Secrets",
+      description:
+        "How Moroccan Secrets collects and protects your data. Simple, privacy-friendly principles.",
     },
     terms: {
-      title: "Terms draft — Moroccan Secrets Riad",
-      description: "Draft terms for Moroccan Secrets Riad; review before launch.",
+      title: "Terms of Service | Moroccan Secrets",
+      description:
+        "Terms of service and booking conditions for Moroccan Secrets dining experiences in Marrakech.",
     },
     cancellationPolicy: {
-      title: "Cancellation policy — Moroccan Secrets Riad",
-      description: "Read the current booking cancellation policy.",
+      title: "Cancellation Policy | Moroccan Secrets",
+      description:
+        "Clear, flexible cancellation terms for Moroccan home dinners: free cancellation up to 24 hours before your visit.",
     },
   },
   consent: {
@@ -379,60 +389,64 @@ const fr: Dict = {
   copyLoadError: "Impossible de charger le texte publié du site.",
   seo: {
     home: {
-      title: "Moroccan Secrets | Expériences",
+      title: "Dîner chez l'habitant Marrakech | Moroccan Secrets",
       description:
-        "Consultez les expériences publiées, vérifiez les disponibilités et envoyez une demande de réservation.",
+        "Partagez un authentique repas chez une famille marocaine à Marrakech. Cuisine maison traditionnelle, accueil chaleureux et échange culturel.",
     },
     experiences: {
-      title: "Expériences culinaires chez l'habitant à Marrakech",
+      title: "Repas chez une famille marocaine | Moroccan Secrets",
       description:
-        "Découvrez les expériences de repas traditionnels actuellement publiées par nos hôtes.",
+        "Découvrez nos expériences de dîners chez l'habitant à Marrakech. Plats traditionnels faits maison et accueil bienveillant.",
     },
     families: {
-      title: "Rencontrez nos familles d'accueil marocaines",
+      title: "Familles d'accueil à Marrakech | Moroccan Secrets",
       description:
-        "Découvrez les familles et les profils d'hôtes publiés par Moroccan Secrets Riad.",
+        "Faites la connaissance des familles locales qui vous accueillent chez elles pour un repas traditionnel dans la médina.",
     },
     booking: {
-      title: "Demander une réservation — Moroccan Secrets Riad",
+      title: "Réserver un dîner chez l'habitant | Moroccan Secrets",
       description:
-        "Choisissez une expérience publiée et une date disponible pour demander une réservation.",
+        "Réservez votre place pour un dîner chez une famille marocaine à Marrakech. Choix des dates et adaptation aux régimes alimentaires.",
     },
     faq: {
-      title: "Questions fréquentes — Moroccan Secrets Riad",
-      description: "Réponses publiées par l'hôte au sujet des expériences et de la visite.",
+      title: "FAQ Dîner chez l'habitant | Moroccan Secrets",
+      description:
+        "Réponses à vos questions sur les dîners chez l'habitant à Marrakech : tenue, régimes alimentaires, enfants, lieu de rendez-vous.",
     },
     blog: {
-      title: "Guides sur les repas marocains chez l'habitant",
+      title: "Guides du dîner chez l'habitant | Moroccan Secrets",
       description:
-        "Lisez les guides publiés sur les repas et la cuisine marocains chez l'habitant.",
+        "Guides pratiques sur les repas en famille marocaine à Marrakech : étiquette de table, plats traditionnels et conseils utiles.",
     },
     privateEvents: {
-      title: "Événements privés à Marrakech — Moroccan Secrets Riad",
-      description: "Envoyez une demande pour un événement privé en groupe ou un dîner.",
+      title: "Dîners privés chez l'habitant | Moroccan Secrets",
+      description:
+        "Demandez un dîner privé ou un événement en petit groupe chez une famille marocaine locale dans la médina de Marrakech.",
     },
     gift: {
-      title: "Demande de bon cadeau — Moroccan Secrets Riad",
+      title: "Offrir un dîner chez l'habitant | Moroccan Secrets",
       description:
-        "Renseignez-vous sur un bon cadeau Moroccan Secrets Riad. Les bons sont actuellement sur demande.",
+        "Offrez une expérience de dîner authentique chez une famille marocaine à Marrakech. Demande de bon cadeau sur mesure.",
     },
     partners: {
-      title: "Devenir partenaire de Moroccan Secrets Riad",
-      description: "Les hôtels, riads et guides peuvent envoyer une demande de partenariat.",
+      title: "Devenir partenaire local | Moroccan Secrets",
+      description:
+        "Partenariats pour riads, maisons d'hôtes et guides de voyage éthiques à Marrakech.",
     },
     privacy: {
-      title: "Projet de notice de confidentialité — Moroccan Secrets Riad",
+      title: "Politique de confidentialité | Moroccan Secrets",
       description:
-        "Projet d'informations sur la confidentialité ; à faire vérifier avant lancement.",
+        "Découvrez comment Moroccan Secrets protège vos données personnelles avec transparence.",
     },
     terms: {
-      title: "Projet de conditions — Moroccan Secrets Riad",
+      title: "Conditions de service | Moroccan Secrets",
       description:
-        "Projet de conditions pour Moroccan Secrets Riad ; à faire vérifier avant lancement.",
+        "Conditions générales et modalités de réservation des dîners chez l'habitant Moroccan Secrets.",
     },
     cancellationPolicy: {
-      title: "Politique d'annulation — Moroccan Secrets Riad",
-      description: "Consultez la politique d'annulation actuelle des réservations.",
+      title: "Conditions d'annulation | Moroccan Secrets",
+      description:
+        "Conditions d'annulation simples et flexibles : annulation gratuite jusqu'à 24 heures avant le repas.",
     },
   },
   consent: {
@@ -766,52 +780,64 @@ const ar: Dict = {
   copyLoadError: "تعذر تحميل النص المنشور للموقع.",
   seo: {
     home: {
-      title: "أسرار مغربية | التجارب",
-      description: "تعرّف على التجارب المنشورة، وتحقق من التوفر، وأرسل طلب حجز.",
+      title: "عشاء عند عائلة مغربية مراكش | Moroccan Secrets",
+      description:
+        "شارك عشاءً منزلياً أصيلاً عند عائلة مغربية في مراكش. طعام تقليدي طازج، ضيافة دافئة، وتواصل إنساني صادق في قلب المدينة القديمة.",
     },
     experiences: {
-      title: "تجارب تناول الطعام المنزلي في مراكش",
-      description: "اكتشف تجارب الطعام المنزلي المنشورة حالياً من قبل مضيفينا.",
+      title: "تجربة عشاء مغربي منزلي | Moroccan Secrets",
+      description:
+        "استمتع بتجربة طعام أصيلة داخل بيت عائلة مغربية في مراكش. طواجن تقليدية وسلطات موسمية طازجة.",
     },
     families: {
-      title: "تعرّف على عائلاتنا المغربية المضيفة",
-      description: "تعرّف على العائلات والملفات المنشورة من قبل أسرار مغربية رياض.",
+      title: "عائلاتنا المضيفة في مراكش | Moroccan Secrets",
+      description:
+        "تعرف على العائلات المحلية في مراكش التي تفتح أبواب بيوتها لمشاركة وجبات منزلية غنية بالدفء والتقاليد.",
     },
     booking: {
-      title: "طلب حجز — أسرار مغربية رياض",
-      description: "اختر تجربة منشورة وموعداً متاحاً لإرسال طلب الحجز.",
+      title: "احجز عشاءً مع عائلة مغربية | Moroccan Secrets",
+      description:
+        "احجز مقعدك لعشاء منزلي تقليدي مع عائلة مغربية في مراكش. اختر التاريخ المناسب واذكر احتياجاتك الغذائية بكل سهولة.",
     },
     faq: {
-      title: "الأسئلة الشائعة — أسرار مغربية رياض",
-      description: "إجابات نشرها المضيف حول التجارب والزيارة.",
+      title: "الأسئلة الشائعة حول العشاء | Moroccan Secrets",
+      description:
+        "إجابات شاملة عن تجربة العشاء المنزلي في مراكش: الملابس المناسبة، خيارات الطعام النباتي، الأطفال، ومكان اللقاء.",
     },
     blog: {
-      title: "أدلة تناول الطعام المغربي في المنازل",
-      description: "اقرأ الأدلة المنشورة عن الطعام والطهي المغربي المنزلي.",
+      title: "دليل العشاء العائلي بمراكش | Moroccan Secrets",
+      description:
+        "دليل شامل لتجربة العشاء مع عائلة مغربية في مراكش: آداب المائدة، الأطباق التقليدية، وتفاصيل الزيارة المنزلية.",
     },
     privateEvents: {
-      title: "فعاليات خاصة في مراكش — أسرار مغربية رياض",
-      description: "أرسل استفساراً عن فعالية خاصة لمجموعة أو عشاء.",
+      title: "عشاء عائلي خاص في مراكش | Moroccan Secrets",
+      description:
+        "استفسر عن تنظيم عشاء عائلي خاص أو مناسبة حميمة لمجموعتك مع عائلة محلية في المدينة القديمة بمراكش.",
     },
     gift: {
-      title: "استفسار عن قسيمة هدية — أسرار مغربية رياض",
-      description: "استفسر عن قسيمة هدية. القسائم متاحة حالياً عبر الاستفسار فقط.",
+      title: "إهداء تجربة عشاء مغربي | Moroccan Secrets",
+      description:
+        "أهدِ أحباءك تجربة عشاء منزلي أصيل مع عائلة مغربية في مراكش. استفسر عن قسائم الهدايا المخصصة.",
     },
     partners: {
-      title: "كن شريكاً لأسرار مغربية رياض",
-      description: "يمكن للفنادق والرياض والمرشدين إرسال استفسار للشراكة.",
+      title: "شراكات الضيافة بمراكش | Moroccan Secrets",
+      description:
+        "فرص الشراكة للرياض ودور الضيافة والمرشدين السياحيين المهتمين بالسياحة الأصيلة في مراكش.",
     },
     privacy: {
-      title: "مسودة إشعار الخصوصية — أسرار مغربية رياض",
-      description: "مسودة معلومات الخصوصية؛ يجب مراجعتها قبل الإطلاق.",
+      title: "سياسة الخصوصية | Moroccan Secrets",
+      description:
+        "تعرف على كيفية حماية بياناتك الشخصية واحترام خصوصيتك لدى Moroccan Secrets.",
     },
     terms: {
-      title: "مسودة الشروط — أسرار مغربية رياض",
-      description: "مسودة شروط أسرار مغربية رياض؛ يجب مراجعتها قبل الإطلاق.",
+      title: "شروط الخدمة | Moroccan Secrets",
+      description:
+        "الشروط والأحكام الخاصة بحجز تجارب العشاء المنزلي مع Moroccan Secrets في مراكش.",
     },
     cancellationPolicy: {
-      title: "سياسة الإلغاء — أسرار مغربية رياض",
-      description: "اطلع على سياسة إلغاء الحجز الحالية.",
+      title: "سياسة الإلغاء | Moroccan Secrets",
+      description:
+        "شروط إلغاء مرنة وواضحة: إمكانية الإلغاء مجاناً حتى 24 ساعة قبل موعد العشاء العائلي.",
     },
   },
   consent: {

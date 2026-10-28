@@ -2,20 +2,14 @@ import { createFileRoute } from "@tanstack/react-router";
 import { InquiryForm } from "@/components/site/InquiryForm";
 import { SectionHead } from "@/components/site/Brand";
 import { useI18n } from "@/lib/i18n";
-import { BRAND_NAME } from "@/lib/brand";
 import { pageHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/private-events")({
-  head: () =>
-    pageHead(
-      "/private-events",
-      `Private events — ${BRAND_NAME}`,
-      "Send an inquiry about a private event.",
-    ),
+  head: () => pageHead("/private-events", "en"),
   component: PrivateEventsPage,
 });
 
-function PrivateEventsPage() {
+export function PrivateEventsPage() {
   const { t } = useI18n();
   return (
     <section className="mx-auto max-w-3xl px-5 py-16">

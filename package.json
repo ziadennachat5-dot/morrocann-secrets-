@@ -13,6 +13,7 @@
     "seed:first-experience": "node --env-file=.env --experimental-strip-types scripts/seed-first-experience.ts",
     "seed:guest-photos": "node --env-file=.env --experimental-strip-types scripts/seed-guest-photos.ts",
     "update:experience-offer": "node --env-file=.env --experimental-strip-types scripts/update-experience-offer.ts",
+    "reset:availability": "node --env-file=.env --experimental-strip-types scripts/reinitialize-availability.ts",
     "test": "vitest run",
     "test:watch": "vitest"
   },

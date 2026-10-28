@@ -80,3 +80,77 @@ export function filterDatesByDayType(
     return true;
   });
 }
+
+export const toLocalDateString = formatISODate;
+
+export interface MonthStats {
+  availableDays: number;
+  fullyBookedDays: number;
+  closedDays: number;
+  totalGuestsBooked: number;
+  totalBookings: number;
+}
+
+export function calculateMonthStats({
+  monthDates,
+  experienceId,
+  availability,
+  bookings,
+}: {
+  monthDates: string[];
+  experienceId: string;
+  availability: {
+    experience_id: string;
+    date: string;
+    status: "available" | "booked" | "closed";
+    capacity?: number;
+    booked_count?: number;
+  }[];
+  bookings: {
+    experience_id: string;
+    date: string;
+    status: string;
+    adults: number;
+    children: number;
+  }[];
+}): MonthStats {
+  let availableDays = 0;
+  let fullyBookedDays = 0;
+  let closedDays = 0;
+  let totalGuestsBooked = 0;
+  let totalBookings = 0;
+
+  for (const dateVal of monthDates) {
+    const slot = availability.find(
+      (s) => s.experience_id === experienceId && s.date === dateVal,
+    );
+    const dayBookings = bookings.filter(
+      (b) =>
+        b.experience_id === experienceId &&
+        b.date === dateVal &&
+        b.status !== "cancelled",
+    );
+    const bookedGuests = dayBookings.reduce(
+      (acc, b) => acc + (b.adults || 0) + (b.children || 0),
+      0,
+    );
+
+    totalGuestsBooked += bookedGuests;
+    totalBookings += dayBookings.length;
+
+    const activeGuests = Math.max(slot?.booked_count ?? 0, bookedGuests);
+    const state = getCalendarSlotState(slot ?? null, activeGuests);
+
+    if (state === "available") availableDays++;
+    else if (state === "full") fullyBookedDays++;
+    else if (state === "closed") closedDays++;
+  }
+
+  return {
+    availableDays,
+    fullyBookedDays,
+    closedDays,
+    totalGuestsBooked,
+    totalBookings,
+  };
+}

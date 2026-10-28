@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useCallback, useRef, useState, type ReactNode } from "react";
 import { useI18n } from "@/lib/i18n";
 import {
   Utensils,
@@ -15,6 +15,8 @@ import {
   Check,
   Home,
   ChefHat,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import {
   OrnamentDivider,
@@ -362,6 +364,21 @@ const EXPERIENCE_TEXT = {
       },
     },
     {
+      sourceFile: "7.jpeg",
+      fallbackFile: "7.jpeg",
+      icon: Coffee,
+      title: {
+        en: "Traditional welcome & tea",
+        fr: "Accueil traditionnel & thé",
+        ar: "استقبال تقليدي وشاي مغربي",
+      },
+      text: {
+        en: "Experience the welcoming mint tea and hand-washing ritual as honored guests.",
+        fr: "Découvrez le rituel d'accueil avec thé à la menthe et le lave-mains traditionnel.",
+        ar: "عش طقوس غسل اليدين وحفاوة الشاي المغربي كضيوف مكرمين.",
+      },
+    },
+    {
       sourceFile: "4.png",
       fallbackFile: "4.jpeg",
       icon: IconHomeCooked,
@@ -377,6 +394,36 @@ const EXPERIENCE_TEXT = {
       },
     },
     {
+      sourceFile: "2.jpeg",
+      fallbackFile: "2.jpeg",
+      icon: Shirt,
+      title: {
+        en: "Wear traditional caftans",
+        fr: "Portez les caftans traditionnels",
+        ar: "ارتداء القفطان الأصيل",
+      },
+      text: {
+        en: "Try on hand-embroidered caftans and immerse yourself in Moroccan heritage.",
+        fr: "Essayez des caftans brodés à la main et plongez au cœur de l'héritage marocain.",
+        ar: "جربوا ارتداء القفاطين المطرزة يدوياً واستمتعوا بالأصالة المغربية.",
+      },
+    },
+    {
+      sourceFile: "8.jpeg",
+      fallbackFile: "8.jpeg",
+      icon: MessageCircleHeart,
+      title: {
+        en: "Shared family dinner",
+        fr: "Repas partagé en famille",
+        ar: "عشاء عائلي مشترك",
+      },
+      text: {
+        en: "Share meaningful moments and stories around a Moroccan table with warm hosts.",
+        fr: "Partagez des moments privilégiés et des récits autour d'une table marocaine chaleureuse.",
+        ar: "لحظات دافئة وحكايات ممتعة نتقاسمها حول مائدة مغربية عامرة.",
+      },
+    },
+    {
       sourceFile: "11.png",
       fallbackFile: "11.jpeg",
       icon: ZelligeStarSvg,
@@ -389,6 +436,21 @@ const EXPERIENCE_TEXT = {
         en: "Discover genuine Moroccan hospitality and experience the culture beyond the guidebooks.",
         fr: "Découvrez la véritable hospitalité marocaine et vivez la culture bien au-delà des guides.",
         ar: "اكتشفوا كرم الضيافة المغربية الأصيلة وعيشوا الثقافة بعيداً عن الكتيبات السياحية.",
+      },
+    },
+    {
+      sourceFile: "14.png",
+      fallbackFile: "14.png",
+      icon: Home,
+      title: {
+        en: "Authentic riad setting",
+        fr: "Cadre authentique de riad",
+        ar: "أجواء الرياض الأصيلة",
+      },
+      text: {
+        en: "Step into a genuine Medina home filled with zellige tiles, peace, and warmth.",
+        fr: "Entrez dans une véritable maison de la médina ornée de zelliges, de paix et de chaleur.",
+        ar: "ادخل إلى بيت تقليدي في قلب المدينة العتيقة بجمال الزليج ودفء الضيافة.",
       },
     },
   ],
@@ -440,6 +502,41 @@ export function ConceptSection({
   conceptPhoto?: { url: string; alt: string; srcSet?: string | undefined } | undefined;
 }) {
   const { lang } = useI18n();
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const [activeCardIndex, setActiveCardIndex] = useState(0);
+
+  const scrollToIndex = useCallback((index: number) => {
+    if (!carouselRef.current) return;
+    const container = carouselRef.current;
+    const cards = container.children;
+    if (cards[index]) {
+      const card = cards[index] as HTMLElement;
+      container.scrollTo({
+        left: card.offsetLeft - (container.clientWidth - card.clientWidth) / 2,
+        behavior: "smooth",
+      });
+      setActiveCardIndex(index);
+    }
+  }, []);
+
+  const handleScroll = useCallback(() => {
+    if (!carouselRef.current) return;
+    const container = carouselRef.current;
+    const scrollLeft = container.scrollLeft;
+    const center = scrollLeft + container.clientWidth / 2;
+    const cards = Array.from(container.children) as HTMLElement[];
+    let closestIndex = 0;
+    let minDistance = Infinity;
+    cards.forEach((card, i) => {
+      const cardCenter = card.offsetLeft + card.clientWidth / 2;
+      const dist = Math.abs(center - cardCenter);
+      if (dist < minDistance) {
+        minDistance = dist;
+        closestIndex = i;
+      }
+    });
+    setActiveCardIndex(closestIndex);
+  }, []);
 
   const eveningStops = [
     {
@@ -512,8 +609,13 @@ export function ConceptSection({
           </div>
 
           {/* Right: Three white cards (col-span-12 lg:col-span-8) */}
-          <div className="lg:col-span-8">
-            <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 -mx-5 px-5 scrollbar-none md:grid md:grid-cols-3 md:gap-6 md:mx-0 md:px-0">
+          <div className="lg:col-span-8 min-w-0 w-full relative">
+            <div
+              ref={carouselRef}
+              onScroll={handleScroll}
+              className="flex overflow-x-auto snap-x snap-mandatory gap-4 sm:gap-5 pb-4 -mx-4 px-4 sm:-mx-6 sm:px-6 md:mx-0 md:px-0 scroll-smooth scrollbar-none"
+              style={{ WebkitOverflowScrolling: "touch" }}
+            >
               {EXPERIENCE_TEXT.cards.map((card, idx) => {
                 const Icon = card.icon;
                 const matchedPhoto =
@@ -526,7 +628,7 @@ export function ConceptSection({
                 return (
                   <div
                     key={idx}
-                    className="min-w-[260px] sm:min-w-[280px] snap-center shrink-0 md:min-w-0 md:shrink rounded-[20px] bg-white p-5 shadow-soft flex flex-col justify-between border border-stone-200/50"
+                    className="w-[82vw] max-w-[320px] sm:w-[280px] lg:w-[260px] xl:w-[280px] snap-center shrink-0 rounded-[20px] bg-white p-5 shadow-soft flex flex-col justify-between border border-stone-200/50 transition-all duration-300"
                     dir={lang === "ar" ? "rtl" : "ltr"}
                   >
                     <div>
@@ -552,6 +654,46 @@ export function ConceptSection({
                   </div>
                 );
               })}
+            </div>
+
+            {/* Mobile Carousel Controls: Arrows + Dots Indicator */}
+            <div className="flex items-center justify-between mt-4 px-2">
+              <button
+                type="button"
+                onClick={() => scrollToIndex(Math.max(0, activeCardIndex - 1))}
+                disabled={activeCardIndex === 0}
+                aria-label={lang === "fr" ? "Photo précédente" : lang === "ar" ? "الصورة السابقة" : "Previous photo"}
+                className="h-9 w-9 rounded-full border border-stone-300/80 bg-white shadow-2xs flex items-center justify-center text-oxblood disabled:opacity-25 disabled:cursor-not-allowed active:scale-95 transition cursor-pointer"
+              >
+                <ChevronLeft className="h-4 w-4 rtl:rotate-180" />
+              </button>
+
+              {/* Dots */}
+              <div className="flex items-center gap-2">
+                {EXPERIENCE_TEXT.cards.map((_, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => scrollToIndex(i)}
+                    aria-label={`Go to photo ${i + 1}`}
+                    className={`h-2 transition-all duration-300 rounded-full cursor-pointer ${
+                      activeCardIndex === i
+                        ? "w-7 bg-oxblood"
+                        : "w-2 bg-stone-300 hover:bg-stone-400"
+                    }`}
+                  />
+                ))}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => scrollToIndex(Math.min(EXPERIENCE_TEXT.cards.length - 1, activeCardIndex + 1))}
+                disabled={activeCardIndex === EXPERIENCE_TEXT.cards.length - 1}
+                aria-label={lang === "fr" ? "Photo suivante" : lang === "ar" ? "الصورة التالية" : "Next photo"}
+                className="h-9 w-9 rounded-full border border-stone-300/80 bg-white shadow-2xs flex items-center justify-center text-oxblood disabled:opacity-25 disabled:cursor-not-allowed active:scale-95 transition cursor-pointer"
+              >
+                <ChevronRight className="h-4 w-4 rtl:rotate-180" />
+              </button>
             </div>
           </div>
         </div>

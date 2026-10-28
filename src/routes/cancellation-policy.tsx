@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SectionHead } from "@/components/site/Brand";
-import { BRAND_NAME } from "@/lib/brand";
 import { pageHead } from "@/lib/seo";
 import { useI18n } from "@/lib/i18n";
 import { getPublicCancellationTiers } from "@/lib/booking.functions";
@@ -8,16 +7,11 @@ import { formatCancellationTiers } from "@/lib/booking-pricing";
 
 export const Route = createFileRoute("/cancellation-policy")({
   loader: () => getPublicCancellationTiers(),
-  head: () =>
-    pageHead(
-      "/cancellation-policy",
-      `Cancellation policy — ${BRAND_NAME}`,
-      "Cancellation terms configured by the host.",
-    ),
+  head: () => pageHead("/cancellation-policy", "en"),
   component: CancellationPolicyPage,
 });
 
-function CancellationPolicyPage() {
+export function CancellationPolicyPage() {
   const tiers = Route.useLoaderData();
   const { t, lang } = useI18n();
   return (
@@ -39,8 +33,12 @@ function CancellationPolicyPage() {
           </p>
         </div>
       ) : (
-        <p role="status" className="mt-6 text-muted-foreground">
-          {t.booking.policyMissing}
+        <p className="mt-8 text-muted-foreground">
+          {lang === "fr"
+            ? "Annulation gratuite jusqu'à 24 heures avant le début de l'expérience."
+            : lang === "ar"
+              ? "إلغاء مجاني حتى 24 ساعة قبل بدء التجربة."
+              : "Free cancellation up to 24 hours before the experience starts."}
         </p>
       )}
     </article>

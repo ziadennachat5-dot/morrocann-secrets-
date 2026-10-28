@@ -4,14 +4,10 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import type { Json, Tables } from "@/integrations/supabase/types";
 import { CatalogManager } from "@/components/admin/CatalogManager";
-import {
-  filterDatesByDayType,
-  getCalendarSlotState,
-  getDatesInMonth,
-  getDatesInRange,
-  nextCalendarSlotState,
-} from "@/lib/admin-calendar";
-import { updateAdminAvailabilityBatch, updateAdminAvailabilitySlot } from "@/lib/admin.functions";
+import { AdminAvailabilityManager } from "@/components/admin/AdminAvailabilityManager";
+import { ArrowUpDown, Clock, Filter, MessageCircle, Search } from "lucide-react";
+import { formatClientWhatsappUrl } from "@/lib/whatsapp-client";
+import { parseCancellationTiers, type CancellationTier } from "@/lib/booking-pricing";
 
 type Booking = Tables<"bookings">;
 type Availability = Tables<"availability">;
@@ -46,6 +42,7 @@ const ADMIN_I18N = {
     guest: "Guest",
     guests: "Guests",
     date: "Date",
+    time: "Time",
     experience: "Experience",
     status: "Status",
     phone: "Phone",
@@ -93,6 +90,32 @@ const ADMIN_I18N = {
     saveSettings: "Save settings",
     saving: "Saving…",
     saved: "Settings saved successfully.",
+    contactWhatsapp: "Contact on WhatsApp",
+    all: "All",
+    searchPlaceholder: "Search by guest name, email, or phone…",
+    sortBy: "Sort by",
+    sortNewest: "Newest requests",
+    sortDateDesc: "Dinner date (latest)",
+    sortDateAsc: "Dinner date (earliest)",
+    bookedAt: "Requested on",
+    newRequestBadge: "NEW",
+    forgotPassword: "Forgot password / Set my password",
+    backToSignIn: "← Back to Sign In",
+    sendResetLink: "Send Reset Link to Email",
+    resetEmailDesc: "Enter the owner email to receive a secure link to create or choose your private password:",
+    resetLinkSent: "A reset link has been sent to your email. Check your inbox (and spam folder) and click the link to set your password.",
+    setNewPasswordTitle: "Set Your Secret Password",
+    setNewPasswordDesc: "Choose a secure password that only you will know.",
+    newPasswordLabel: "New Password (min 6 characters)",
+    confirmPasswordLabel: "Confirm Password",
+    savePasswordBtn: "Save Password & Enter Admin",
+    passwordsDoNotMatch: "Passwords do not match.",
+    passwordMinLength: "Password must be at least 6 characters.",
+    passwordUpdated: "Password updated successfully! Welcome to your dashboard.",
+    showPassword: "Show password",
+    changePasswordTitle: "Admin Password",
+    changePasswordDesc: "Update your private administrator password",
+    changePasswordBtn: "Update Password",
   },
   fr: {
     title: "Administration Moroccan Secrets",
@@ -114,6 +137,7 @@ const ADMIN_I18N = {
     guest: "Client",
     guests: "Personnes",
     date: "Date",
+    time: "Heure",
     experience: "Expérience",
     status: "Statut",
     phone: "Téléphone",
@@ -161,6 +185,32 @@ const ADMIN_I18N = {
     saveSettings: "Enregistrer les paramètres",
     saving: "Enregistrement…",
     saved: "Paramètres enregistrés avec succès.",
+    contactWhatsapp: "Contacter sur WhatsApp",
+    all: "Tous",
+    searchPlaceholder: "Rechercher par nom, email, ou téléphone…",
+    sortBy: "Trier par",
+    sortNewest: "Demandes récentes",
+    sortDateDesc: "Date du repas (récent)",
+    sortDateAsc: "Date du repas (proche)",
+    bookedAt: "Reçu le",
+    newRequestBadge: "NOUVEAU",
+    forgotPassword: "Mot de passe oublié / Définir mon mot de passe",
+    backToSignIn: "← Retour à la connexion",
+    sendResetLink: "Envoyer le lien par e-mail",
+    resetEmailDesc: "Entrez l'e-mail du propriétaire pour recevoir un lien sécurisé permettant de créer ou modifier votre mot de passe secret :",
+    resetLinkSent: "Un e-mail de réinitialisation a été envoyé. Vérifiez votre boîte de réception (et spams) et cliquez sur le lien pour choisir votre mot de passe.",
+    setNewPasswordTitle: "Définir votre mot de passe secret",
+    setNewPasswordDesc: "Choisissez un mot de passe sécurisé que vous seul connaîtrez.",
+    newPasswordLabel: "Nouveau mot de passe (min. 6 caractères)",
+    confirmPasswordLabel: "Confirmer le mot de passe",
+    savePasswordBtn: "Enregistrer et accéder à l'administration",
+    passwordsDoNotMatch: "Les mots de passe ne correspondent pas.",
+    passwordMinLength: "Le mot de passe doit contenir au moins 6 caractères.",
+    passwordUpdated: "Mot de passe mis à jour avec succès ! Bienvenue.",
+    showPassword: "Afficher le mot de passe",
+    changePasswordTitle: "Mot de passe administrateur",
+    changePasswordDesc: "Modifier votre mot de passe secret",
+    changePasswordBtn: "Mettre à jour le mot de passe",
   },
   ar: {
     title: "إدارة أسرار المغرب",
@@ -182,6 +232,7 @@ const ADMIN_I18N = {
     guest: "الضيف",
     guests: "عدد الضيوف",
     date: "التاريخ",
+    time: "الوقت",
     experience: "التجربة",
     status: "الحالة",
     phone: "الهاتف",
@@ -229,6 +280,32 @@ const ADMIN_I18N = {
     saveSettings: "حفظ الإعدادات",
     saving: "جارٍ الحفظ…",
     saved: "تم حفظ الإعدادات بنجاح.",
+    contactWhatsapp: "مراسلة عبر واتساب",
+    all: "الكل",
+    searchPlaceholder: "بحث بالاسم، البريد أو الهاتف…",
+    sortBy: "ترتيب حسب",
+    sortNewest: "أحدث الطلبات أولاً",
+    sortDateDesc: "تاريخ الوجبة (الأحدث)",
+    sortDateAsc: "تاريخ الوجبة (الأقرب)",
+    bookedAt: "تاريخ الطلب",
+    newRequestBadge: "جديد",
+    forgotPassword: "نسيت كلمة المرور / تعيين كلمة المرور الخاصة بي",
+    backToSignIn: "← العودة لتسجيل الدخول",
+    sendResetLink: "إرسال الرابط إلى البريد الإلكتروني",
+    resetEmailDesc: "أدخل بريد المالك لتلقي رابط آمن لتحديد كلمة المرور السرية الخاصة بك:",
+    resetLinkSent: "تم إرسال رابط إعادة التعيين إلى بريدك الإلكتروني. تحقق من صندوق الوارد (أو الرسائل غير المرغوب فيها) وانقر على الرابط.",
+    setNewPasswordTitle: "تعيين كلمة المرور السرية",
+    setNewPasswordDesc: "اختر كلمة مرور آمنة تعرفها أنت فقط.",
+    newPasswordLabel: "كلمة المرور الجديدة (6 أحرف على الأقل)",
+    confirmPasswordLabel: "تأكيد كلمة المرور",
+    savePasswordBtn: "حفظ كلمة المرور والدخول للوحة التحكم",
+    passwordsDoNotMatch: "كلمتا المرور غير متطابقتين.",
+    passwordMinLength: "يجب أن تتكون كلمة المرور من 6 أحرف على الأقل.",
+    passwordUpdated: "تم تحديث كلمة المرور بنجاح! مرحباً بك.",
+    showPassword: "إظهار كلمة المرور",
+    changePasswordTitle: "كلمة مرور المدير",
+    changePasswordDesc: "تعديل كلمة المرور السرية الخاصة بك",
+    changePasswordBtn: "تحديث كلمة المرور",
   },
 } as const;
 
@@ -243,7 +320,7 @@ function AdminPage() {
   const [adminLang, setAdminLang] = useState<AdminLang>("en");
   const t = ADMIN_I18N[adminLang];
 
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState("moroccosecretsmarrakech@gmail.com");
   const [password, setPassword] = useState("");
   const [authorized, setAuthorized] = useState(false);
   const [authReady, setAuthReady] = useState(false);
@@ -251,34 +328,29 @@ function AdminPage() {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
+  // Password reset and recovery states
+  const [authView, setAuthView] = useState<"signin" | "request_reset">("signin");
+  const [isRecoveryMode, setIsRecoveryMode] = useState(false);
+  const [resetEmail, setResetEmail] = useState("moroccosecretsmarrakech@gmail.com");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+
+  // In-dashboard change password
+  const [dashNewPassword, setDashNewPassword] = useState("");
+  const [dashConfirmPassword, setDashConfirmPassword] = useState("");
+  const [dashShowPassword, setDashShowPassword] = useState(false);
+  const [dashPasswordSuccess, setDashPasswordSuccess] = useState("");
+  const [dashPasswordError, setDashPasswordError] = useState("");
+
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [bookingStatusFilter, setBookingStatusFilter] = useState<"all" | "pending" | "confirmed" | "cancelled">("all");
+  const [bookingSearchQuery, setBookingSearchQuery] = useState("");
+  const [bookingSortMode, setBookingSortMode] = useState<"created_desc" | "date_desc" | "date_asc">("created_desc");
   const [experiences, setExperiences] = useState<Tables<"experiences">[]>([]);
   const [availability, setAvailability] = useState<Availability[]>([]);
   const [settings, setSettings] = useState<SiteSetting[]>([]);
-
-  // Calendar state
-  const [availabilityExperience, setAvailabilityExperience] = useState("");
-  const [availabilityCapacity, setAvailabilityCapacity] = useState("25");
-  const [calendarMonth, setCalendarMonth] = useState(
-    () => new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-  );
-  const [calendarMessage, setCalendarMessage] = useState("");
-  const [targetStatus, setTargetStatus] = useState<"available" | "booked" | "closed">("available");
-  const [clickMode, setClickMode] = useState<"direct" | "cycle">("direct");
-  const [multiSelectMode, setMultiSelectMode] = useState(false);
-  const [selectedDates, setSelectedDates] = useState<Set<string>>(new Set());
-  const [rangeStart, setRangeStart] = useState("");
-  const [rangeEnd, setRangeEnd] = useState("");
-  const [applyToAllExps, setApplyToAllExps] = useState(false);
-  const [isBulkUpdating, setIsBulkUpdating] = useState(false);
-
-  useEffect(() => {
-    if (!availabilityExperience || experiences.length === 0) return;
-    const exp = experiences.find((e) => e.id === availabilityExperience);
-    if (exp?.max_guests) {
-      setAvailabilityCapacity(String(exp.max_guests));
-    }
-  }, [availabilityExperience, experiences]);
 
   // Settings form state
   const [settingWhatsapp, setSettingWhatsapp] = useState("");
@@ -302,23 +374,12 @@ function AdminPage() {
     }
   }
 
-  const calendarDates = useMemo(() => {
-    const first = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), 1);
-    const start = new Date(first);
-    start.setDate(first.getDate() - first.getDay());
-    return Array.from({ length: 42 }, (_, index) => {
-      const date = new Date(start);
-      date.setDate(start.getDate() + index);
-      return date;
-    });
-  }, [calendarMonth]);
-
   const refresh = useCallback(async () => {
     setBusy(true);
     setError("");
     const [bookingResult, experienceResult, availabilityResult, settingsResult] = await Promise.all(
       [
-        supabase.from("bookings").select("*").order("date", { ascending: false }),
+        supabase.from("bookings").select("*").order("created_at", { ascending: false }),
         supabase.from("experiences").select("*").order("id"),
         supabase.from("availability").select("*").order("date", { ascending: true }),
         supabase.from("site_settings").select("*").order("setting_key"),
@@ -341,10 +402,6 @@ function AdminPage() {
     setExperiences(experienceResult.data ?? []);
     setAvailability(availabilityResult.data ?? []);
     setSettings(settingsResult.data ?? []);
-
-    if (experienceResult.data?.length) {
-      setAvailabilityExperience((curr) => curr || experienceResult.data[0]!.id);
-    }
 
     // Populate settings state
     const sMap = new Map((settingsResult.data ?? []).map((s) => [s.setting_key, s.value]));
@@ -394,6 +451,30 @@ function AdminPage() {
     setAuthReady(true);
   }, []);
 
+
+  // Listen for Supabase password recovery events and hash fragments
+  useEffect(() => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") {
+        setIsRecoveryMode(true);
+        setError("");
+        setSuccessMessage("");
+      }
+    });
+
+    if (typeof window !== "undefined") {
+      const hash = window.location.hash || "";
+      const search = window.location.search || "";
+      if (hash.includes("type=recovery") || search.includes("type=recovery")) {
+        setIsRecoveryMode(true);
+      }
+    }
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
+
   useEffect(() => {
     void verifyAdmin();
   }, [verifyAdmin]);
@@ -401,6 +482,72 @@ function AdminPage() {
   useEffect(() => {
     if (authorized) void refresh();
   }, [authorized, refresh]);
+
+  // Realtime subscription and window focus listener so new bookings appear instantly
+  useEffect(() => {
+    if (!authorized) return;
+
+    const channel = supabase
+      .channel("admin-bookings-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "bookings" },
+        () => {
+          void refresh();
+        },
+      )
+      .subscribe();
+
+    const handleFocus = () => {
+      if (document.visibilityState === "visible") {
+        void refresh();
+      }
+    };
+
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleFocus);
+
+    return () => {
+      void supabase.removeChannel(channel);
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleFocus);
+    };
+  }, [authorized, refresh]);
+
+  const pendingCount = useMemo(() => bookings.filter((b) => b.status === "pending").length, [bookings]);
+  const confirmedCount = useMemo(() => bookings.filter((b) => b.status === "confirmed").length, [bookings]);
+  const cancelledCount = useMemo(() => bookings.filter((b) => b.status === "cancelled").length, [bookings]);
+
+  const filteredBookings = useMemo(() => {
+    let result = [...bookings];
+
+    if (bookingStatusFilter !== "all") {
+      result = result.filter((b) => b.status === bookingStatusFilter);
+    }
+
+    if (bookingSearchQuery.trim()) {
+      const q = bookingSearchQuery.toLowerCase().trim();
+      result = result.filter(
+        (b) =>
+          b.name?.toLowerCase().includes(q) ||
+          b.email?.toLowerCase().includes(q) ||
+          b.phone?.toLowerCase().includes(q) ||
+          b.date?.includes(q),
+      );
+    }
+
+    result.sort((a, b) => {
+      if (bookingSortMode === "created_desc") {
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      }
+      if (bookingSortMode === "date_asc") {
+        return a.date.localeCompare(b.date);
+      }
+      return b.date.localeCompare(a.date);
+    });
+
+    return result;
+  }, [bookings, bookingStatusFilter, bookingSearchQuery, bookingSortMode]);
 
   async function signIn(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -413,6 +560,80 @@ function AdminPage() {
       return;
     }
     await verifyAdmin();
+    setBusy(false);
+  }
+
+
+  async function handleRequestReset(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setBusy(true);
+    setError("");
+    setSuccessMessage("");
+    const targetEmail = (resetEmail || email || "moroccosecretsmarrakech@gmail.com").trim();
+    const redirectUrl = typeof window !== "undefined" ? `${window.location.origin}/admin` : undefined;
+    const { error: resetErr } = await supabase.auth.resetPasswordForEmail(targetEmail, {
+      redirectTo: redirectUrl,
+    });
+    if (resetErr) {
+      setError(resetErr.message);
+    } else {
+      setSuccessMessage(t.resetLinkSent);
+    }
+    setBusy(false);
+  }
+
+  async function handleSetNewPassword(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError("");
+    setSuccessMessage("");
+    if (newPassword.length < 6) {
+      setError(t.passwordMinLength);
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setError(t.passwordsDoNotMatch);
+      return;
+    }
+    setBusy(true);
+    const { error: updateErr } = await supabase.auth.updateUser({ password: newPassword });
+    if (updateErr) {
+      setError(updateErr.message);
+      setBusy(false);
+      return;
+    }
+
+    setSuccessMessage(t.passwordUpdated);
+    setIsRecoveryMode(false);
+    setNewPassword("");
+    setConfirmPassword("");
+    if (typeof window !== "undefined" && window.history.replaceState) {
+      window.history.replaceState(null, "", window.location.pathname);
+    }
+    await verifyAdmin();
+    setBusy(false);
+  }
+
+  async function handleDashboardChangePassword(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setDashPasswordError("");
+    setDashPasswordSuccess("");
+    if (dashNewPassword.length < 6) {
+      setDashPasswordError(t.passwordMinLength);
+      return;
+    }
+    if (dashNewPassword !== dashConfirmPassword) {
+      setDashPasswordError(t.passwordsDoNotMatch);
+      return;
+    }
+    setBusy(true);
+    const { error: updateErr } = await supabase.auth.updateUser({ password: dashNewPassword });
+    if (updateErr) {
+      setDashPasswordError(updateErr.message);
+    } else {
+      setDashPasswordSuccess(t.passwordUpdated);
+      setDashNewPassword("");
+      setDashConfirmPassword("");
+    }
     setBusy(false);
   }
 
@@ -449,6 +670,7 @@ function AdminPage() {
       "phone",
       "experience_id",
       "date",
+      "start_time",
       "guests",
       "adults",
       "children",
@@ -467,9 +689,10 @@ function AdminPage() {
         typeof value === "string" && /^[\t\r ]*[=+\-@]/.test(text) ? `'${text}` : text;
       return `"${safeText.replaceAll('"', '""')}"`;
     };
+    const listToExport = filteredBookings.length > 0 ? filteredBookings : bookings;
     const csv = [
       columns.join(","),
-      ...bookings.map((b) => columns.map((col) => quote(b[col])).join(",")),
+      ...listToExport.map((b) => columns.map((col) => quote(b[col])).join(",")),
     ].join("\r\n");
     const blobUrl = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
     const anchor = document.createElement("a");
@@ -478,143 +701,6 @@ function AdminPage() {
     anchor.click();
     URL.revokeObjectURL(blobUrl);
   }
-
-  async function cycleCalendarDay(date: string) {
-    if (!availabilityExperience) {
-      setError("Choose an experience to manage its calendar.");
-      return;
-    }
-    const slot = availability.find(
-      (item) => item.experience_id === availabilityExperience && item.date === date,
-    );
-    const activeGuests = bookings
-      .filter(
-        (b) =>
-          b.experience_id === availabilityExperience && b.date === date && b.status !== "cancelled",
-      )
-      .reduce((total, b) => total + b.adults + b.children, 0);
-
-    const currentState = getCalendarSlotState(slot ?? null, activeGuests);
-    const nextState = nextCalendarSlotState(currentState);
-    const capacity = Number(availabilityCapacity) || 25;
-    const targetStatusVal = nextState === "full" ? "booked" : nextState;
-
-    try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      await updateAdminAvailabilitySlot({
-        data: {
-          accessToken: sessionData.session?.access_token,
-          date,
-          experienceId: availabilityExperience,
-          capacity,
-          status: targetStatusVal,
-        },
-      });
-    } catch (saveError: unknown) {
-      const msg = saveError instanceof Error ? saveError.message : String(saveError);
-      setError(`Could not update ${date}: ${msg}`);
-      return;
-    }
-
-    setCalendarMessage(
-      `${date}: ${nextState === "full" ? t.fullyBooked : nextState === "closed" ? t.closed : t.available}`,
-    );
-    await refresh();
-  }
-
-  async function setCalendarDayDirect(date: string, status: "available" | "booked" | "closed") {
-    if (!availabilityExperience) {
-      setError("Choose an experience to manage its calendar.");
-      return;
-    }
-    const capacity = Number(availabilityCapacity) || 25;
-    try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      await updateAdminAvailabilitySlot({
-        data: {
-          accessToken: sessionData.session?.access_token,
-          date,
-          experienceId: availabilityExperience,
-          capacity,
-          status,
-        },
-      });
-      const statusLabel =
-        status === "booked" ? t.fullyBooked : status === "closed" ? t.closed : t.available;
-      setCalendarMessage(`${date}: ${statusLabel}`);
-      await refresh();
-    } catch (saveError: unknown) {
-      const msg = saveError instanceof Error ? saveError.message : String(saveError);
-      setError(`Could not update ${date}: ${msg}`);
-    }
-  }
-
-  async function applyBulkStatus(datesToApply: string[]) {
-    if (datesToApply.length === 0) {
-      setError(`${t.bulkError}: No dates selected.`);
-      return;
-    }
-    if (!availabilityExperience && !applyToAllExps) {
-      setError("Choose an experience to manage its calendar.");
-      return;
-    }
-
-    setIsBulkUpdating(true);
-    setError("");
-    setCalendarMessage("");
-
-    const targetExps = applyToAllExps ? experiences.map((e) => e.id) : [availabilityExperience];
-    const capacity = Number(availabilityCapacity) || 25;
-
-    try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      await updateAdminAvailabilityBatch({
-        data: {
-          accessToken: sessionData.session?.access_token,
-          dates: datesToApply,
-          experienceIds: targetExps,
-          capacity,
-          status: targetStatus,
-        },
-      });
-
-      const statusName =
-        targetStatus === "booked"
-          ? t.fullyBooked
-          : targetStatus === "closed"
-            ? t.closed
-            : t.available;
-      setCalendarMessage(
-        `${t.bulkSuccess} (${datesToApply.length} ${datesToApply.length === 1 ? t.date.toLowerCase() : t.date.toLowerCase() + "s"} → ${statusName})`,
-      );
-      setSelectedDates(new Set());
-      await refresh();
-    } catch (saveError: unknown) {
-      const msg = saveError instanceof Error ? saveError.message : String(saveError);
-      setError(`${t.bulkError}: ${msg}`);
-    } finally {
-      setIsBulkUpdating(false);
-    }
-  }
-
-  async function handleCalendarDayClick(dateVal: string) {
-    if (multiSelectMode) {
-      setSelectedDates((prev) => {
-        const next = new Set(prev);
-        if (next.has(dateVal)) next.delete(dateVal);
-        else next.add(dateVal);
-        return next;
-      });
-      return;
-    }
-
-    if (clickMode === "direct") {
-      await setCalendarDayDirect(dateVal, targetStatus);
-    } else {
-      await cycleCalendarDay(dateVal);
-    }
-  }
-
   async function saveSettings(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy(true);
@@ -678,48 +764,218 @@ function AdminPage() {
     );
   }
 
-  if (!authorized) {
+  // 1. Password Recovery Screen (when owner clicks link in email)
+  if (isRecoveryMode) {
     return (
-      <main className="mx-auto max-w-sm px-4 py-16">
-        <h1 className="font-display text-3xl text-primary text-center">Admin Sign In</h1>
+      <main className="mx-auto max-w-sm px-4 py-16" dir={adminLang === "ar" ? "rtl" : "ltr"}>
+        <div className="flex justify-center mb-4">
+          <div className="flex rounded-lg border bg-muted p-1 text-xs">
+            {(["en", "fr", "ar"] as const).map((l) => (
+              <button
+                key={l}
+                type="button"
+                onClick={() => setAdminLang(l)}
+                className={`px-2.5 py-1 rounded-md font-semibold transition cursor-pointer ${
+                  adminLang === l ? "bg-primary text-primary-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {l.toUpperCase()}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <h1 className="font-display text-3xl text-primary text-center">{t.setNewPasswordTitle}</h1>
         <p className="mt-2 text-center text-sm text-muted-foreground">
-          Moroccan Secrets owner login
+          {t.setNewPasswordDesc}
         </p>
+
         {error && (
-          <p
-            role="alert"
-            className="mt-4 rounded-lg bg-destructive/10 p-3 text-sm text-destructive"
-          >
+          <p role="alert" className="mt-4 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
             {error}
           </p>
         )}
-        <form onSubmit={signIn} className="mt-6 space-y-4">
+        {successMessage && (
+          <p role="status" className="mt-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-3 text-sm text-emerald-700">
+            {successMessage}
+          </p>
+        )}
+
+        <form onSubmit={handleSetNewPassword} className="mt-6 space-y-4">
           <label className="block text-sm font-medium">
-            Email
+            {t.newPasswordLabel}
             <input
               className={`${inputClass} mt-1`}
-              type="email"
-              autoComplete="username"
+              type={showNewPassword ? "text" : "password"}
+              autoComplete="new-password"
               required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              minLength={6}
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
             />
           </label>
           <label className="block text-sm font-medium">
-            Password
+            {t.confirmPasswordLabel}
             <input
               className={`${inputClass} mt-1`}
-              type="password"
-              autoComplete="current-password"
+              type={showNewPassword ? "text" : "password"}
+              autoComplete="new-password"
               required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              minLength={6}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
             />
           </label>
-          <Button type="submit" disabled={busy} className="w-full min-h-12 text-base font-semibold">
-            {busy ? "Signing in…" : "Sign In"}
+
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="show-new-pass"
+              checked={showNewPassword}
+              onChange={(e) => setShowNewPassword(e.target.checked)}
+              className="rounded border-input text-primary focus:ring-primary cursor-pointer"
+            />
+            <label htmlFor="show-new-pass" className="text-xs text-muted-foreground cursor-pointer">
+              {t.showPassword}
+            </label>
+          </div>
+
+          <Button type="submit" disabled={busy} className="w-full min-h-12 text-base font-semibold cursor-pointer">
+            {busy ? t.saving : t.savePasswordBtn}
           </Button>
         </form>
+      </main>
+    );
+  }
+
+  // 2. Sign In or Request Password Reset Screen
+  if (!authorized) {
+    return (
+      <main className="mx-auto max-w-sm px-4 py-16" dir={adminLang === "ar" ? "rtl" : "ltr"}>
+        <div className="flex justify-center mb-4">
+          <div className="flex rounded-lg border bg-muted p-1 text-xs">
+            {(["en", "fr", "ar"] as const).map((l) => (
+              <button
+                key={l}
+                type="button"
+                onClick={() => setAdminLang(l)}
+                className={`px-2.5 py-1 rounded-md font-semibold transition cursor-pointer ${
+                  adminLang === l ? "bg-primary text-primary-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {l.toUpperCase()}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <h1 className="font-display text-3xl text-primary text-center">
+          {authView === "signin" ? t.title : t.setNewPasswordTitle}
+        </h1>
+        <p className="mt-2 text-center text-sm text-muted-foreground">
+          {authView === "signin" ? t.subtitle : t.resetEmailDesc}
+        </p>
+
+        {error && (
+          <p role="alert" className="mt-4 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+            {error}
+          </p>
+        )}
+        {successMessage && (
+          <p role="status" className="mt-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-3 text-sm text-emerald-700">
+            {successMessage}
+          </p>
+        )}
+
+        {authView === "signin" ? (
+          <form onSubmit={signIn} className="mt-6 space-y-4">
+            <label className="block text-sm font-medium">
+              {t.email}
+              <input
+                className={`${inputClass} mt-1`}
+                type="email"
+                autoComplete="username"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </label>
+            <label className="block text-sm font-medium">
+              {adminLang === "fr" ? "Mot de passe" : adminLang === "ar" ? "كلمة المرور" : "Password"}
+              <input
+                className={`${inputClass} mt-1`}
+                type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </label>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="show-pass"
+                  checked={showPassword}
+                  onChange={(e) => setShowPassword(e.target.checked)}
+                  className="rounded border-input text-primary focus:ring-primary cursor-pointer"
+                />
+                <label htmlFor="show-pass" className="text-xs text-muted-foreground cursor-pointer">
+                  {t.showPassword}
+                </label>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setError("");
+                  setSuccessMessage("");
+                  setAuthView("request_reset");
+                }}
+                className="text-xs text-primary hover:underline font-medium cursor-pointer"
+              >
+                {t.forgotPassword}
+              </button>
+            </div>
+
+            <Button type="submit" disabled={busy} className="w-full min-h-12 text-base font-semibold cursor-pointer">
+              {busy ? "…" : (adminLang === "fr" ? "Se connecter" : adminLang === "ar" ? "تسجيل الدخول" : "Sign In")}
+            </Button>
+          </form>
+        ) : (
+          <form onSubmit={handleRequestReset} className="mt-6 space-y-4">
+            <label className="block text-sm font-medium">
+              {t.email}
+              <input
+                className={`${inputClass} mt-1`}
+                type="email"
+                autoComplete="email"
+                required
+                value={resetEmail}
+                onChange={(e) => setResetEmail(e.target.value)}
+              />
+            </label>
+
+            <Button type="submit" disabled={busy} className="w-full min-h-12 text-base font-semibold cursor-pointer">
+              {busy ? (adminLang === "fr" ? "Envoi…" : adminLang === "ar" ? "جارٍ الإرسال…" : "Sending…") : t.sendResetLink}
+            </Button>
+
+            <div className="text-center pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setError("");
+                  setSuccessMessage("");
+                  setAuthView("signin");
+                }}
+                className="text-xs text-primary hover:underline font-medium cursor-pointer"
+              >
+                {t.backToSignIn}
+              </button>
+            </div>
+          </form>
+        )}
       </main>
     );
   }
@@ -820,7 +1076,14 @@ function AdminPage() {
         <section id="admin-bookings" className="mt-10 scroll-mt-24">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b pb-4">
             <div>
-              <h2 className="text-2xl font-bold text-foreground">{t.bookings}</h2>
+              <div className="flex items-center gap-2.5">
+                <h2 className="text-2xl font-bold text-foreground">{t.bookings}</h2>
+                {pendingCount > 0 && (
+                  <span className="rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-800 dark:text-amber-300 px-2.5 py-0.5 text-xs font-black animate-pulse">
+                    {pendingCount} {t.pending}
+                  </span>
+                )}
+              </div>
               <p className="text-sm text-muted-foreground">
                 {bookings.length} {t.bookings.toLowerCase()}
               </p>
@@ -830,11 +1093,68 @@ function AdminPage() {
             </Button>
           </div>
 
+          {/* Status Filters + Search + Sort Bar */}
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            {/* Filter Tabs */}
+            <div className="flex flex-wrap gap-1.5 p-1 rounded-xl bg-muted/70 border">
+              {(
+                [
+                  ["all", `${t.all} (${bookings.length})`],
+                  ["pending", `${t.pending} (${pendingCount})`],
+                  ["confirmed", `${t.confirmed} (${confirmedCount})`],
+                  ["cancelled", `${t.cancelled} (${cancelledCount})`],
+                ] as const
+              ).map(([statusKey, label]) => (
+                <button
+                  key={statusKey}
+                  type="button"
+                  onClick={() => setBookingStatusFilter(statusKey)}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-lg transition active:scale-95 ${
+                    bookingStatusFilter === statusKey
+                      ? "bg-card text-foreground shadow-xs border border-border"
+                      : "text-muted-foreground hover:text-foreground hover:bg-card/50"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {/* Search and Sort Controls */}
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="relative flex-1 sm:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                <input
+                  type="search"
+                  value={bookingSearchQuery}
+                  onChange={(e) => setBookingSearchQuery(e.target.value)}
+                  placeholder={t.searchPlaceholder}
+                  className="w-full pl-9 pr-3 py-1.5 text-xs rounded-xl border border-input bg-card text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring min-h-9"
+                />
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
+                <select
+                  value={bookingSortMode}
+                  onChange={(e) =>
+                    setBookingSortMode(e.target.value as "created_desc" | "date_desc" | "date_asc")
+                  }
+                  className="text-xs py-1.5 px-2.5 rounded-xl border border-input bg-card text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring min-h-9 font-medium"
+                >
+                  <option value="created_desc">{t.sortNewest}</option>
+                  <option value="date_desc">{t.sortDateDesc}</option>
+                  <option value="date_asc">{t.sortDateAsc}</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
           <div className="mt-5 space-y-4">
-            {bookings.length === 0 ? (
+            {filteredBookings.length === 0 ? (
               <p className="py-8 text-center text-muted-foreground">{t.noBookings}</p>
             ) : (
-              bookings.map((booking) => {
+              filteredBookings.map((booking) => {
                 const isConfirmed = booking.status === "confirmed";
                 const isCancelled = booking.status === "cancelled";
                 const isPending = !isConfirmed && !isCancelled;
@@ -846,6 +1166,22 @@ function AdminPage() {
                       booking.experience_id
                     : booking.experience_id;
 
+                const clientWhatsapp = formatClientWhatsappUrl({
+                  phone: booking.phone,
+                  name: booking.name,
+                  experienceTitle: titleText,
+                  date: booking.date,
+                  lang: booking.language || adminLang,
+                });
+
+                const bookingTime = booking.start_time
+                  ? booking.start_time.slice(0, 5)
+                  : expTitle?.start_time
+                    ? expTitle.start_time.slice(0, 5)
+                    : booking.experience_id === "family-lunch-marrakech"
+                      ? "14:30"
+                      : "19:00";
+
                 return (
                   <article
                     key={booking.id}
@@ -855,6 +1191,11 @@ function AdminPage() {
                       <div>
                         <div className="flex flex-wrap items-center gap-2">
                           <h3 className="text-lg font-bold text-foreground">{booking.name}</h3>
+                          {isPending && (
+                            <span className="rounded-full bg-amber-500 text-white text-[10px] font-black uppercase px-2 py-0.5 tracking-wider animate-pulse">
+                              {t.newRequestBadge}
+                            </span>
+                          )}
                           <span
                             className={`rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider ${
                               isConfirmed
@@ -867,13 +1208,72 @@ function AdminPage() {
                             {isConfirmed ? t.confirmed : isCancelled ? t.cancelled : t.pending}
                           </span>
                         </div>
-                        <p className="mt-1 text-sm text-muted-foreground break-all">
-                          {booking.phone} · {booking.email}
-                        </p>
+                        <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                          <span className="inline-flex items-center gap-1 font-medium">
+                            <Clock className="h-3 w-3 text-muted-foreground" />
+                            <span>
+                              {t.bookedAt}:{" "}
+                              {new Date(booking.created_at).toLocaleString(
+                                adminLang === "fr"
+                                  ? "fr-FR"
+                                  : adminLang === "ar"
+                                    ? "ar-MA"
+                                    : "en-US",
+                                {
+                                  month: "short",
+                                  day: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                },
+                              )}
+                            </span>
+                          </span>
+                        </div>
+                        <div className="mt-1.5 flex flex-wrap items-center gap-2 text-sm text-muted-foreground break-all">
+                          {booking.phone && (
+                            <a
+                              href={`tel:${booking.phone}`}
+                              className="font-medium text-foreground hover:underline"
+                            >
+                              {booking.phone}
+                            </a>
+                          )}
+                          {clientWhatsapp && (
+                            <a
+                              href={clientWhatsapp}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full bg-[#25D366]/15 text-[#128C7E] dark:text-[#25D366] hover:bg-[#25D366]/25 transition"
+                              title="Open WhatsApp chat with client"
+                            >
+                              <MessageCircle className="h-3 w-3" />
+                              <span>WhatsApp</span>
+                            </a>
+                          )}
+                          <span>·</span>
+                          <a
+                            href={`mailto:${booking.email}`}
+                            className="hover:text-foreground hover:underline"
+                          >
+                            {booking.email}
+                          </a>
+                        </div>
                       </div>
 
-                      {/* Confirm & Decline Buttons */}
+                      {/* Action buttons: WhatsApp + Confirm & Decline Buttons */}
                       <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+                        {clientWhatsapp && (
+                          <a
+                            href={clientWhatsapp}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex-1 sm:flex-none min-h-12 px-4 rounded-xl font-bold bg-[#25D366] hover:bg-[#20ba59] text-white inline-flex items-center justify-center gap-2 shadow-xs transition active:scale-95 text-sm"
+                            title="Open WhatsApp chat with client"
+                          >
+                            <MessageCircle className="h-4 w-4" />
+                            <span>{t.contactWhatsapp}</span>
+                          </a>
+                        )}
                         {!isConfirmed && (
                           <Button
                             type="button"
@@ -904,12 +1304,18 @@ function AdminPage() {
                       </div>
                     </div>
 
-                    <div className="mt-4 grid grid-cols-2 gap-3 border-t pt-3 sm:grid-cols-4 text-sm">
+                    <div className="mt-4 grid grid-cols-2 gap-3 border-t pt-3 sm:grid-cols-4 lg:grid-cols-5 text-sm">
                       <div>
                         <span className="block text-xs font-semibold text-muted-foreground">
                           {t.date}
                         </span>
                         <span className="font-medium text-foreground">{booking.date}</span>
+                      </div>
+                      <div>
+                        <span className="block text-xs font-semibold text-muted-foreground">
+                          {t.time}
+                        </span>
+                        <span className="font-medium text-foreground">{bookingTime}</span>
                       </div>
                       <div>
                         <span className="block text-xs font-semibold text-muted-foreground">
@@ -919,7 +1325,7 @@ function AdminPage() {
                           {booking.guests} ({booking.adults} ad, {booking.children} ch)
                         </span>
                       </div>
-                      <div className="col-span-2">
+                      <div className="col-span-2 sm:col-span-1 lg:col-span-2">
                         <span className="block text-xs font-semibold text-muted-foreground">
                           {t.experience}
                         </span>
@@ -969,455 +1375,16 @@ function AdminPage() {
             SECTION 2: CALENDAR
         ==================================================================== */}
         <section id="admin-calendar" className="mt-12 scroll-mt-24 border-t pt-8">
-          <div className="border-b pb-4">
-            <h2 className="text-2xl font-bold text-foreground">{t.calendarTitle}</h2>
-            <p className="mt-1 text-sm text-muted-foreground">{t.calendarDesc}</p>
-          </div>
-
-          {/* Color Legend */}
-          <div className="mt-4 flex flex-wrap gap-4 text-sm font-semibold">
-            <div className="flex items-center gap-2">
-              <span className="h-5 w-5 rounded-md border border-emerald-500 bg-emerald-100" />
-              <span className="text-emerald-950">{t.available} (Green)</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="h-5 w-5 rounded-md border border-amber-500 bg-amber-100" />
-              <span className="text-amber-950">{t.fullyBooked} (Orange)</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="h-5 w-5 rounded-md border border-stone-400 bg-stone-200" />
-              <span className="text-stone-800">{t.closed} (Grey)</span>
-            </div>
-          </div>
-
-          {/* Controls: Experience selector + Capacity + Month navigation */}
-          <div className="mt-5 grid gap-3 sm:grid-cols-2 md:grid-cols-3">
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">
-                {t.selectExperience}
-              </label>
-              <select
-                className={inputClass}
-                value={availabilityExperience}
-                onChange={(e) => setAvailabilityExperience(e.target.value)}
-              >
-                {experiences.map((exp) => {
-                  const title =
-                    typeof exp.title === "object" && exp.title !== null
-                      ? (exp.title as Record<string, string>)[adminLang] ||
-                        (exp.title as Record<string, string>)["en"] ||
-                        exp.id
-                      : exp.id;
-                  return (
-                    <option key={exp.id} value={exp.id}>
-                      {title}
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">
-                {t.capacity}
-              </label>
-              <input
-                type="number"
-                min="1"
-                max="200"
-                className={inputClass}
-                value={availabilityCapacity}
-                onChange={(e) => setAvailabilityCapacity(e.target.value)}
-              />
-            </div>
-
-            <div className="flex items-end gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                className="min-h-12 min-w-12 text-lg font-bold"
-                onClick={() =>
-                  setCalendarMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1))
-                }
-              >
-                ‹
-              </Button>
-              <div className="flex-1 min-h-12 flex items-center justify-center rounded-lg border bg-muted/40 font-bold text-center text-sm px-2">
-                {calendarMonth.toLocaleDateString(adminLang === "ar" ? "ar-MA" : adminLang, {
-                  month: "long",
-                  year: "numeric",
-                })}
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                className="min-h-12 min-w-12 text-lg font-bold"
-                onClick={() =>
-                  setCalendarMonth((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1))
-                }
-              >
-                ›
-              </Button>
-            </div>
-          </div>
-
-          {/* ================================================================
-              BULK AVAILABILITY & DIRECT STATUS PANEL
-          ================================================================ */}
-          <div className="mt-6 rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-sm space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b pb-3">
-              <div>
-                <h3 className="text-base font-bold text-foreground flex items-center gap-2">
-                  <span>⚡</span> {t.bulkUpdate}
-                </h3>
-                <p className="text-xs text-muted-foreground">
-                  {adminLang === "fr"
-                    ? "Sélectionnez un statut puis appliquez-le à tous les jours du mois ou à une sélection."
-                    : adminLang === "ar"
-                      ? "اختر الحالة المطلوبة وطبقها على جميع أيام الشهر أو نطاق محدد بنقرة واحدة."
-                      : "Choose a target status and apply it to all days in this month or a custom selection."}
-                </p>
-              </div>
-
-              {experiences.length > 1 && (
-                <label className="inline-flex items-center gap-2 cursor-pointer text-xs font-semibold text-muted-foreground hover:text-foreground">
-                  <input
-                    type="checkbox"
-                    checked={applyToAllExps}
-                    onChange={(e) => setApplyToAllExps(e.target.checked)}
-                    className="h-4 w-4 rounded border-input text-primary focus:ring-ring"
-                  />
-                  <span>{t.allExperiences}</span>
-                </label>
-              )}
-            </div>
-
-            {/* Target Status Selector */}
-            <div>
-              <span className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
-                {t.targetStatus}
-              </span>
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setTargetStatus("available")}
-                  className={`min-h-11 rounded-xl border p-2 flex items-center justify-center gap-2 font-bold text-xs sm:text-sm transition ${
-                    targetStatus === "available"
-                      ? "border-emerald-600 bg-emerald-100 text-emerald-950 ring-2 ring-emerald-500 shadow-sm"
-                      : "border-border bg-background text-foreground hover:bg-muted"
-                  }`}
-                >
-                  <span className="h-3 w-3 rounded-full bg-emerald-500 shrink-0" />
-                  <span>{t.available}</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setTargetStatus("booked")}
-                  className={`min-h-11 rounded-xl border p-2 flex items-center justify-center gap-2 font-bold text-xs sm:text-sm transition ${
-                    targetStatus === "booked"
-                      ? "border-amber-600 bg-amber-100 text-amber-950 ring-2 ring-amber-500 shadow-sm"
-                      : "border-border bg-background text-foreground hover:bg-muted"
-                  }`}
-                >
-                  <span className="h-3 w-3 rounded-full bg-amber-500 shrink-0" />
-                  <span>{t.fullyBooked}</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setTargetStatus("closed")}
-                  className={`min-h-11 rounded-xl border p-2 flex items-center justify-center gap-2 font-bold text-xs sm:text-sm transition ${
-                    targetStatus === "closed"
-                      ? "border-stone-500 bg-stone-300 text-stone-900 ring-2 ring-stone-400 shadow-sm"
-                      : "border-border bg-background text-foreground hover:bg-muted"
-                  }`}
-                >
-                  <span className="h-3 w-3 rounded-full bg-stone-500 shrink-0" />
-                  <span>{t.closed}</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Quick Bulk Action Buttons */}
-            <div>
-              <span className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
-                {adminLang === "fr"
-                  ? "Appliquer immédiatement"
-                  : adminLang === "ar"
-                    ? "تطبيق فوري"
-                    : "Apply immediately"}
-              </span>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  type="button"
-                  variant="default"
-                  disabled={isBulkUpdating || (!availabilityExperience && !applyToAllExps)}
-                  onClick={async () => {
-                    const monthDates = getDatesInMonth(
-                      calendarMonth.getFullYear(),
-                      calendarMonth.getMonth(),
-                    );
-                    await applyBulkStatus(monthDates);
-                  }}
-                  className="min-h-10 text-xs sm:text-sm font-bold bg-primary text-primary-foreground hover:bg-primary/90"
-                >
-                  📅 {t.applyToMonth}
-                </Button>
-
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={isBulkUpdating || (!availabilityExperience && !applyToAllExps)}
-                  onClick={async () => {
-                    const monthDates = getDatesInMonth(
-                      calendarMonth.getFullYear(),
-                      calendarMonth.getMonth(),
-                    );
-                    const upcoming = filterDatesByDayType(monthDates, "upcoming");
-                    await applyBulkStatus(upcoming);
-                  }}
-                  className="min-h-10 text-xs sm:text-sm font-semibold"
-                >
-                  ⏳ {t.applyToUpcoming}
-                </Button>
-
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={isBulkUpdating || (!availabilityExperience && !applyToAllExps)}
-                  onClick={async () => {
-                    const monthDates = getDatesInMonth(
-                      calendarMonth.getFullYear(),
-                      calendarMonth.getMonth(),
-                    );
-                    const weekdays = filterDatesByDayType(monthDates, "weekdays");
-                    await applyBulkStatus(weekdays);
-                  }}
-                  className="min-h-10 text-xs sm:text-sm font-semibold"
-                >
-                  💼 {t.applyToWeekdays}
-                </Button>
-
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={isBulkUpdating || (!availabilityExperience && !applyToAllExps)}
-                  onClick={async () => {
-                    const monthDates = getDatesInMonth(
-                      calendarMonth.getFullYear(),
-                      calendarMonth.getMonth(),
-                    );
-                    const weekends = filterDatesByDayType(monthDates, "weekends");
-                    await applyBulkStatus(weekends);
-                  }}
-                  className="min-h-10 text-xs sm:text-sm font-semibold"
-                >
-                  🌴 {t.applyToWeekends}
-                </Button>
-              </div>
-            </div>
-
-            {/* Custom Date Range & Click Modes */}
-            <div className="border-t pt-3 flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="font-semibold text-muted-foreground">{t.customRange}:</span>
-                <input
-                  type="date"
-                  value={rangeStart}
-                  onChange={(e) => setRangeStart(e.target.value)}
-                  className="rounded-lg border border-input bg-background px-2 py-1 text-xs text-foreground min-h-9"
-                  placeholder={t.fromDate}
-                />
-                <span className="text-muted-foreground">→</span>
-                <input
-                  type="date"
-                  value={rangeEnd}
-                  onChange={(e) => setRangeEnd(e.target.value)}
-                  className="rounded-lg border border-input bg-background px-2 py-1 text-xs text-foreground min-h-9"
-                  placeholder={t.toDate}
-                />
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  disabled={!rangeStart || !rangeEnd || isBulkUpdating}
-                  onClick={async () => {
-                    const rangeDates = getDatesInRange(rangeStart, rangeEnd);
-                    await applyBulkStatus(rangeDates);
-                  }}
-                  className="min-h-9 font-bold"
-                >
-                  {t.applyChanges}
-                </Button>
-              </div>
-
-              {/* Behavior toggles */}
-              <div className="flex flex-wrap items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setClickMode((m) => (m === "direct" ? "cycle" : "direct"))}
-                  className="px-2.5 py-1.5 rounded-lg border text-xs font-bold transition hover:bg-muted"
-                  title={t.clickAction}
-                >
-                  {clickMode === "direct"
-                    ? `🎯 ${t.clickActionDirect}`
-                    : `🔄 ${t.clickActionCycle}`}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMultiSelectMode((m) => !m);
-                    setSelectedDates(new Set());
-                  }}
-                  className={`px-2.5 py-1.5 rounded-lg border text-xs font-bold transition ${
-                    multiSelectMode
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "hover:bg-muted"
-                  }`}
-                >
-                  ☑️ {t.multiSelect}
-                </button>
-              </div>
-            </div>
-
-            {/* Multi-select active toolbar */}
-            {multiSelectMode && (
-              <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-muted/70 p-3 border text-xs sm:text-sm">
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-foreground">
-                    {selectedDates.size} {t.daysSelected}
-                  </span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      const monthDates = getDatesInMonth(
-                        calendarMonth.getFullYear(),
-                        calendarMonth.getMonth(),
-                      );
-                      setSelectedDates(new Set(monthDates));
-                    }}
-                    className="h-8 text-xs font-semibold"
-                  >
-                    {t.selectAllMonth}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSelectedDates(new Set())}
-                    className="h-8 text-xs font-semibold text-muted-foreground"
-                  >
-                    {t.clearSelection}
-                  </Button>
-                </div>
-
-                <Button
-                  type="button"
-                  variant="default"
-                  size="sm"
-                  disabled={selectedDates.size === 0 || isBulkUpdating}
-                  onClick={async () => {
-                    await applyBulkStatus(Array.from(selectedDates));
-                  }}
-                  className="h-9 px-4 font-bold bg-primary text-primary-foreground"
-                >
-                  {t.applyToSelected} ({selectedDates.size})
-                </Button>
-              </div>
-            )}
-          </div>
-
-          {calendarMessage && (
-            <p
-              role="status"
-              className="mt-4 text-sm font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-xl p-3"
-            >
-              {calendarMessage}
-            </p>
-          )}
-
-          {/* Month Calendar Grid - Fits comfortably at 360px width */}
-          <div className="mt-5 w-full">
-            <div className="grid grid-cols-7 gap-1 text-center font-bold text-xs text-muted-foreground mb-1">
-              {Array.from({ length: 7 }, (_, i) => (
-                <div key={i} className="py-1">
-                  {new Date(2024, 0, 7 + i).toLocaleDateString(
-                    adminLang === "ar" ? "ar-MA" : adminLang,
-                    { weekday: "narrow" },
-                  )}
-                </div>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-7 gap-1 sm:gap-2">
-              {calendarDates.map((date) => {
-                const dateVal = toLocalDateString(date);
-                const slot = availability.find(
-                  (s) => s.experience_id === availabilityExperience && s.date === dateVal,
-                );
-                const bookedCount = bookings
-                  .filter(
-                    (b) =>
-                      b.experience_id === availabilityExperience &&
-                      b.date === dateVal &&
-                      b.status !== "cancelled",
-                  )
-                  .reduce((acc, b) => acc + b.adults + b.children, 0);
-
-                const activeGuests = Math.max(slot?.booked_count ?? 0, bookedCount);
-                const state = getCalendarSlotState(slot ?? null, activeGuests);
-                const inMonth = date.getMonth() === calendarMonth.getMonth();
-
-                const isAvailable = state === "available";
-                const isFull = state === "full";
-                const isClosed = state === "closed";
-
-                const stateStyle = isAvailable
-                  ? "bg-emerald-100 text-emerald-950 border-emerald-400 hover:bg-emerald-200"
-                  : isFull
-                    ? "bg-amber-100 text-amber-950 border-amber-400 hover:bg-amber-200"
-                    : "bg-stone-200 text-stone-700 border-stone-400 hover:bg-stone-300";
-
-                const statusLabel = isAvailable ? t.available : isFull ? t.fullyBooked : t.closed;
-                const isSelected = selectedDates.has(dateVal);
-
-                return (
-                  <button
-                    key={dateVal}
-                    type="button"
-                    onClick={() => void handleCalendarDayClick(dateVal)}
-                    disabled={(!availabilityExperience && !applyToAllExps) || isBulkUpdating}
-                    aria-label={`${dateVal}, ${statusLabel}.`}
-                    className={`relative w-full min-h-[54px] sm:min-h-[64px] rounded-xl border p-1 flex flex-col items-center justify-center transition active:scale-95 ${stateStyle} ${
-                      !inMonth ? "opacity-35" : ""
-                    } ${isSelected ? "ring-2 ring-primary ring-offset-2 scale-[1.02]" : ""}`}
-                  >
-                    {multiSelectMode && (
-                      <span
-                        className={`absolute top-1 right-1 h-3.5 w-3.5 rounded-full border text-[9px] flex items-center justify-center font-bold ${
-                          isSelected
-                            ? "bg-primary text-primary-foreground border-primary"
-                            : "bg-background/80 border-border text-transparent"
-                        }`}
-                      >
-                        ✓
-                      </span>
-                    )}
-                    <span className="font-bold text-sm sm:text-base leading-none">
-                      {date.getDate()}
-                    </span>
-                    <span className="mt-1 text-[10px] sm:text-xs font-semibold leading-tight line-clamp-1">
-                      {statusLabel}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          <AdminAvailabilityManager
+            adminLang={adminLang}
+            experiences={experiences}
+            availability={availability}
+            bookings={bookings}
+            currency={settingCurrency}
+            onRefresh={refresh}
+            onError={(msg) => setError(msg)}
+            onSuccess={(msg) => setSuccessMessage(msg)}
+          />
         </section>
 
         {/* ====================================================================
@@ -1520,16 +1487,77 @@ function AdminPage() {
               {busy ? t.saving : t.saveSettings}
             </Button>
           </form>
+
+          {/* Change Admin Password Card */}
+          <div className="mt-10 max-w-xl rounded-2xl border border-stone-200 bg-card p-6 shadow-xs">
+            <h3 className="text-lg font-bold text-foreground mb-1">{t.changePasswordTitle}</h3>
+            <p className="text-xs text-muted-foreground mb-4">{t.changePasswordDesc}</p>
+
+            {dashPasswordError && (
+              <p role="alert" className="mb-4 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+                {dashPasswordError}
+              </p>
+            )}
+            {dashPasswordSuccess && (
+              <p role="status" className="mb-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-3 text-sm text-emerald-700">
+                {dashPasswordSuccess}
+              </p>
+            )}
+
+            <form onSubmit={handleDashboardChangePassword} className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-foreground mb-1">
+                  {t.newPasswordLabel}
+                </label>
+                <input
+                  type={dashShowPassword ? "text" : "password"}
+                  className={inputClass}
+                  required
+                  minLength={6}
+                  value={dashNewPassword}
+                  onChange={(e) => setDashNewPassword(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-foreground mb-1">
+                  {t.confirmPasswordLabel}
+                </label>
+                <input
+                  type={dashShowPassword ? "text" : "password"}
+                  className={inputClass}
+                  required
+                  minLength={6}
+                  value={dashConfirmPassword}
+                  onChange={(e) => setDashConfirmPassword(e.target.value)}
+                />
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="show-dash-pass"
+                  checked={dashShowPassword}
+                  onChange={(e) => setDashShowPassword(e.target.checked)}
+                  className="rounded border-input text-primary focus:ring-primary cursor-pointer"
+                />
+                <label htmlFor="show-dash-pass" className="text-xs text-muted-foreground cursor-pointer">
+                  {t.showPassword}
+                </label>
+              </div>
+
+              <Button
+                type="submit"
+                disabled={busy}
+                variant="outline"
+                className="w-full min-h-11 font-semibold cursor-pointer"
+              >
+                {t.changePasswordBtn}
+              </Button>
+            </form>
+          </div>
         </section>
       </main>
     </div>
   );
-}
-
-function toLocalDateString(date: Date): string {
-  return [
-    date.getFullYear(),
-    String(date.getMonth() + 1).padStart(2, "0"),
-    String(date.getDate()).padStart(2, "0"),
-  ].join("-");
 }

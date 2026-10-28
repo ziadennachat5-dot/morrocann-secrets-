@@ -25,43 +25,28 @@ import {
   IconStepEnjoy,
 } from "@/components/site/Brand";
 import { useGalleryContext } from "@/components/site/Layout";
-import { getSiteUrl } from "@/lib/seo";
+import { getSiteUrl, pageHead } from "@/lib/seo";
+
+export async function loadHomePageData() {
+  const [catalog, families, bookingOptions, faqs, contact, homepage, photos] = await Promise.all([
+    getPublishedExperiences(),
+    getPublishedFamilies(),
+    getBookingOptions(),
+    getPublishedFaqs(),
+    getPublicContactLinks(),
+    getHomepageContent(),
+    getPublicGuestPhotos(),
+  ]);
+  return { ...catalog, families, bookingOptions, faqs, contact, homepage, photos };
+}
 
 export const Route = createFileRoute("/")({
-  loader: async () => {
-    const [catalog, families, bookingOptions, faqs, contact, homepage, photos] = await Promise.all([
-      getPublishedExperiences(),
-      getPublishedFamilies(),
-      getBookingOptions(),
-      getPublishedFaqs(),
-      getPublicContactLinks(),
-      getHomepageContent(),
-      getPublicGuestPhotos(),
-    ]);
-    return { ...catalog, families, bookingOptions, faqs, contact, homepage, photos };
-  },
-  head: () => {
-    const siteUrl = getSiteUrl();
-    const heroImage = "/media/hero-poster.jpg";
-    return {
-      meta: [
-        { title: "Moroccan Secrets | Dinner with a local Moroccan family in Marrakech" },
-        {
-          name: "description",
-          content:
-            "Share an authentic dinner with a local Moroccan family in Marrakech. Homemade cuisine, warm hospitality, traditional music and cultural exchange.",
-        },
-        { property: "og:title", content: "Moroccan Secrets" },
-        { property: "og:type", content: "website" },
-        { property: "og:url", content: `${siteUrl}/` },
-        { property: "og:image", content: heroImage },
-      ],
-      links: [
-        { rel: "canonical", href: `${siteUrl}/` },
-        { rel: "preload", as: "image", href: heroImage, fetchPriority: "high" },
-      ],
-    };
-  },
+  loader: loadHomePageData,
+  head: ({ loaderData }) =>
+    pageHead("/", "en", undefined, undefined, {
+      experiences: loaderData?.experiences,
+      faqs: loaderData?.faqs,
+    }),
   component: HomePage,
 });
 
@@ -107,7 +92,9 @@ function HeroVideo() {
     return (
       <img
         src="/media/hero-poster.jpg"
-        alt="Moroccan dining experience"
+        alt="Eat with a local Moroccan family in Marrakech"
+        width={1920}
+        height={1080}
         className="w-full h-full object-cover object-[center_30%]"
       />
     );
@@ -158,6 +145,8 @@ function BookingBandArchPhoto({
         src={photo4Url}
         srcSet={photo4?.srcSet}
         alt={alt}
+        width={280}
+        height={400}
         loading="lazy"
         onError={(e) => {
           const target = e.currentTarget;
@@ -172,8 +161,18 @@ function BookingBandArchPhoto({
   );
 }
 
-function HomePage() {
-  const data = Route.useLoaderData();
+function localizedText(
+  value: { en?: string; fr?: string; ar?: string } | string | null | undefined,
+  lang: "en" | "fr" | "ar",
+): string {
+  if (!value) return "";
+  if (typeof value === "string") return value;
+  return value[lang] || value.en || "";
+}
+
+export function HomePage({ data: propData }: { data?: Awaited<ReturnType<typeof loadHomePageData>> } = {}) {
+  const loaderData = Route.useLoaderData();
+  const data = propData ?? loaderData;
   const { lang } = useI18n();
   const { setHasGallery } = useGalleryContext();
   const firstBookable = data.bookingOptions.experiences[0]?.id;
@@ -232,6 +231,10 @@ function HomePage() {
   };
 
   const assignedFiles = new Set([
+    "14.png",
+    "7.jpeg",
+    "8.jpeg",
+    "2.jpeg",
     "10.png",
     "4.png",
     "11.png",
@@ -315,14 +318,14 @@ function HomePage() {
 
   const heroH1Line1 = {
     en: "Eat with a local",
-    fr: "Partagez le repas d'une",
+    fr: "Partagez un repas chez une",
     ar: "تناول الطعام مع",
   };
 
   const heroH1Line2 = {
-    en: "Moroccan family",
-    fr: "famille marocaine",
-    ar: "عائلة مغربية",
+    en: "family in Marrakech",
+    fr: "famille marocaine à Marrakech",
+    ar: "عائلة مغربية في مراكش",
   };
 
   const heroSubtitle = {
@@ -557,9 +560,84 @@ function HomePage() {
       <ConceptSection photos={data.photos.photos} conceptPhoto={conceptPhoto} />
 
       {/* ═══════════════════════════════════════════════════════════
+          WHAT TO EXPECT (only when published experience has what_to_expect)
+      ═══════════════════════════════════════════════════════════ */}
+      {firstExperience?.what_to_expect && localizedText(firstExperience.what_to_expect, lang) && (
+        <section id="what-to-expect" className="scroll-mt-20 bg-sand/40 section-pad border-y border-stone-300/40">
+          <div className="ms-container max-w-4xl">
+            <div className="text-center mb-10">
+              <span className="tracked-label block mb-2 text-gold">
+                {lang === "fr" ? "DÉROULEMENT DU REPAS" : lang === "ar" ? "تفاصيل الأمسية" : "WHAT TO EXPECT"}
+              </span>
+              <h2 className="text-center text-oxblood font-display font-semibold leading-[1.05] text-3xl sm:text-4xl lg:text-[42px] tracking-tight">
+                {lang === "fr" ? "À quoi s'attendre lors de votre visite" : lang === "ar" ? "ما الذي تتوقعه في بيت العائلة" : "What to expect during your visit"}
+              </h2>
+            </div>
+            <div className="bg-white/80 rounded-2xl p-6 sm:p-10 border border-stone-300/60 shadow-soft">
+              <div className="space-y-4 text-ink/90 text-base sm:text-lg leading-relaxed whitespace-pre-line font-sans">
+                {localizedText(firstExperience.what_to_expect, lang)}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════
           3. MENU (full-width oxblood)
       ═══════════════════════════════════════════════════════════ */}
       <MenuSection photos={data.photos.photos} />
+
+      {/* ═══════════════════════════════════════════════════════════
+          WHO HOSTS YOU (only when admin published families exist)
+      ═══════════════════════════════════════════════════════════ */}
+      {data.families.length > 0 && (
+        <section id="families" className="scroll-mt-20 bg-cream section-pad">
+          <div className="ms-container">
+            <div className="text-center mb-12">
+              <span className="tracked-label block mb-2 text-gold">
+                {lang === "fr" ? "VOS HÔTES" : lang === "ar" ? "المضيفون" : "WHO HOSTS YOU"}
+              </span>
+              <h2 className="text-center text-oxblood font-display font-semibold leading-[1.05] text-3xl sm:text-4xl lg:text-[42px] tracking-tight">
+                {lang === "fr" ? "Familles qui ouvrent leurs portes" : lang === "ar" ? "عائلات تفتح لكم بيوتها" : "Families who open their doors"}
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {data.families.map((family) => (
+                <div key={family.id} className="rounded-2xl border border-stone-300/60 bg-white p-6 shadow-soft flex flex-col">
+                  {family.image_url && (
+                    <div className="h-48 w-full rounded-xl overflow-hidden mb-4 bg-sand">
+                      <img
+                        src={family.image_url}
+                        alt={localizedText(family.name, lang)}
+                        width={400}
+                        height={240}
+                        loading="lazy"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                  <h3 className="font-display font-bold text-xl text-oxblood mb-1">
+                    {localizedText(family.name, lang)}
+                  </h3>
+                  <p className="text-xs text-muted-text font-medium mb-3">
+                    <MapPin className="inline h-3.5 w-3.5 me-1 text-gold" aria-hidden="true" />
+                    {localizedText(family.area, lang)}
+                  </p>
+                  <p className="text-sm text-ink/80 leading-relaxed mb-4 flex-1">
+                    {localizedText(family.story, lang)}
+                  </p>
+                  {family.signature_dish && (
+                    <div className="pt-3 border-t border-stone-200/60 text-xs text-muted-text">
+                      <span className="font-semibold text-oxblood">{lang === "fr" ? "Plat signature : " : lang === "ar" ? "الطبق المميز: " : "Signature dish: "}</span>
+                      {localizedText(family.signature_dish, lang)}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ═══════════════════════════════════════════════════════════
           4. PHOTOS (only when 3 or more approved photos remain)
@@ -656,6 +734,36 @@ function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ═══════════════════════════════════════════════════════════
+          FAQ (only when admin published FAQs exist)
+      ═══════════════════════════════════════════════════════════ */}
+      {data.faqs.length > 0 && (
+        <section id="faq" className="scroll-mt-20 bg-cream section-pad border-t border-stone-300/40">
+          <div className="ms-container max-w-4xl">
+            <div className="text-center mb-12">
+              <span className="tracked-label block mb-2 text-gold">
+                {lang === "fr" ? "QUESTIONS FRÉQUENTES" : lang === "ar" ? "أسئلة شائعة" : "FREQUENTLY ASKED QUESTIONS"}
+              </span>
+              <h2 className="text-center text-oxblood font-display font-semibold leading-[1.05] text-3xl sm:text-4xl lg:text-[42px] tracking-tight">
+                {lang === "fr" ? "Tout ce qu'il faut savoir" : lang === "ar" ? "كل ما تحتاج معرفته" : "Everything you need to know"}
+              </h2>
+            </div>
+            <div className="space-y-4">
+              {data.faqs.map((faq) => (
+                <div key={faq.id} className="rounded-2xl border border-stone-300/60 bg-white p-6 shadow-soft">
+                  <h3 className="font-display font-bold text-lg text-oxblood mb-2">
+                    {localizedText(faq.question, lang)}
+                  </h3>
+                  <p className="text-sm sm:text-base text-ink/85 leading-relaxed">
+                    {localizedText(faq.answer, lang)}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ═══════════════════════════════════════════════════════════
           6. BOOKING BAND (sand band with arch photo and white card)

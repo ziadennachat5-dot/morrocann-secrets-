@@ -51,16 +51,11 @@ export const Route = createFileRoute("/booking")({
   beforeLoad: () => {
     throw redirect({ to: "/", hash: "booking" });
   },
-  head: () =>
-    pageHead(
-      "/booking",
-      `Booking — ${BRAND_NAME}`,
-      "Reserve your authentic Moroccan dinner experience with a local family in Marrakech.",
-    ),
+  head: () => pageHead("/booking", "en"),
   component: BookingPage,
 });
 
-function BookingPage() {
+export function BookingPage() {
   return <BookingFlow />;
 }
 
@@ -103,6 +98,83 @@ const WEEKDAY_NAMES: Record<Lang, string[]> = {
   ar: ["أحد", "إثن", "ثلا", "أرب", "خمي", "جمع", "سبت"],
 };
 
+const TRAVELER_I18N: Record<
+  Lang,
+  {
+    sectionTitle: string;
+    header: string;
+    minMax: string;
+    apply: string;
+    discountNote: string;
+    freeBadge: string;
+    traveler: string;
+    travelers: string;
+    adultTitle: string;
+    seniorTitle: string;
+    youthTitle: string;
+    childTitle: string;
+    infantTitle: string;
+    change: string;
+    confirmed: string;
+    collapse: string;
+  }
+> = {
+  en: {
+    sectionTitle: "Travelers",
+    header: "Select up to 10 travelers in total.",
+    minMax: "Minimum: 0, Maximum: 10",
+    apply: "Apply",
+    discountNote: "*Enfants (ages 1–11) join completely free",
+    freeBadge: "FREE*",
+    traveler: "traveler",
+    travelers: "travelers",
+    adultTitle: "Adult (Age 18-59)",
+    seniorTitle: "Senior (Age 60-99)",
+    youthTitle: "Youth (Age 12-17)",
+    childTitle: "Enfants (Age 1-11)",
+    infantTitle: "Infant (Age 1-2)",
+    change: "Change",
+    confirmed: "Selected",
+    collapse: "Close",
+  },
+  fr: {
+    sectionTitle: "Voyageurs",
+    header: "Sélectionnez jusqu'à 10 voyageurs au total.",
+    minMax: "Minimum : 0, Maximum : 10",
+    apply: "Appliquer",
+    discountNote: "*Les enfants (de 1 à 11 ans) sont entièrement gratuits",
+    freeBadge: "GRATUIT*",
+    traveler: "voyageur",
+    travelers: "voyageurs",
+    adultTitle: "Adulte (18-59 ans)",
+    seniorTitle: "Senior (60-99 ans)",
+    youthTitle: "Jeune (12-17 ans)",
+    childTitle: "Enfants (1-11 ans)",
+    infantTitle: "Bébé (1-2 ans)",
+    change: "Modifier",
+    confirmed: "Sélectionné",
+    collapse: "Fermer",
+  },
+  ar: {
+    sectionTitle: "المسافرون",
+    header: "اختر حتى 10 مسافرين في المجموع.",
+    minMax: "الحد الأدنى: 0، الحد الأقصى: 10",
+    apply: "تطبيق",
+    discountNote: "*الأطفال (من 1 إلى 11 سنة) مجاناً بالكامل",
+    freeBadge: "مجاناً*",
+    traveler: "مسافر",
+    travelers: "مسافرين",
+    adultTitle: "بالغ (18-59 سنة)",
+    seniorTitle: "كبار السن (60-99 سنة)",
+    youthTitle: "شاب (12-17 سنة)",
+    childTitle: "أطفال (1-11 سنة)",
+    infantTitle: "رضيع (1-2 سنة)",
+    change: "تعديل",
+    confirmed: "محدد",
+    collapse: "إغلاق",
+  },
+};
+
 export function BookingFlow({
   initialExperienceId,
   initialOptions,
@@ -119,7 +191,15 @@ export function BookingFlow({
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
-  const [guests, setGuests] = useState<number>(2);
+  const [adults, setAdults] = useState<number>(2);
+  const [seniors, setSeniors] = useState<number>(0);
+  const [youths, setYouths] = useState<number>(0);
+  const [children, setChildren] = useState<number>(0);
+  const [infants, setInfants] = useState<number>(0);
+  const [isTravelerPickerOpen, setIsTravelerPickerOpen] = useState(true);
+
+  const totalTravelers = adults + seniors + youths + children + infants;
+  const guests = totalTravelers;
   const [allergies, setAllergies] = useState("");
   const [message, setMessage] = useState("");
   const [showExtras, setShowExtras] = useState(false);
@@ -191,6 +271,110 @@ export function BookingFlow({
         : "Dinner with a local family in Marrakech";
   }, [targetExperience, lang]);
 
+  const childDiscountPercent = useMemo(() => {
+    if (
+      targetExperience?.price &&
+      targetExperience.child_price !== null &&
+      targetExperience.price > 0
+    ) {
+      const disc = Math.round((1 - targetExperience.child_price / targetExperience.price) * 100);
+      if (disc > 0) return disc;
+    }
+    return 57;
+  }, [targetExperience]);
+
+  const travelerBreakdownList = useMemo(() => {
+    const list: string[] = [];
+    if (adults > 0) {
+      list.push(
+        `${adults} ${
+          adults === 1
+            ? lang === "fr"
+              ? "Adulte"
+              : lang === "ar"
+                ? "بالغ"
+                : "Adult"
+            : lang === "fr"
+              ? "Adultes"
+              : lang === "ar"
+                ? "بالغين"
+                : "Adults"
+        }`,
+      );
+    }
+    if (seniors > 0) {
+      list.push(
+        `${seniors} ${
+          seniors === 1
+            ? lang === "fr"
+              ? "Senior"
+              : lang === "ar"
+                ? "مسن"
+                : "Senior"
+            : lang === "fr"
+              ? "Seniors"
+              : lang === "ar"
+                ? "مسنين"
+                : "Seniors"
+        }`,
+      );
+    }
+    if (youths > 0) {
+      list.push(
+        `${youths} ${
+          youths === 1
+            ? lang === "fr"
+              ? "Jeune"
+              : lang === "ar"
+                ? "شاب"
+                : "Youth"
+            : lang === "fr"
+              ? "Jeunes"
+              : lang === "ar"
+                ? "شباب"
+                : "Youths"
+        }`,
+      );
+    }
+    if (children > 0) {
+      list.push(
+        `${children} ${
+          children === 1
+            ? lang === "fr"
+              ? "Enfant"
+              : lang === "ar"
+                ? "طفل"
+                : "Child"
+            : lang === "fr"
+              ? "Enfants"
+              : lang === "ar"
+                ? "أطفال"
+                : "Children"
+        }`,
+      );
+    }
+    if (infants > 0) {
+      list.push(
+        `${infants} ${
+          infants === 1
+            ? lang === "fr"
+              ? "Bébé"
+              : lang === "ar"
+                ? "رضيع"
+                : "Infant"
+            : lang === "fr"
+              ? "Bébés"
+              : lang === "ar"
+                ? "رضع"
+                : "Infants"
+        }`,
+      );
+    }
+    return list;
+  }, [adults, seniors, youths, children, infants, lang]);
+
+  const travelerBreakdownSummary = travelerBreakdownList.join(", ");
+
   // Filter slots for availability
   const relevantSlots = useMemo(
     () =>
@@ -237,17 +421,19 @@ export function BookingFlow({
     const timeSlotFr = isLunch ? " (14h30 – 17h00)" : " (19h00 – 22h00)";
     const timeSlotAr = isLunch ? " (14:30 – 17:00)" : " (19:00 – 22:00)";
 
+    const breakdownPart = travelerBreakdownSummary ? ` (${travelerBreakdownSummary})` : "";
+
     if (lang === "fr") {
       const datePart = formattedDateFr ? ` le ${formattedDateFr}${timeSlotFr}` : "";
-      return `Bonjour, je souhaite réserver un ${mealFr} en famille marocaine pour ${guests} personne${guests > 1 ? "s" : ""}${datePart}.`;
+      return `Bonjour, je souhaite réserver un ${mealFr} en famille marocaine pour ${guests} personne${guests > 1 ? "s" : ""}${breakdownPart}${datePart}.`;
     }
     if (lang === "ar") {
       const datePart = formattedDateAr ? ` بتاريخ ${formattedDateAr}${timeSlotAr}` : "";
-      return `مرحباً، أود حجز ${mealAr} مع عائلة مغربية لـ ${guests} ضيوف${datePart}.`;
+      return `مرحباً، أود حجز ${mealAr} مع عائلة مغربية لـ ${guests} ضيوف${breakdownPart}${datePart}.`;
     }
     const datePart = formattedDateEn ? ` on ${formattedDateEn}${timeSlotEn}` : "";
-    return `Hello, I would like to book a ${mealEn} with a Moroccan family for ${guests} guest${guests > 1 ? "s" : ""}${datePart}.`;
-  }, [lang, guests, formattedDateEn, formattedDateFr, formattedDateAr, targetExperience]);
+    return `Hello, I would like to book a ${mealEn} with a Moroccan family for ${guests} guest${guests > 1 ? "s" : ""}${breakdownPart}${datePart}.`;
+  }, [lang, guests, travelerBreakdownSummary, formattedDateEn, formattedDateFr, formattedDateAr, targetExperience]);
 
   const waHref = options?.whatsapp
     ? `https://wa.me/${options.whatsapp}?text=${encodeURIComponent(whatsappMessage)}`
@@ -274,19 +460,24 @@ export function BookingFlow({
     setSubmitting(true);
     setSubmitError("");
 
+    const totalAdultGuests = adults + seniors + youths;
+    const guestBreakdownDetails = travelerBreakdownList.join(", ");
+
     const payload: BookingRequest = {
       experienceId: targetExperienceId,
       date,
       name: name.trim(),
       email: email.trim(),
       phone: phone.trim(),
-      adults: guests,
-      children: 0,
-      infants: 0,
+      adults: totalAdultGuests,
+      children: children,
+      infants: infants,
       mealChoice: "",
       privateGroup: false,
       dietaryNeeds: allergies.trim(),
-      message: message.trim(),
+      message: message.trim()
+        ? `${message.trim()}\n\nTravelers: ${guestBreakdownDetails}`
+        : `Travelers: ${guestBreakdownDetails}`,
       specialOccasion: "",
       language: lang,
       honeypot: "",
@@ -413,6 +604,11 @@ export function BookingFlow({
                       : lang === "ar"
                         ? "ضيوف"
                         : "guests"}
+                  {travelerBreakdownSummary && (
+                    <span className="block text-xs font-normal text-muted-foreground mt-0.5">
+                      {travelerBreakdownSummary}
+                    </span>
+                  )}
                 </dd>
               </div>
               <div>
@@ -557,6 +753,12 @@ export function BookingFlow({
               onClick={() => {
                 setConfirmation(null);
                 setDate("");
+                setAdults(2);
+                setSeniors(0);
+                setYouths(0);
+                setChildren(0);
+                setInfants(0);
+                setIsTravelerPickerOpen(true);
                 setAllergies("");
                 setMessage("");
                 setTouched({});
@@ -945,81 +1147,197 @@ export function BookingFlow({
             </div>
 
             {/* -------------------------------------------------------
-                SECTION 2: GUESTS
+                SECTION 2: TRAVELERS COUNT (Granular traveler breakdown)
             ------------------------------------------------------- */}
-            <div className="pt-6 border-t border-border/70 space-y-7">
-              <div className="flex items-center gap-3 text-start">
+            <div>
+              <div className="flex items-center gap-3 mb-5 text-start">
                 <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-xs">
                   2
                 </span>
                 <h3 className="font-display text-2xl font-bold text-foreground">
-                  {lang === "fr"
-                    ? "Nombre d'invités"
-                    : lang === "ar"
-                      ? "عدد الضيوف"
-                      : "Number of guests"}
+                  {TRAVELER_I18N[lang].sectionTitle}
                 </h3>
               </div>
 
-              {/* Number of guests stepper (- / number / +) */}
-              <div>
-                <Label className="text-sm font-semibold text-foreground mb-2 block">
-                  {lang === "fr"
-                    ? "Nombre de personnes"
-                    : lang === "ar"
-                      ? "عدد الضيوف"
-                      : "Number of guests"}{" "}
-                  *
-                </Label>
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    aria-label={
-                      lang === "fr"
-                        ? "Diminuer le nombre d'invités"
-                        : lang === "ar"
-                          ? "تقليل عدد الضيوف"
-                          : "Decrease number of guests"
+              {/* Collapsed summary pill if picker is closed */}
+              {!isTravelerPickerOpen && (
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setIsTravelerPickerOpen(true)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setIsTravelerPickerOpen(true);
                     }
-                    disabled={guests <= 1}
-                    onClick={() => setGuests((g) => Math.max(1, g - 1))}
-                    className="flex h-12 w-12 sm:h-13 sm:w-13 items-center justify-center rounded-full border border-stone-300 bg-white text-oxblood shadow-2xs hover:bg-stone-100 active:scale-95 transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
-                  >
-                    <Minus className="h-5 w-5" />
-                  </button>
-                  <span className="min-w-[56px] text-center font-display text-3xl font-bold text-foreground">
-                    {guests}
-                  </span>
-                  <button
+                  }}
+                  className="w-full flex items-center justify-between p-4 sm:p-5 rounded-2xl border border-stone-200/90 bg-stone-50/70 hover:bg-stone-100/80 transition-all cursor-pointer text-start shadow-2xs group"
+                >
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200/80">
+                      <Users className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-display text-lg font-bold text-foreground">
+                          {totalTravelers}{" "}
+                          {totalTravelers === 1
+                            ? TRAVELER_I18N[lang].traveler
+                            : TRAVELER_I18N[lang].travelers}
+                        </span>
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-800">
+                          <Check className="h-3 w-3 stroke-[2.5]" />
+                          {TRAVELER_I18N[lang].confirmed}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                        {travelerBreakdownSummary}
+                      </p>
+                    </div>
+                  </div>
+                  <Button
                     type="button"
-                    aria-label={
-                      lang === "fr"
-                        ? "Augmenter le nombre d'invités"
-                        : lang === "ar"
-                          ? "زيادة عدد الضيوف"
-                          : "Increase number of guests"
-                    }
-                    disabled={guests >= 25}
-                    onClick={() => setGuests((g) => Math.min(25, g + 1))}
-                    className="flex h-12 w-12 sm:h-13 sm:w-13 items-center justify-center rounded-full border border-stone-300 bg-white text-oxblood shadow-2xs hover:bg-stone-100 active:scale-95 transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+                    variant="outline"
+                    size="sm"
+                    className="shrink-0 h-9 px-3.5 text-xs font-bold border-stone-300 text-foreground group-hover:bg-white"
                   >
-                    <Plus className="h-5 w-5" />
-                  </button>
-                  <span className="text-xs sm:text-sm text-muted-foreground ms-2">
-                    {lang === "fr"
-                      ? "(Aucune limite d'invités)"
-                      : lang === "ar"
-                        ? "(لا يوجد حد أقصى للضيوف)"
-                        : "(No guest limit)"}
-                  </span>
+                    <span>{TRAVELER_I18N[lang].change}</span>
+                    <ChevronDown className="h-3.5 w-3.5 ms-1" />
+                  </Button>
                 </div>
-              </div>
+              )}
+
+              {/* Expanded Traveler Selector matching exact UI */}
+              {isTravelerPickerOpen && (
+                <div className="rounded-2xl border border-stone-200/90 bg-white p-5 sm:p-7 shadow-xs space-y-5 animate-in fade-in duration-200">
+                  <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+                    <p className="text-sm sm:text-base font-semibold text-stone-700">
+                      {TRAVELER_I18N[lang].header}
+                    </p>
+                    {totalTravelers >= 1 && (
+                      <button
+                        type="button"
+                        onClick={() => setIsTravelerPickerOpen(false)}
+                        className="text-xs font-semibold text-muted-foreground hover:text-foreground cursor-pointer"
+                      >
+                        {TRAVELER_I18N[lang].collapse}
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="divide-y divide-stone-100">
+                    {[
+                      {
+                        key: "adult",
+                        title: TRAVELER_I18N[lang].adultTitle,
+                        count: adults,
+                        setCount: setAdults,
+                        badge: null,
+                      },
+                      {
+                        key: "senior",
+                        title: TRAVELER_I18N[lang].seniorTitle,
+                        count: seniors,
+                        setCount: setSeniors,
+                        badge: null,
+                      },
+                      {
+                        key: "youth",
+                        title: TRAVELER_I18N[lang].youthTitle,
+                        count: youths,
+                        setCount: setYouths,
+                        badge: null,
+                      },
+                      {
+                        key: "child",
+                        title: TRAVELER_I18N[lang].childTitle,
+                        count: children,
+                        setCount: setChildren,
+                        badge: TRAVELER_I18N[lang].freeBadge,
+                      },
+                    ].map((category) => {
+                      const canDecrement = category.count > 0 && totalTravelers > 1;
+                      const canIncrement = category.count < 10 && totalTravelers < 10;
+
+                      return (
+                        <div
+                          key={category.key}
+                          className="flex items-center justify-between py-3.5 first:pt-1 last:pb-1 text-start"
+                        >
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-stone-900 text-sm sm:text-base">
+                                {category.title}
+                              </span>
+                              {category.badge && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold bg-[#D1FAE5] text-[#065F46]">
+                                  {category.badge}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-stone-500 mt-0.5">
+                              {TRAVELER_I18N[lang].minMax}
+                            </p>
+                          </div>
+
+                          <div className="flex items-center gap-3">
+                            <button
+                              type="button"
+                              aria-label={`Decrease ${category.title}`}
+                              disabled={!canDecrement}
+                              onClick={() => category.setCount((c) => Math.max(0, c - 1))}
+                              className="flex h-8 w-8 items-center justify-center rounded-full border transition-colors disabled:opacity-30 disabled:pointer-events-none cursor-pointer border-[#007F5F] text-[#007F5F] hover:bg-[#007F5F]/10 active:scale-95"
+                            >
+                              <Minus className="h-4 w-4" />
+                            </button>
+
+                            <span className="w-6 text-center font-bold text-stone-900 text-base">
+                              {category.count}
+                            </span>
+
+                            <button
+                              type="button"
+                              aria-label={`Increase ${category.title}`}
+                              disabled={!canIncrement}
+                              onClick={() => category.setCount((c) => Math.min(10, c + 1))}
+                              className="flex h-8 w-8 items-center justify-center rounded-full border transition-colors disabled:opacity-30 disabled:pointer-events-none cursor-pointer border-[#007F5F] text-[#007F5F] hover:bg-[#007F5F]/10 active:scale-95"
+                            >
+                              <Plus className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Apply Button */}
+                  <div className="pt-2">
+                    <button
+                      type="button"
+                      disabled={totalTravelers < 1}
+                      onClick={() => {
+                        setIsTravelerPickerOpen(false);
+                        const s3 = document.getElementById("booking-section-3");
+                        if (s3 && typeof s3.scrollIntoView === "function") {
+                          s3.scrollIntoView({ behavior: "smooth", block: "start" });
+                        }
+                      }}
+                      className="w-full h-12 rounded-xl font-bold text-white bg-[#007F5F] hover:bg-[#006b50] active:scale-[0.99] transition shadow-xs flex items-center justify-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      {TRAVELER_I18N[lang].apply}
+                    </button>
+                    <p className="text-xs text-stone-500 text-center mt-3">
+                      {TRAVELER_I18N[lang].discountNote}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* -------------------------------------------------------
                 SECTION 3: DETAILS (52px inputs, labels above, validation)
             ------------------------------------------------------- */}
-            <div className="pt-6 border-t border-border/70 space-y-5">
+            <div id="booking-section-3" className="pt-6 border-t border-border/70 space-y-5">
               <div className="flex items-center gap-3 text-start">
                 <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-xs">
                   3
@@ -1343,18 +1661,25 @@ export function BookingFlow({
                         </span>
                       </dt>
                       <dd className="font-semibold text-foreground">
-                        {guests}{" "}
-                        {guests === 1
-                          ? lang === "fr"
-                            ? "personne"
-                            : lang === "ar"
-                              ? "ضيف"
-                              : "guest"
-                          : lang === "fr"
-                            ? "personnes"
-                            : lang === "ar"
-                              ? "ضيوف"
-                              : "guests"}
+                        <div>
+                          {guests}{" "}
+                          {guests === 1
+                            ? lang === "fr"
+                              ? "personne"
+                              : lang === "ar"
+                                ? "ضيف"
+                                : "guest"
+                            : lang === "fr"
+                              ? "personnes"
+                              : lang === "ar"
+                                ? "ضيوف"
+                                : "guests"}
+                        </div>
+                        {travelerBreakdownSummary && (
+                          <div className="text-xs text-muted-foreground font-normal mt-0.5">
+                            {travelerBreakdownSummary}
+                          </div>
+                        )}
                       </dd>
                     </div>
 
@@ -1565,20 +1890,27 @@ export function BookingFlow({
                     <Users className="h-4 w-4 text-primary shrink-0" />
                     <span>{lang === "fr" ? "Invités" : lang === "ar" ? "الضيوف" : "Guests"}</span>
                   </dt>
-                  <dd className="font-semibold text-foreground">
-                    {guests}{" "}
-                    {guests === 1
-                      ? lang === "fr"
-                        ? "personne"
-                        : lang === "ar"
-                          ? "ضيف"
-                          : "guest"
-                      : lang === "fr"
-                        ? "personnes"
-                        : lang === "ar"
-                          ? "ضيوف"
-                          : "guests"}
-                  </dd>
+                    <dd className="font-semibold text-foreground text-end">
+                      <div>
+                        {guests}{" "}
+                        {guests === 1
+                          ? lang === "fr"
+                            ? "personne"
+                            : lang === "ar"
+                              ? "ضيف"
+                              : "guest"
+                          : lang === "fr"
+                            ? "personnes"
+                            : lang === "ar"
+                              ? "ضيوف"
+                              : "guests"}
+                      </div>
+                      {travelerBreakdownSummary && (
+                        <div className="text-xs text-muted-foreground font-normal mt-0.5">
+                          {travelerBreakdownSummary}
+                        </div>
+                      )}
+                    </dd>
                 </div>
 
                 <div className="flex items-center justify-between gap-3 pt-2 border-t border-stone-200/60">

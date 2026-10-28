@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as LangRouteImport } from './routes/$lang'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as BlogRouteImport } from './routes/blog'
 import { Route as BookingRouteImport } from './routes/booking'
@@ -22,15 +23,34 @@ import { Route as PartnersRouteImport } from './routes/partners'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PrivateEventsRouteImport } from './routes/private-events'
 import { Route as ReviewRouteImport } from './routes/review'
+import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as LangIndexRouteImport } from './routes/$lang.index'
+import { Route as LangBlogRouteImport } from './routes/$lang.blog'
+import { Route as LangBookingRouteImport } from './routes/$lang.booking'
+import { Route as LangCancellationPolicyRouteImport } from './routes/$lang.cancellation-policy'
+import { Route as LangExperiencesRouteImport } from './routes/$lang.experiences'
+import { Route as LangFamiliesRouteImport } from './routes/$lang.families'
+import { Route as LangFaqRouteImport } from './routes/$lang.faq'
+import { Route as LangGiftRouteImport } from './routes/$lang.gift'
+import { Route as LangPartnersRouteImport } from './routes/$lang.partners'
+import { Route as LangPrivacyRouteImport } from './routes/$lang.privacy'
+import { Route as LangPrivateEventsRouteImport } from './routes/$lang.private-events'
+import { Route as LangTermsRouteImport } from './routes/$lang.terms'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as NewsletterConfirmRouteImport } from './routes/newsletter.confirm'
+import { Route as LangBlogSlugRouteImport } from './routes/$lang.blog.$slug'
 import { Route as ApiCronEmailsRouteImport } from './routes/api/cron/emails'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LangRoute = LangRouteImport.update({
+  id: '/$lang',
+  path: '/$lang',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRoute = AdminRouteImport.update({
@@ -93,6 +113,11 @@ const ReviewRoute = ReviewRouteImport.update({
   path: '/review',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
+  id: '/robots.txt',
+  path: '/robots.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
@@ -102,6 +127,66 @@ const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
   getParentRoute: () => rootRouteImport,
+} as any)
+const LangIndexRoute = LangIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangBlogRoute = LangBlogRouteImport.update({
+  id: '/blog',
+  path: '/blog',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangBookingRoute = LangBookingRouteImport.update({
+  id: '/booking',
+  path: '/booking',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangCancellationPolicyRoute = LangCancellationPolicyRouteImport.update({
+  id: '/cancellation-policy',
+  path: '/cancellation-policy',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangExperiencesRoute = LangExperiencesRouteImport.update({
+  id: '/experiences',
+  path: '/experiences',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangFamiliesRoute = LangFamiliesRouteImport.update({
+  id: '/families',
+  path: '/families',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangFaqRoute = LangFaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangGiftRoute = LangGiftRouteImport.update({
+  id: '/gift',
+  path: '/gift',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangPartnersRoute = LangPartnersRouteImport.update({
+  id: '/partners',
+  path: '/partners',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangPrivacyRoute = LangPrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangPrivateEventsRoute = LangPrivateEventsRouteImport.update({
+  id: '/private-events',
+  path: '/private-events',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangTermsRoute = LangTermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => LangRoute,
 } as any)
 const BlogSlugRoute = BlogSlugRouteImport.update({
   id: '/$slug',
@@ -113,6 +198,11 @@ const NewsletterConfirmRoute = NewsletterConfirmRouteImport.update({
   path: '/newsletter/confirm',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LangBlogSlugRoute = LangBlogSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => LangBlogRoute,
+} as any)
 const ApiCronEmailsRoute = ApiCronEmailsRouteImport.update({
   id: '/api/cron/emails',
   path: '/api/cron/emails',
@@ -121,6 +211,7 @@ const ApiCronEmailsRoute = ApiCronEmailsRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/$lang': typeof LangRouteWithChildren
   '/admin': typeof AdminRoute
   '/blog': typeof BlogRouteWithChildren
   '/booking': typeof BookingRoute
@@ -133,10 +224,24 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/private-events': typeof PrivateEventsRoute
   '/review': typeof ReviewRoute
+  '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
+  '/$lang/blog': typeof LangBlogRouteWithChildren
+  '/$lang/booking': typeof LangBookingRoute
+  '/$lang/cancellation-policy': typeof LangCancellationPolicyRoute
+  '/$lang/experiences': typeof LangExperiencesRoute
+  '/$lang/families': typeof LangFamiliesRoute
+  '/$lang/faq': typeof LangFaqRoute
+  '/$lang/gift': typeof LangGiftRoute
+  '/$lang/partners': typeof LangPartnersRoute
+  '/$lang/privacy': typeof LangPrivacyRoute
+  '/$lang/private-events': typeof LangPrivateEventsRoute
+  '/$lang/terms': typeof LangTermsRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/newsletter/confirm': typeof NewsletterConfirmRoute
+  '/$lang/': typeof LangIndexRoute
+  '/$lang/blog/$slug': typeof LangBlogSlugRoute
   '/api/cron/emails': typeof ApiCronEmailsRoute
 }
 export interface FileRoutesByTo {
@@ -153,15 +258,30 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/private-events': typeof PrivateEventsRoute
   '/review': typeof ReviewRoute
+  '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
+  '/$lang/blog': typeof LangBlogRouteWithChildren
+  '/$lang/booking': typeof LangBookingRoute
+  '/$lang/cancellation-policy': typeof LangCancellationPolicyRoute
+  '/$lang/experiences': typeof LangExperiencesRoute
+  '/$lang/families': typeof LangFamiliesRoute
+  '/$lang/faq': typeof LangFaqRoute
+  '/$lang/gift': typeof LangGiftRoute
+  '/$lang/partners': typeof LangPartnersRoute
+  '/$lang/privacy': typeof LangPrivacyRoute
+  '/$lang/private-events': typeof LangPrivateEventsRoute
+  '/$lang/terms': typeof LangTermsRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/newsletter/confirm': typeof NewsletterConfirmRoute
+  '/$lang': typeof LangIndexRoute
+  '/$lang/blog/$slug': typeof LangBlogSlugRoute
   '/api/cron/emails': typeof ApiCronEmailsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/$lang': typeof LangRouteWithChildren
   '/admin': typeof AdminRoute
   '/blog': typeof BlogRouteWithChildren
   '/booking': typeof BookingRoute
@@ -174,16 +294,31 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/private-events': typeof PrivateEventsRoute
   '/review': typeof ReviewRoute
+  '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
+  '/$lang/blog': typeof LangBlogRouteWithChildren
+  '/$lang/booking': typeof LangBookingRoute
+  '/$lang/cancellation-policy': typeof LangCancellationPolicyRoute
+  '/$lang/experiences': typeof LangExperiencesRoute
+  '/$lang/families': typeof LangFamiliesRoute
+  '/$lang/faq': typeof LangFaqRoute
+  '/$lang/gift': typeof LangGiftRoute
+  '/$lang/partners': typeof LangPartnersRoute
+  '/$lang/privacy': typeof LangPrivacyRoute
+  '/$lang/private-events': typeof LangPrivateEventsRoute
+  '/$lang/terms': typeof LangTermsRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/newsletter/confirm': typeof NewsletterConfirmRoute
+  '/$lang/': typeof LangIndexRoute
+  '/$lang/blog/$slug': typeof LangBlogSlugRoute
   '/api/cron/emails': typeof ApiCronEmailsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/$lang'
     | '/admin'
     | '/blog'
     | '/booking'
@@ -196,10 +331,24 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/private-events'
     | '/review'
+    | '/robots.txt'
     | '/sitemap.xml'
     | '/terms'
+    | '/$lang/blog'
+    | '/$lang/booking'
+    | '/$lang/cancellation-policy'
+    | '/$lang/experiences'
+    | '/$lang/families'
+    | '/$lang/faq'
+    | '/$lang/gift'
+    | '/$lang/partners'
+    | '/$lang/privacy'
+    | '/$lang/private-events'
+    | '/$lang/terms'
     | '/blog/$slug'
     | '/newsletter/confirm'
+    | '/$lang/'
+    | '/$lang/blog/$slug'
     | '/api/cron/emails'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -216,14 +365,29 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/private-events'
     | '/review'
+    | '/robots.txt'
     | '/sitemap.xml'
     | '/terms'
+    | '/$lang/blog'
+    | '/$lang/booking'
+    | '/$lang/cancellation-policy'
+    | '/$lang/experiences'
+    | '/$lang/families'
+    | '/$lang/faq'
+    | '/$lang/gift'
+    | '/$lang/partners'
+    | '/$lang/privacy'
+    | '/$lang/private-events'
+    | '/$lang/terms'
     | '/blog/$slug'
     | '/newsletter/confirm'
+    | '/$lang'
+    | '/$lang/blog/$slug'
     | '/api/cron/emails'
   id:
     | '__root__'
     | '/'
+    | '/$lang'
     | '/admin'
     | '/blog'
     | '/booking'
@@ -236,15 +400,30 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/private-events'
     | '/review'
+    | '/robots.txt'
     | '/sitemap.xml'
     | '/terms'
+    | '/$lang/blog'
+    | '/$lang/booking'
+    | '/$lang/cancellation-policy'
+    | '/$lang/experiences'
+    | '/$lang/families'
+    | '/$lang/faq'
+    | '/$lang/gift'
+    | '/$lang/partners'
+    | '/$lang/privacy'
+    | '/$lang/private-events'
+    | '/$lang/terms'
     | '/blog/$slug'
     | '/newsletter/confirm'
+    | '/$lang/'
+    | '/$lang/blog/$slug'
     | '/api/cron/emails'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  LangRoute: typeof LangRouteWithChildren
   AdminRoute: typeof AdminRoute
   BlogRoute: typeof BlogRouteWithChildren
   BookingRoute: typeof BookingRoute
@@ -257,6 +436,7 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   PrivateEventsRoute: typeof PrivateEventsRoute
   ReviewRoute: typeof ReviewRoute
+  RobotsDottxtRoute: typeof RobotsDottxtRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
   NewsletterConfirmRoute: typeof NewsletterConfirmRoute
@@ -270,6 +450,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$lang': {
+      id: '/$lang'
+      path: '/$lang'
+      fullPath: '/$lang'
+      preLoaderRoute: typeof LangRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -356,6 +543,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReviewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/robots.txt': {
+      id: '/robots.txt'
+      path: '/robots.txt'
+      fullPath: '/robots.txt'
+      preLoaderRoute: typeof RobotsDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
@@ -369,6 +563,90 @@ declare module '@tanstack/react-router' {
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/$lang/': {
+      id: '/$lang/'
+      path: '/'
+      fullPath: '/$lang/'
+      preLoaderRoute: typeof LangIndexRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/blog': {
+      id: '/$lang/blog'
+      path: '/blog'
+      fullPath: '/$lang/blog'
+      preLoaderRoute: typeof LangBlogRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/booking': {
+      id: '/$lang/booking'
+      path: '/booking'
+      fullPath: '/$lang/booking'
+      preLoaderRoute: typeof LangBookingRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/cancellation-policy': {
+      id: '/$lang/cancellation-policy'
+      path: '/cancellation-policy'
+      fullPath: '/$lang/cancellation-policy'
+      preLoaderRoute: typeof LangCancellationPolicyRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/experiences': {
+      id: '/$lang/experiences'
+      path: '/experiences'
+      fullPath: '/$lang/experiences'
+      preLoaderRoute: typeof LangExperiencesRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/families': {
+      id: '/$lang/families'
+      path: '/families'
+      fullPath: '/$lang/families'
+      preLoaderRoute: typeof LangFamiliesRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/faq': {
+      id: '/$lang/faq'
+      path: '/faq'
+      fullPath: '/$lang/faq'
+      preLoaderRoute: typeof LangFaqRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/gift': {
+      id: '/$lang/gift'
+      path: '/gift'
+      fullPath: '/$lang/gift'
+      preLoaderRoute: typeof LangGiftRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/partners': {
+      id: '/$lang/partners'
+      path: '/partners'
+      fullPath: '/$lang/partners'
+      preLoaderRoute: typeof LangPartnersRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/privacy': {
+      id: '/$lang/privacy'
+      path: '/privacy'
+      fullPath: '/$lang/privacy'
+      preLoaderRoute: typeof LangPrivacyRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/private-events': {
+      id: '/$lang/private-events'
+      path: '/private-events'
+      fullPath: '/$lang/private-events'
+      preLoaderRoute: typeof LangPrivateEventsRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/terms': {
+      id: '/$lang/terms'
+      path: '/terms'
+      fullPath: '/$lang/terms'
+      preLoaderRoute: typeof LangTermsRouteImport
+      parentRoute: typeof LangRoute
     }
     '/blog/$slug': {
       id: '/blog/$slug'
@@ -384,6 +662,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NewsletterConfirmRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$lang/blog/$slug': {
+      id: '/$lang/blog/$slug'
+      path: '/$slug'
+      fullPath: '/$lang/blog/$slug'
+      preLoaderRoute: typeof LangBlogSlugRouteImport
+      parentRoute: typeof LangBlogRoute
+    }
     '/api/cron/emails': {
       id: '/api/cron/emails'
       path: '/api/cron/emails'
@@ -393,6 +678,50 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface LangBlogRouteChildren {
+  LangBlogSlugRoute: typeof LangBlogSlugRoute
+}
+
+const LangBlogRouteChildren: LangBlogRouteChildren = {
+  LangBlogSlugRoute: LangBlogSlugRoute,
+}
+
+const LangBlogRouteWithChildren = LangBlogRoute._addFileChildren(
+  LangBlogRouteChildren,
+)
+
+interface LangRouteChildren {
+  LangBlogRoute: typeof LangBlogRouteWithChildren
+  LangBookingRoute: typeof LangBookingRoute
+  LangCancellationPolicyRoute: typeof LangCancellationPolicyRoute
+  LangExperiencesRoute: typeof LangExperiencesRoute
+  LangFamiliesRoute: typeof LangFamiliesRoute
+  LangFaqRoute: typeof LangFaqRoute
+  LangGiftRoute: typeof LangGiftRoute
+  LangPartnersRoute: typeof LangPartnersRoute
+  LangPrivacyRoute: typeof LangPrivacyRoute
+  LangPrivateEventsRoute: typeof LangPrivateEventsRoute
+  LangTermsRoute: typeof LangTermsRoute
+  LangIndexRoute: typeof LangIndexRoute
+}
+
+const LangRouteChildren: LangRouteChildren = {
+  LangBlogRoute: LangBlogRouteWithChildren,
+  LangBookingRoute: LangBookingRoute,
+  LangCancellationPolicyRoute: LangCancellationPolicyRoute,
+  LangExperiencesRoute: LangExperiencesRoute,
+  LangFamiliesRoute: LangFamiliesRoute,
+  LangFaqRoute: LangFaqRoute,
+  LangGiftRoute: LangGiftRoute,
+  LangPartnersRoute: LangPartnersRoute,
+  LangPrivacyRoute: LangPrivacyRoute,
+  LangPrivateEventsRoute: LangPrivateEventsRoute,
+  LangTermsRoute: LangTermsRoute,
+  LangIndexRoute: LangIndexRoute,
+}
+
+const LangRouteWithChildren = LangRoute._addFileChildren(LangRouteChildren)
 
 interface BlogRouteChildren {
   BlogSlugRoute: typeof BlogSlugRoute
@@ -406,6 +735,7 @@ const BlogRouteWithChildren = BlogRoute._addFileChildren(BlogRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  LangRoute: LangRouteWithChildren,
   AdminRoute: AdminRoute,
   BlogRoute: BlogRouteWithChildren,
   BookingRoute: BookingRoute,
@@ -418,6 +748,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   PrivateEventsRoute: PrivateEventsRoute,
   ReviewRoute: ReviewRoute,
+  RobotsDottxtRoute: RobotsDottxtRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
   NewsletterConfirmRoute: NewsletterConfirmRoute,
