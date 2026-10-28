@@ -16,7 +16,7 @@ export default defineConfig({
       server: { entry: "server" },
     }),
     nitro({
-      preset: "cloudflare-module",
+      preset: process.env.VERCEL ? "vercel" : (process.env.NITRO_PRESET || "cloudflare-module"),
     }),
     viteReact(),
   ],
