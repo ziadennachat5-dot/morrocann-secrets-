@@ -59,8 +59,7 @@ export function I18nProvider({ children, forcedLang }: { children: ReactNode; fo
     getPublicCopyOverrides()
       .then(setCopyOverrides)
       .catch((error: unknown) => {
-        console.error("Unable to load published page text:", error);
-        setCopyLoadError(true);
+        console.warn("Using default copy (published overrides unavailable):", error);
       });
   }, []);
 

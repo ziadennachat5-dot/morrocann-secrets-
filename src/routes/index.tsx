@@ -28,16 +28,37 @@ import { useGalleryContext } from "@/components/site/Layout";
 import { getSiteUrl, pageHead } from "@/lib/seo";
 
 export async function loadHomePageData() {
-  const [catalog, families, bookingOptions, faqs, contact, homepage, photos] = await Promise.all([
-    getPublishedExperiences(),
-    getPublishedFamilies(),
-    getBookingOptions(),
-    getPublishedFaqs(),
-    getPublicContactLinks(),
-    getHomepageContent(),
-    getPublicGuestPhotos(),
-  ]);
-  return { ...catalog, families, bookingOptions, faqs, contact, homepage, photos };
+  try {
+    const [catalog, families, bookingOptions, faqs, contact, homepage, photos] = await Promise.all([
+      getPublishedExperiences().catch(() => ({ experiences: [] })),
+      getPublishedFamilies().catch(() => []),
+      getBookingOptions().catch(() => ({ experiences: [], cancellationTiers: [] })),
+      getPublishedFaqs().catch(() => []),
+      getPublicContactLinks().catch(() => ({ whatsapp: "", email: "" })),
+      getHomepageContent().catch(() => ({})),
+      getPublicGuestPhotos().catch(() => ({ photos: [] })),
+    ]);
+    return {
+      experiences: catalog?.experiences ?? [],
+      families: families ?? [],
+      bookingOptions: bookingOptions ?? { experiences: [], cancellationTiers: [] },
+      faqs: faqs ?? [],
+      contact: contact ?? { whatsapp: "", email: "" },
+      homepage: homepage ?? {},
+      photos: photos ?? { photos: [] },
+    };
+  } catch (err) {
+    console.error("Failed to load home page data:", err);
+    return {
+      experiences: [],
+      families: [],
+      bookingOptions: { experiences: [], cancellationTiers: [] },
+      faqs: [],
+      contact: { whatsapp: "", email: "" },
+      homepage: {},
+      photos: { photos: [] },
+    };
+  }
 }
 
 export const Route = createFileRoute("/")({
