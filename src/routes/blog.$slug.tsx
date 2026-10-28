@@ -24,16 +24,18 @@ export const Route = createFileRoute("/blog/$slug")({
         },
       },
     ),
-  component: BlogArticlePage,
+  component: function BlogArticleRouteComponent() {
+    const post = Route.useLoaderData();
+    return <BlogArticlePage post={post} />;
+  },
 });
 
 export function BlogArticlePage({
-  post: propPost,
+  post,
 }: {
   post?: Awaited<ReturnType<typeof getPublishedPost>>;
 } = {}) {
-  const loaderData = Route.useLoaderData();
-  const post = propPost ?? loaderData;
+  if (!post) return null;
   const { lang } = useI18n();
 
   const title = post.title[lang] || post.title.en;

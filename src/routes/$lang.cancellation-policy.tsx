@@ -7,5 +7,8 @@ import type { Lang } from "@/lib/i18n";
 export const Route = createFileRoute("/$lang/cancellation-policy")({
   loader: () => getPublicCancellationTiers(),
   head: ({ params }) => pageHead("/cancellation-policy", params.lang as Lang),
-  component: CancellationPolicyPage,
+  component: function LocalizedCancellation() {
+    const tiers = Route.useLoaderData();
+    return <CancellationPolicyPage tiers={tiers} />;
+  },
 });

@@ -68,7 +68,10 @@ export const Route = createFileRoute("/")({
       experiences: loaderData?.experiences,
       faqs: loaderData?.faqs,
     }),
-  component: HomePage,
+  component: function IndexRouteComponent() {
+    const data = Route.useLoaderData();
+    return <HomePage data={data} />;
+  },
 });
 
 function HeroVideo() {
@@ -191,9 +194,18 @@ function localizedText(
   return value[lang] || value.en || "";
 }
 
+const defaultHomePageData = {
+  experiences: [],
+  families: [],
+  bookingOptions: { experiences: [], cancellationTiers: [] },
+  faqs: [],
+  contact: { whatsapp: "", email: "" },
+  homepage: {},
+  photos: { photos: [] },
+};
+
 export function HomePage({ data: propData }: { data?: Awaited<ReturnType<typeof loadHomePageData>> } = {}) {
-  const loaderData = Route.useLoaderData();
-  const data = propData ?? loaderData;
+  const data = propData ?? defaultHomePageData;
   const { lang } = useI18n();
   const { setHasGallery } = useGalleryContext();
   const firstBookable = data.bookingOptions.experiences[0]?.id;

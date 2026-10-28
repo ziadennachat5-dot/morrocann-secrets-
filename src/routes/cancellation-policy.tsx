@@ -8,11 +8,14 @@ import { formatCancellationTiers } from "@/lib/booking-pricing";
 export const Route = createFileRoute("/cancellation-policy")({
   loader: () => getPublicCancellationTiers(),
   head: () => pageHead("/cancellation-policy", "en"),
-  component: CancellationPolicyPage,
+  component: function CancellationRouteComponent() {
+    const tiers = Route.useLoaderData();
+    return <CancellationPolicyPage tiers={tiers} />;
+  },
 });
 
-export function CancellationPolicyPage() {
-  const tiers = Route.useLoaderData();
+export function CancellationPolicyPage({ tiers: propTiers }: { tiers?: CancellationTier[] } = {}) {
+  const tiers = propTiers ?? [];
   const { t, lang } = useI18n();
   return (
     <article className="mx-auto max-w-4xl px-5 py-16">

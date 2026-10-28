@@ -7,12 +7,14 @@ import { pageHead, getLocalizedPath } from "@/lib/seo";
 export const Route = createFileRoute("/blog")({
   loader: () => getPublishedPosts(),
   head: () => pageHead("/blog", "en"),
-  component: BlogPage,
+  component: function BlogRouteComponent() {
+    const posts = Route.useLoaderData();
+    return <BlogPage posts={posts} />;
+  },
 });
 
 export function BlogPage({ posts: propPosts }: { posts?: Awaited<ReturnType<typeof getPublishedPosts>> } = {}) {
-  const loaderData = Route.useLoaderData();
-  const posts = propPosts ?? loaderData;
+  const posts = propPosts ?? [];
   const { t, lang } = useI18n();
 
   return (
