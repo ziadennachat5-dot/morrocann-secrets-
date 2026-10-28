@@ -2,7 +2,7 @@ import { BRAND_NAME } from "./brand";
 import { dict, type Dict } from "./translations";
 import type { Lang } from "./i18n";
 
-const DEFAULT_SITE_URL = "https://moroccansecrets.com";
+const DEFAULT_SITE_URL = "https://moroccosecretsmarrakech.com";
 
 export function getSiteUrl(): string {
   const envUrl =
