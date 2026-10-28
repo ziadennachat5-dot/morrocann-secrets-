@@ -58,30 +58,52 @@ const DEFAULT_SUPABASE_URL = "https://umregmuatwniadteyxnv.supabase.co";
 const DEFAULT_SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVtcmVnbXVhdHduaWFkdGV5eG52Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0OTAyMjYsImV4cCI6MjEwODA2NjIyNn0.NMkDIQigUMBmhoI08WEO07AP6QwvKT0tjvMCsq_UPRk";
 
-function getEnvUrl(): string {
-  const fromMeta = import.meta.env.VITE_SUPABASE_URL;
-  if (fromMeta && typeof fromMeta === "string" && fromMeta !== "undefined" && fromMeta.trim()) {
-    return fromMeta.trim();
+function normalizeSupabaseUrl(url: unknown): string | undefined {
+  if (!url || typeof url !== "string") return undefined;
+  let trimmed = url.trim();
+  if ((trimmed.startsWith('"') && trimmed.endsWith('"')) || (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
+    trimmed = trimmed.slice(1, -1).trim();
   }
+  if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://")) {
+    return undefined;
+  }
+  return trimmed.replace(/\/+$/, "");
+}
+
+function normalizeSupabaseKey(key: unknown): string | undefined {
+  if (!key || typeof key !== "string") return undefined;
+  let trimmed = key.trim();
+  if ((trimmed.startsWith('"') && trimmed.endsWith('"')) || (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
+    trimmed = trimmed.slice(1, -1).trim();
+  }
+  // Auto-correct if the leading 'e' in 'eyJ...' was accidentally missed when copying
+  if (trimmed.startsWith("yJhbGci")) {
+    trimmed = "e" + trimmed;
+  }
+  if (!trimmed.startsWith("eyJ") && !trimmed.startsWith("sb_publishable_")) {
+    return undefined;
+  }
+  return trimmed;
+}
+
+function getEnvUrl(): string {
+  const fromMeta = normalizeSupabaseUrl(import.meta.env.VITE_SUPABASE_URL);
+  if (fromMeta) return fromMeta;
+
   if (typeof process !== "undefined" && process.env) {
-    const fromProc = process.env["VITE_SUPABASE_URL"] || process.env["SUPABASE_URL"];
-    if (fromProc && typeof fromProc === "string" && fromProc !== "undefined" && fromProc.trim()) {
-      return fromProc.trim();
-    }
+    const fromProc = normalizeSupabaseUrl(process.env["VITE_SUPABASE_URL"] || process.env["SUPABASE_URL"]);
+    if (fromProc) return fromProc;
   }
   return DEFAULT_SUPABASE_URL;
 }
 
 function getEnvKey(): string {
-  const fromMeta = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-  if (fromMeta && typeof fromMeta === "string" && fromMeta !== "undefined" && fromMeta.trim()) {
-    return fromMeta.trim();
-  }
+  const fromMeta = normalizeSupabaseKey(import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY);
+  if (fromMeta) return fromMeta;
+
   if (typeof process !== "undefined" && process.env) {
-    const fromProc = process.env["VITE_SUPABASE_PUBLISHABLE_KEY"] || process.env["SUPABASE_PUBLISHABLE_KEY"];
-    if (fromProc && typeof fromProc === "string" && fromProc !== "undefined" && fromProc.trim()) {
-      return fromProc.trim();
-    }
+    const fromProc = normalizeSupabaseKey(process.env["VITE_SUPABASE_PUBLISHABLE_KEY"] || process.env["SUPABASE_PUBLISHABLE_KEY"]);
+    if (fromProc) return fromProc;
   }
   return DEFAULT_SUPABASE_ANON_KEY;
 }
