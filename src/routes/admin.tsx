@@ -2,12 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import type { Json, Tables } from "@/integrations/supabase/types";
-import { CatalogManager } from "@/components/admin/CatalogManager";
+import type { Tables } from "@/integrations/supabase/types";
 import { AdminAvailabilityManager } from "@/components/admin/AdminAvailabilityManager";
 import { ArrowUpDown, Clock, Filter, MessageCircle, Search } from "lucide-react";
 import { formatClientWhatsappUrl } from "@/lib/whatsapp-client";
-import { parseCancellationTiers, type CancellationTier } from "@/lib/booking-pricing";
 
 type Booking = Tables<"bookings">;
 type Availability = Tables<"availability">;
@@ -352,27 +350,7 @@ function AdminPage() {
   const [availability, setAvailability] = useState<Availability[]>([]);
   const [settings, setSettings] = useState<SiteSetting[]>([]);
 
-  // Settings form state
-  const [settingWhatsapp, setSettingWhatsapp] = useState("");
-  const [settingEmail, setSettingEmail] = useState("");
   const [settingCurrency, setSettingCurrency] = useState("MAD");
-  const [cancellationPreset, setCancellationPreset] = useState("flexible");
-
-  async function saveCurrencyDirect(value: string) {
-    const { error: saveError } = await supabase.from("site_settings").upsert(
-      {
-        setting_key: "booking.currency",
-        value: value.trim().toUpperCase() as Json,
-        is_public: true,
-      },
-      { onConflict: "setting_key" },
-    );
-    if (saveError) setError(`Could not save currency: ${saveError.message}`);
-    else {
-      setSettingCurrency(value.trim().toUpperCase());
-      await refresh();
-    }
-  }
 
   const refresh = useCallback(async () => {
     setBusy(true);
@@ -403,24 +381,9 @@ function AdminPage() {
     setAvailability(availabilityResult.data ?? []);
     setSettings(settingsResult.data ?? []);
 
-    // Populate settings state
     const sMap = new Map((settingsResult.data ?? []).map((s) => [s.setting_key, s.value]));
-    const wa = sMap.get("contact.whatsapp");
-    if (typeof wa === "string") setSettingWhatsapp(wa);
-    const em = sMap.get("contact.email");
-    if (typeof em === "string") setSettingEmail(em);
     const curr = sMap.get("booking.currency");
     if (typeof curr === "string") setSettingCurrency(curr);
-
-    const rawTiers = sMap.get("booking.cancellation_tiers");
-    const parsedTiers = parseCancellationTiers(rawTiers);
-    if (parsedTiers.length === 1 && parsedTiers[0]?.hours_before === 24) {
-      setCancellationPreset("flexible");
-    } else if (parsedTiers.length === 2 && parsedTiers[0]?.hours_before === 48) {
-      setCancellationPreset("moderate");
-    } else if (parsedTiers.length === 2 && parsedTiers[0]?.hours_before === 168) {
-      setCancellationPreset("strict");
-    }
 
     setBusy(false);
   }, []);
@@ -700,60 +663,6 @@ function AdminPage() {
     anchor.download = `moroccan-secrets-bookings-${today}.csv`;
     anchor.click();
     URL.revokeObjectURL(blobUrl);
-  }
-  async function saveSettings(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setBusy(true);
-    setError("");
-    setSuccessMessage("");
-
-    let tiers: CancellationTier[] = [{ hours_before: 24, refund_percent: 100 }];
-    if (cancellationPreset === "moderate") {
-      tiers = [
-        { hours_before: 48, refund_percent: 100 },
-        { hours_before: 24, refund_percent: 50 },
-      ];
-    } else if (cancellationPreset === "strict") {
-      tiers = [
-        { hours_before: 168, refund_percent: 100 },
-        { hours_before: 48, refund_percent: 50 },
-      ];
-    }
-
-    const updates = [
-      {
-        setting_key: "contact.whatsapp",
-        value: settingWhatsapp.replace(/\D/g, "") as Json,
-        is_public: true,
-      },
-      {
-        setting_key: "contact.email",
-        value: settingEmail.trim() as Json,
-        is_public: true,
-      },
-      {
-        setting_key: "booking.currency",
-        value: settingCurrency.trim().toUpperCase() as Json,
-        is_public: true,
-      },
-      {
-        setting_key: "booking.cancellation_tiers",
-        value: tiers as unknown as Json,
-        is_public: true,
-      },
-    ];
-
-    const { error: saveError } = await supabase
-      .from("site_settings")
-      .upsert(updates, { onConflict: "setting_key" });
-
-    if (saveError) {
-      setError(`Could not save settings: ${saveError.message}`);
-    } else {
-      setSuccessMessage(t.saved);
-      await refresh();
-    }
-    setBusy(false);
   }
 
   if (!authReady) {
@@ -1056,8 +965,14 @@ function AdminPage() {
             {[
               ["#admin-bookings", t.bookings],
               ["#admin-calendar", t.calendar],
-              ["#admin-experiences", t.experiences],
-              ["#admin-settings", t.settings],
+              [
+                "#admin-password",
+                adminLang === "fr"
+                  ? "Mot de passe"
+                  : adminLang === "ar"
+                    ? "كلمة المرور"
+                    : "Password",
+              ],
             ].map(([href, label]) => (
               <a
                 key={href}
@@ -1388,111 +1303,21 @@ function AdminPage() {
         </section>
 
         {/* ====================================================================
-            SECTION 3: EXPERIENCES
+            SECTION 3: ADMIN PASSWORD
         ==================================================================== */}
-        <section id="admin-experiences" className="mt-12 scroll-mt-24 border-t pt-8">
+        <section id="admin-password" className="mt-12 scroll-mt-24 border-t pt-8 pb-16">
           <div className="border-b pb-4">
-            <h2 className="text-2xl font-bold text-foreground">{t.experiences}</h2>
-            <p className="text-sm text-muted-foreground">
-              Add or edit dining experiences and their photos
-            </p>
+            <h2 className="text-2xl font-bold text-foreground">
+              {adminLang === "fr"
+                ? "Mot de passe"
+                : adminLang === "ar"
+                  ? "كلمة المرور"
+                  : "Change Password"}
+            </h2>
+            <p className="text-sm text-muted-foreground">{t.changePasswordDesc}</p>
           </div>
 
-          <div className="mt-6">
-            <CatalogManager
-              section="experiences"
-              experiences={experiences}
-              families={[]}
-              reviews={[]}
-              currency={settingCurrency}
-              onSaveCurrency={saveCurrencyDirect}
-              onRefresh={refresh}
-              onError={setError}
-            />
-          </div>
-        </section>
-
-        {/* ====================================================================
-            SECTION 4: SETTINGS
-        ==================================================================== */}
-        <section id="admin-settings" className="mt-12 scroll-mt-24 border-t pt-8 pb-16">
-          <div className="border-b pb-4">
-            <h2 className="text-2xl font-bold text-foreground">{t.settings}</h2>
-            <p className="text-sm text-muted-foreground">
-              Contact info, booking rules, and currency
-            </p>
-          </div>
-
-          <form onSubmit={saveSettings} className="mt-6 max-w-xl space-y-5">
-            <div>
-              <label className="block text-sm font-semibold text-foreground mb-1">
-                {t.whatsappNumber}
-              </label>
-              <input
-                type="tel"
-                className={inputClass}
-                placeholder="212600123456"
-                value={settingWhatsapp}
-                onChange={(e) => setSettingWhatsapp(e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-foreground mb-1">
-                {t.publicEmail}
-              </label>
-              <input
-                type="email"
-                className={inputClass}
-                placeholder="contact@moroccansecrets.com"
-                value={settingEmail}
-                onChange={(e) => setSettingEmail(e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-foreground mb-1">
-                {t.cancellationPolicy}
-              </label>
-              <select
-                className={inputClass}
-                value={cancellationPreset}
-                onChange={(e) => setCancellationPreset(e.target.value)}
-              >
-                <option value="flexible">{t.policyFlexible}</option>
-                <option value="moderate">{t.policyModerate}</option>
-                <option value="strict">{t.policyStrict}</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-foreground mb-1">
-                {t.currency}
-              </label>
-              <input
-                type="text"
-                maxLength={3}
-                className={inputClass}
-                placeholder="MAD"
-                value={settingCurrency}
-                onChange={(e) => setSettingCurrency(e.target.value.toUpperCase())}
-              />
-            </div>
-
-            <Button
-              type="submit"
-              disabled={busy}
-              className="w-full min-h-12 text-base font-bold bg-primary text-primary-foreground hover:bg-primary/90 shadow"
-            >
-              {busy ? t.saving : t.saveSettings}
-            </Button>
-          </form>
-
-          {/* Change Admin Password Card */}
-          <div className="mt-10 max-w-xl rounded-2xl border border-stone-200 bg-card p-6 shadow-xs">
-            <h3 className="text-lg font-bold text-foreground mb-1">{t.changePasswordTitle}</h3>
-            <p className="text-xs text-muted-foreground mb-4">{t.changePasswordDesc}</p>
-
+          <div className="mt-6 max-w-xl rounded-2xl border border-stone-200 bg-card p-6 shadow-xs">
             {dashPasswordError && (
               <p role="alert" className="mb-4 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
                 {dashPasswordError}
