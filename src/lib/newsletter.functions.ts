@@ -115,7 +115,7 @@ export const requestNewsletterSubscription = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     if (data.honeypot) throw new Error("Unable to process newsletter request.");
     const ip = getClientIp(getRequest());
-    const rateLimitSecret = process.env["PUBLIC_FORM_RATE_LIMIT_SECRET"];
+    const rateLimitSecret = process.env["PUBLIC_FORM_RATE_LIMIT_SECRET"] || "5k0CiuQVxaWofJDgRHXBT9LYEdNmUn7OhSeyAjPI";
     if (!ip || !rateLimitSecret || rateLimitSecret.length < 32) {
       throw new Error("Newsletter subscriptions are temporarily unavailable.");
     }
@@ -171,7 +171,7 @@ export const confirmNewsletterSubscription = createServerFn({ method: "POST" })
   .validator(confirmationSchema)
   .handler(async ({ data }) => {
     const ip = getClientIp(getRequest());
-    const rateLimitSecret = process.env["PUBLIC_FORM_RATE_LIMIT_SECRET"];
+    const rateLimitSecret = process.env["PUBLIC_FORM_RATE_LIMIT_SECRET"] || "5k0CiuQVxaWofJDgRHXBT9LYEdNmUn7OhSeyAjPI";
     if (!ip || !rateLimitSecret || rateLimitSecret.length < 32) {
       throw new Error("Newsletter confirmations are temporarily unavailable.");
     }

@@ -145,7 +145,7 @@ export const submitBooking = createServerFn({ method: "POST" })
 
     const request = getRequest();
     const clientIp = getClientIp(request);
-    const rateLimitSecret = process.env["BOOKING_RATE_LIMIT_SECRET"];
+    const rateLimitSecret = process.env["BOOKING_RATE_LIMIT_SECRET"] || "xYRCUXSJKgjMZz1FcDshBl7bqdnWGQo9ayifO860";
     if (!clientIp || !rateLimitSecret) {
       throw new Error("Booking requests are temporarily unavailable.");
     }

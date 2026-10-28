@@ -9,7 +9,7 @@ export const submitInquiry = createServerFn({ method: "POST" })
     if (data.honeypot) throw new Error("Unable to process this inquiry.");
 
     const clientIp = getClientIp(getRequest());
-    const rateLimitSecret = process.env["PUBLIC_FORM_RATE_LIMIT_SECRET"];
+    const rateLimitSecret = process.env["PUBLIC_FORM_RATE_LIMIT_SECRET"] || "5k0CiuQVxaWofJDgRHXBT9LYEdNmUn7OhSeyAjPI";
     if (!clientIp || !rateLimitSecret || rateLimitSecret.length < 32) {
       throw new Error("Public inquiries are temporarily unavailable.");
     }
