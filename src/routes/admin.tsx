@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import type { Json, Tables } from "@/integrations/supabase/types";
 import { AdminAvailabilityManager } from "@/components/admin/AdminAvailabilityManager";
-import { GuestPhotoManager } from "@/components/admin/GuestPhotoManager";
+import { WebsitePhotoManager } from "@/components/admin/WebsitePhotoManager";
 import { parseCancellationTiers, type CancellationTier } from "@/lib/booking-pricing";
 import { ArrowUpDown, CheckCircle2, Clock, ExternalLink, Filter, MessageCircle, Search } from "lucide-react";
 import { formatClientWhatsappUrl } from "@/lib/whatsapp-client";
@@ -1449,7 +1449,8 @@ function AdminPage() {
           </div>
 
           <div className="mt-6">
-            <GuestPhotoManager
+            <WebsitePhotoManager
+              adminLang={adminLang}
               photos={photos}
               onRefresh={refresh}
               onError={(msg) => setError(msg)}
