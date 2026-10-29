@@ -2,9 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import type { Tables } from "@/integrations/supabase/types";
+import type { Json, Tables } from "@/integrations/supabase/types";
 import { AdminAvailabilityManager } from "@/components/admin/AdminAvailabilityManager";
-import { ArrowUpDown, Clock, Filter, MessageCircle, Search } from "lucide-react";
+import { GuestPhotoManager } from "@/components/admin/GuestPhotoManager";
+import { parseCancellationTiers, type CancellationTier } from "@/lib/booking-pricing";
+import { ArrowUpDown, CheckCircle2, Clock, ExternalLink, Filter, MessageCircle, Search } from "lucide-react";
 import { formatClientWhatsappUrl } from "@/lib/whatsapp-client";
 
 type Booking = Tables<"bookings">;
@@ -78,16 +80,25 @@ const ADMIN_I18N = {
     selectAllMonth: "Select all in month",
     clearSelection: "Clear selection",
     daysSelected: "days selected",
-    whatsappNumber: "WhatsApp number (with country code, e.g. 212600123456)",
-    publicEmail: "Public contact email",
-    cancellationPolicy: "Cancellation policy",
+    whatsappNumber: "WhatsApp Phone Number (with country code, e.g. 212707072556)",
+    whatsappHint: "Include country code (e.g. 212707072556 or 0707072556). All website WhatsApp buttons will automatically use this number.",
+    testWhatsapp: "Test WhatsApp Link",
+    publicEmail: "Public Contact Email",
+    publicEmailHint: "Displayed in website footer and booking confirmations.",
+    instagramLink: "Instagram Profile (Optional)",
+    instagramHint: "e.g. https://instagram.com/moroccansecrets",
+    cancellationPolicy: "Cancellation Policy",
     policyFlexible: "Flexible (100% refund up to 24h before)",
     policyModerate: "Moderate (100% up to 48h before, 50% up to 24h)",
     policyStrict: "Strict (100% up to 7 days before, 50% up to 48h)",
-    currency: "Currency (e.g. MAD, EUR, USD)",
-    saveSettings: "Save settings",
+    currency: "Booking Currency (MAD, EUR, USD, GBP)",
+    saveSettings: "Save Settings",
     saving: "Saving…",
-    saved: "Settings saved successfully.",
+    saved: "Settings saved successfully! Changes are live on the website.",
+    photosTitle: "Website Photos & Gallery",
+    photosDesc: "Add, modify, reorder, or delete photos that appear on the homepage and gallery",
+    settingsTitle: "Contact & Website Settings",
+    settingsDesc: "Change your WhatsApp phone number, contact email, Instagram, currency, and booking rules",
     contactWhatsapp: "Contact on WhatsApp",
     all: "All",
     searchPlaceholder: "Search by guest name, email, or phone…",
@@ -173,16 +184,25 @@ const ADMIN_I18N = {
     selectAllMonth: "Tout sélectionner ce mois",
     clearSelection: "Effacer la sélection",
     daysSelected: "jours sélectionnés",
-    whatsappNumber: "Numéro WhatsApp (avec indicatif, ex. 212600123456)",
+    whatsappNumber: "Numéro de téléphone WhatsApp (avec indicatif, ex. 212707072556)",
+    whatsappHint: "Avec l'indicatif pays (ex. 212707072556 ou 0707072556). Tous les boutons WhatsApp du site utiliseront automatiquement ce numéro.",
+    testWhatsapp: "Tester le lien WhatsApp",
     publicEmail: "E-mail public de contact",
+    publicEmailHint: "Affiché dans le pied de page et les confirmations de réservation.",
+    instagramLink: "Profil Instagram (Optionnel)",
+    instagramHint: "ex. https://instagram.com/moroccansecrets",
     cancellationPolicy: "Politique d'annulation",
     policyFlexible: "Flexible (remboursement 100% jusqu'à 24h avant)",
     policyModerate: "Modérée (100% jusqu'à 48h avant, 50% jusqu'à 24h)",
     policyStrict: "Stricte (100% jusqu'à 7 jours avant, 50% jusqu'à 48h)",
-    currency: "Devise (ex. MAD, EUR, USD)",
+    currency: "Devise des réservations (MAD, EUR, USD, GBP)",
     saveSettings: "Enregistrer les paramètres",
     saving: "Enregistrement…",
-    saved: "Paramètres enregistrés avec succès.",
+    saved: "Paramètres enregistrés avec succès ! Les modifications sont en ligne.",
+    photosTitle: "Photos du site & Galerie",
+    photosDesc: "Gérez et modifiez les photos affichées sur la page d'accueil et dans la galerie",
+    settingsTitle: "Coordonnées & Paramètres du site",
+    settingsDesc: "Modifiez votre numéro WhatsApp, votre e-mail de contact, votre Instagram, la devise et les règles",
     contactWhatsapp: "Contacter sur WhatsApp",
     all: "Tous",
     searchPlaceholder: "Rechercher par nom, email, ou téléphone…",
@@ -268,16 +288,25 @@ const ADMIN_I18N = {
     selectAllMonth: "تحديد كل أيام الشهر",
     clearSelection: "إلغاء التحديد",
     daysSelected: "أيام محددة",
-    whatsappNumber: "رقم واتساب (مع رمز الدولة، مثلاً 212600123456)",
-    publicEmail: "البريد الإلكتروني للتواصل",
+    whatsappNumber: "رقم هاتف الواتساب (مع الرمز الدولي، مثلاً 212707072556)",
+    whatsappHint: "مع الرمز الدولي (مثال: 212707072556 أو 0707072556). ستستخدم جميع أزرار الواتساب في الموقع هذا الرقم تلقائياً.",
+    testWhatsapp: "تجربة رابط الواتساب",
+    publicEmail: "البريد الإلكتروني للاتصال",
+    publicEmailHint: "يظهر في أسفل الموقع وتأكيدات الحجز.",
+    instagramLink: "حساب إنستغرام (اختياري)",
+    instagramHint: "مثال: https://instagram.com/moroccansecrets",
     cancellationPolicy: "شروط الإلغاء",
     policyFlexible: "مرن (استرداد 100% حتى 24 ساعة قبل الموعد)",
     policyModerate: "معتدل (استرداد 100% حتى 48 ساعة، و50% حتى 24 ساعة)",
     policyStrict: "صارم (استرداد 100% حتى 7 أيام، و50% حتى 48 ساعة)",
-    currency: "العملة (مثال: MAD, EUR, USD)",
+    currency: "عملة الحجز (MAD, EUR, USD, GBP)",
     saveSettings: "حفظ الإعدادات",
     saving: "جارٍ الحفظ…",
-    saved: "تم حفظ الإعدادات بنجاح.",
+    saved: "تم حفظ الإعدادات بنجاح! التغييرات مفعلة الآن على الموقع.",
+    photosTitle: "صور الموقع والمعرض",
+    photosDesc: "إدارة وتعديل وترتيب وحذف الصور المعروضة على الصفحة الرئيسية والمعرض",
+    settingsTitle: "معلومات الاتصال وإعدادات الموقع",
+    settingsDesc: "تعديل رقم هاتف الواتساب، البريد الإلكتروني، إنستغرام، العملة وشروط الحجز",
     contactWhatsapp: "مراسلة عبر واتساب",
     all: "الكل",
     searchPlaceholder: "بحث بالاسم، البريد أو الهاتف…",
@@ -349,18 +378,26 @@ function AdminPage() {
   const [experiences, setExperiences] = useState<Tables<"experiences">[]>([]);
   const [availability, setAvailability] = useState<Availability[]>([]);
   const [settings, setSettings] = useState<SiteSetting[]>([]);
+  const [photos, setPhotos] = useState<Tables<"guest_photos">[]>([]);
 
-  const [settingCurrency, setSettingCurrency] = useState("MAD");
+  // Settings form state
+  const [settingWhatsapp, setSettingWhatsapp] = useState("");
+  const [settingEmail, setSettingEmail] = useState("");
+  const [settingInstagram, setSettingInstagram] = useState("");
+  const [settingCurrency, setSettingCurrency] = useState("EUR");
+  const [cancellationPreset, setCancellationPreset] = useState("flexible");
+  const [settingsSuccess, setSettingsSuccess] = useState(false);
 
   const refresh = useCallback(async () => {
     setBusy(true);
     setError("");
-    const [bookingResult, experienceResult, availabilityResult, settingsResult] = await Promise.all(
+    const [bookingResult, experienceResult, availabilityResult, settingsResult, photosResult] = await Promise.all(
       [
         supabase.from("bookings").select("*").order("created_at", { ascending: false }),
         supabase.from("experiences").select("*").order("id"),
         supabase.from("availability").select("*").order("date", { ascending: true }),
         supabase.from("site_settings").select("*").order("setting_key"),
+        supabase.from("guest_photos").select("*").order("sort_order", { ascending: true }),
       ],
     );
 
@@ -368,7 +405,8 @@ function AdminPage() {
       bookingResult.error ||
       experienceResult.error ||
       availabilityResult.error ||
-      settingsResult.error;
+      settingsResult.error ||
+      photosResult.error;
 
     if (failure) {
       setError(`Could not load admin data: ${failure.message}`);
@@ -380,13 +418,109 @@ function AdminPage() {
     setExperiences(experienceResult.data ?? []);
     setAvailability(availabilityResult.data ?? []);
     setSettings(settingsResult.data ?? []);
+    setPhotos(photosResult.data ?? []);
 
     const sMap = new Map((settingsResult.data ?? []).map((s) => [s.setting_key, s.value]));
+    const wa = sMap.get("contact.whatsapp");
+    if (typeof wa === "string") setSettingWhatsapp(wa);
+    const em = sMap.get("contact.email");
+    if (typeof em === "string") setSettingEmail(em);
+    const ig = sMap.get("contact.instagram");
+    if (typeof ig === "string") setSettingInstagram(ig);
     const curr = sMap.get("booking.currency");
     if (typeof curr === "string") setSettingCurrency(curr);
 
+    const rawTiers = sMap.get("booking.cancellation_tiers");
+    const parsedTiers = parseCancellationTiers(rawTiers);
+    if (parsedTiers.length === 1 && parsedTiers[0]?.hours_before === 24) {
+      setCancellationPreset("flexible");
+    } else if (parsedTiers.length === 2 && parsedTiers[0]?.hours_before === 48) {
+      setCancellationPreset("moderate");
+    } else if (parsedTiers.length === 2 && parsedTiers[0]?.hours_before === 168) {
+      setCancellationPreset("strict");
+    }
+
     setBusy(false);
   }, []);
+
+  const previewWhatsappUrl = useMemo(() => {
+    let digits = settingWhatsapp.replace(/\D/g, "");
+    if (digits.startsWith("0") && digits.length === 10) {
+      digits = "212" + digits.slice(1);
+    } else if (digits.startsWith("00")) {
+      digits = digits.slice(2);
+    }
+    return digits.length >= 8 ? `https://wa.me/${digits}` : null;
+  }, [settingWhatsapp]);
+
+  async function saveSettings(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setBusy(true);
+    setError("");
+    setSuccessMessage("");
+    setSettingsSuccess(false);
+
+    let tiers: CancellationTier[] = [{ hours_before: 24, refund_percent: 100 }];
+    if (cancellationPreset === "moderate") {
+      tiers = [
+        { hours_before: 48, refund_percent: 100 },
+        { hours_before: 24, refund_percent: 50 },
+      ];
+    } else if (cancellationPreset === "strict") {
+      tiers = [
+        { hours_before: 168, refund_percent: 100 },
+        { hours_before: 48, refund_percent: 50 },
+      ];
+    }
+
+    let cleanedWhatsapp = settingWhatsapp.replace(/\D/g, "");
+    if (cleanedWhatsapp.startsWith("0") && cleanedWhatsapp.length === 10) {
+      cleanedWhatsapp = "212" + cleanedWhatsapp.slice(1);
+    } else if (cleanedWhatsapp.startsWith("00")) {
+      cleanedWhatsapp = cleanedWhatsapp.slice(2);
+    }
+
+    const updates = [
+      {
+        setting_key: "contact.whatsapp",
+        value: cleanedWhatsapp as Json,
+        is_public: true,
+      },
+      {
+        setting_key: "contact.email",
+        value: settingEmail.trim() as Json,
+        is_public: true,
+      },
+      {
+        setting_key: "contact.instagram",
+        value: settingInstagram.trim() as Json,
+        is_public: true,
+      },
+      {
+        setting_key: "booking.currency",
+        value: (settingCurrency.trim().toUpperCase() || "EUR") as Json,
+        is_public: true,
+      },
+      {
+        setting_key: "booking.cancellation_tiers",
+        value: tiers as unknown as Json,
+        is_public: true,
+      },
+    ];
+
+    const { error: saveError } = await supabase
+      .from("site_settings")
+      .upsert(updates, { onConflict: "setting_key" });
+
+    if (saveError) {
+      setError(`Could not save settings: ${saveError.message}`);
+    } else {
+      setSuccessMessage(t.saved);
+      setSettingsSuccess(true);
+      await refresh();
+    }
+    setBusy(false);
+  }
 
   const verifyAdmin = useCallback(async () => {
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
@@ -534,9 +668,10 @@ function AdminPage() {
     setSuccessMessage("");
     const targetEmail = (resetEmail || email || "moroccosecretsmarrakech@gmail.com").trim();
     const redirectUrl = typeof window !== "undefined" ? `${window.location.origin}/admin` : undefined;
-    const { error: resetErr } = await supabase.auth.resetPasswordForEmail(targetEmail, {
-      redirectTo: redirectUrl,
-    });
+    const { error: resetErr } = await supabase.auth.resetPasswordForEmail(
+      targetEmail,
+      redirectUrl ? { redirectTo: redirectUrl } : undefined,
+    );
     if (resetErr) {
       setError(resetErr.message);
     } else {
@@ -965,6 +1100,8 @@ function AdminPage() {
             {[
               ["#admin-bookings", t.bookings],
               ["#admin-calendar", t.calendar],
+              ["#admin-photos", t.photos],
+              ["#admin-settings", t.settings],
               [
                 "#admin-password",
                 adminLang === "fr"
@@ -1303,7 +1440,164 @@ function AdminPage() {
         </section>
 
         {/* ====================================================================
-            SECTION 3: ADMIN PASSWORD
+            SECTION 3: PHOTOS
+        ==================================================================== */}
+        <section id="admin-photos" className="mt-12 scroll-mt-24 border-t pt-8">
+          <div className="border-b pb-4">
+            <h2 className="text-2xl font-bold text-foreground">{t.photosTitle}</h2>
+            <p className="text-sm text-muted-foreground">{t.photosDesc}</p>
+          </div>
+
+          <div className="mt-6">
+            <GuestPhotoManager
+              photos={photos}
+              onRefresh={refresh}
+              onError={(msg) => setError(msg)}
+            />
+          </div>
+        </section>
+
+        {/* ====================================================================
+            SECTION 4: SETTINGS (Phone number, contact email, currency, rules)
+        ==================================================================== */}
+        <section id="admin-settings" className="mt-12 scroll-mt-24 border-t pt-8">
+          <div className="border-b pb-4">
+            <h2 className="text-2xl font-bold text-foreground">{t.settingsTitle}</h2>
+            <p className="text-sm text-muted-foreground">{t.settingsDesc}</p>
+          </div>
+
+          <div className="mt-6 max-w-xl rounded-2xl border border-stone-200 bg-card p-6 shadow-xs">
+            {settingsSuccess && (
+              <div
+                role="status"
+                className="mb-5 flex items-center gap-2 rounded-xl border border-emerald-300 bg-emerald-50 p-4 text-sm font-semibold text-emerald-900"
+              >
+                <CheckCircle2 className="w-5 h-5 text-emerald-700 shrink-0" />
+                <span>{t.saved}</span>
+              </div>
+            )}
+
+            <form onSubmit={saveSettings} className="space-y-5">
+              {/* WhatsApp Phone Number */}
+              <div>
+                <label className="block text-sm font-semibold text-foreground mb-1">
+                  {t.whatsappNumber}
+                </label>
+                <input
+                  type="tel"
+                  className={inputClass}
+                  placeholder="212707072556 or 0707072556"
+                  value={settingWhatsapp}
+                  onChange={(e) => {
+                    setSettingWhatsapp(e.target.value);
+                    setSettingsSuccess(false);
+                  }}
+                />
+                <p className="mt-1.5 text-xs text-muted-foreground">{t.whatsappHint}</p>
+                {previewWhatsappUrl && (
+                  <div className="mt-2">
+                    <a
+                      href={previewWhatsappUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 hover:text-emerald-800 hover:underline"
+                    >
+                      <MessageCircle className="w-3.5 h-3.5" />
+                      <span>{t.testWhatsapp}</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                )}
+              </div>
+
+              {/* Public Contact Email */}
+              <div>
+                <label className="block text-sm font-semibold text-foreground mb-1">
+                  {t.publicEmail}
+                </label>
+                <input
+                  type="email"
+                  className={inputClass}
+                  placeholder="moroccosecretsmarrakech@gmail.com"
+                  value={settingEmail}
+                  onChange={(e) => {
+                    setSettingEmail(e.target.value);
+                    setSettingsSuccess(false);
+                  }}
+                />
+                <p className="mt-1.5 text-xs text-muted-foreground">{t.publicEmailHint}</p>
+              </div>
+
+              {/* Instagram URL */}
+              <div>
+                <label className="block text-sm font-semibold text-foreground mb-1">
+                  {t.instagramLink}
+                </label>
+                <input
+                  type="url"
+                  className={inputClass}
+                  placeholder="https://instagram.com/moroccansecrets"
+                  value={settingInstagram}
+                  onChange={(e) => {
+                    setSettingInstagram(e.target.value);
+                    setSettingsSuccess(false);
+                  }}
+                />
+                <p className="mt-1.5 text-xs text-muted-foreground">{t.instagramHint}</p>
+              </div>
+
+              {/* Booking Currency */}
+              <div>
+                <label className="block text-sm font-semibold text-foreground mb-1">
+                  {t.currency}
+                </label>
+                <select
+                  className={inputClass}
+                  value={settingCurrency}
+                  onChange={(e) => {
+                    setSettingCurrency(e.target.value.toUpperCase());
+                    setSettingsSuccess(false);
+                  }}
+                >
+                  <option value="EUR">EUR (€) - Euros</option>
+                  <option value="MAD">MAD (DH) - Moroccan Dirham</option>
+                  <option value="USD">USD ($) - US Dollars</option>
+                  <option value="GBP">GBP (£) - British Pounds</option>
+                </select>
+              </div>
+
+              {/* Cancellation Policy */}
+              <div>
+                <label className="block text-sm font-semibold text-foreground mb-1">
+                  {t.cancellationPolicy}
+                </label>
+                <select
+                  className={inputClass}
+                  value={cancellationPreset}
+                  onChange={(e) => {
+                    setCancellationPreset(e.target.value);
+                    setSettingsSuccess(false);
+                  }}
+                >
+                  <option value="flexible">{t.policyFlexible}</option>
+                  <option value="moderate">{t.policyModerate}</option>
+                  <option value="strict">{t.policyStrict}</option>
+                </select>
+              </div>
+
+              <Button
+                type="submit"
+                disabled={busy}
+                className="w-full min-h-12 text-base font-bold bg-primary text-primary-foreground hover:bg-primary/90 shadow cursor-pointer"
+              >
+                {busy ? t.saving : t.saveSettings}
+              </Button>
+            </form>
+          </div>
+        </section>
+
+        {/* ====================================================================
+            SECTION 5: ADMIN PASSWORD
         ==================================================================== */}
         <section id="admin-password" className="mt-12 scroll-mt-24 border-t pt-8 pb-16">
           <div className="border-b pb-4">
