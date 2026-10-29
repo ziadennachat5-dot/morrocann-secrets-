@@ -77,30 +77,47 @@ export const getPublicGuestPhotos = createServerFn({ method: "GET" }).handler(as
   }
   if (result.error) throw new Error("Unable to load guest photos.");
   const photos = filterPhotosWithConsent(z.array(guestPhotoSchema).parse(result.data));
-  const photosWithUrls = await Promise.all(
-    photos.map(async (photo) => {
-      const paths = photo.renditions.length
-        ? photo.renditions
-        : [{ width: 0, path: photo.storage_path }];
-      const urls = await Promise.all(
-        paths.map(async ({ width, path }) => {
-          const { data, error } = await supabaseAdmin.storage
-            .from("guest-photos")
-            .createSignedUrl(path, 86400);
-          if (error || !data?.signedUrl) throw new Error("Unable to create a guest photo URL.");
-          return { width, url: data.signedUrl };
-        }),
-      );
-      return {
-        ...photo,
-        url: urls.at(-1)?.url ?? "",
-        srcSet: urls
-          .filter(({ width }) => width > 0)
-          .map(({ width, url }) => `${url} ${width}w`)
-          .join(", "),
-      };
-    }),
-  );
+
+  const allPaths: string[] = [];
+  for (const photo of photos) {
+    if (photo.renditions.length) {
+      for (const r of photo.renditions) allPaths.push(r.path);
+    } else {
+      allPaths.push(photo.storage_path);
+    }
+  }
+
+  const { data: signedResults, error: signedError } = allPaths.length
+    ? await supabaseAdmin.storage.from("guest-photos").createSignedUrls(allPaths, 86400)
+    : { data: [], error: null };
+
+  if (signedError) {
+    console.warn("Unable to batch sign guest photo URLs:", signedError);
+  }
+
+  const urlMap = new Map<string, string>();
+  for (const item of signedResults ?? []) {
+    const signed = item.signedUrl || (item as unknown as { signedURL?: string }).signedURL;
+    if (signed && item.path) urlMap.set(item.path, signed);
+  }
+
+  const photosWithUrls = photos.map((photo) => {
+    const paths = photo.renditions.length
+      ? photo.renditions
+      : [{ width: 0, path: photo.storage_path }];
+    const urls = paths
+      .map(({ width, path }) => ({ width, url: urlMap.get(path) ?? "" }))
+      .filter((u) => u.url);
+
+    return {
+      ...photo,
+      url: urls.at(-1)?.url ?? "",
+      srcSet: urls
+        .filter(({ width }) => width > 0)
+        .map(({ width, url }) => `${url} ${width}w`)
+        .join(", "),
+    };
+  });
   return { photos: photosWithUrls, unavailable: false };
 });
 

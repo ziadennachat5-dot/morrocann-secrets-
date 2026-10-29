@@ -95,28 +95,52 @@ export function GuestPhotoManager({
 
   useEffect(() => {
     let active = true;
-    void Promise.all(
-      sortedPhotos.map(async (photo) => {
-        const renditions = parseRenditions(photo.renditions);
-        const path = renditions.at(-1)?.path || photo.storage_path;
-        const { data, error } = await supabase.storage
-          .from("guest-photos")
-          .createSignedUrl(path, 3600);
-        if (error) throw new Error(`Could not preview guest photo: ${error.message}`);
-        return [photo.id, data.signedUrl] as const;
-      }),
-    )
-      .then((entries) => {
-        if (active) setPreviews(Object.fromEntries(entries));
+    if (!sortedPhotos.length) return;
+
+    // Collect all paths to sign in a single batch request to avoid connection spikes
+    const pathToPhotoId = new Map<string, string>();
+    const pathsToSign: string[] = [];
+
+    for (const photo of sortedPhotos) {
+      const renditions = parseRenditions(photo.renditions);
+      const path = renditions.at(-1)?.path || photo.storage_path;
+      if (path) {
+        pathToPhotoId.set(path, photo.id);
+        pathsToSign.push(path);
+      }
+    }
+
+    if (pathsToSign.length === 0) return;
+
+    supabase.storage
+      .from("guest-photos")
+      .createSignedUrls(pathsToSign, 3600)
+      .then(({ data, error }) => {
+        if (!active) return;
+        if (error) {
+          console.warn("Could not batch sign guest photo previews:", error.message);
+          return;
+        }
+        if (data) {
+          const map: Record<string, string> = {};
+          for (const item of data) {
+            const signedUrl = item.signedUrl || (item as unknown as { signedURL?: string }).signedURL;
+            if (signedUrl && item.path) {
+              const photoId = pathToPhotoId.get(item.path);
+              if (photoId) map[photoId] = signedUrl;
+            }
+          }
+          setPreviews((prev) => ({ ...prev, ...map }));
+        }
       })
       .catch((error: unknown) => {
-        console.error("Guest photo previews could not be loaded:", error);
-        onError(error instanceof Error ? error.message : "Could not load guest photo previews.");
+        console.warn("Guest photo previews could not be loaded:", error);
       });
+
     return () => {
       active = false;
     };
-  }, [onError, sortedPhotos]);
+  }, [sortedPhotos]);
 
   async function uploadSelected() {
     if (!files.length) return;
