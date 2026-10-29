@@ -1583,24 +1583,36 @@ export function BookingFlow({
                 )}
               </div>
 
-              {/* Submit Error alert with retry button, preserving entered data */}
+              {/* Submit Error alert with retry button & direct WhatsApp fallback */}
               {submitError && (
                 <div
                   role="alert"
-                  className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-xl bg-destructive/10 border border-destructive/25 p-4 text-destructive"
+                  className="flex flex-col gap-3 rounded-xl bg-destructive/10 border border-destructive/25 p-4 text-destructive"
                 >
                   <div className="flex items-start gap-2.5">
                     <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
                     <span className="text-sm font-semibold">{submitError}</span>
                   </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => void handleSubmit()}
-                    className="shrink-0 h-9 px-4 border-destructive/40 text-destructive hover:bg-destructive/10 text-xs font-bold"
-                  >
-                    {lang === "fr" ? "Réessayer" : lang === "ar" ? "إعادة المحاولة" : "Retry"}
-                  </Button>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => void handleSubmit()}
+                      className="shrink-0 h-9 px-4 border-destructive/40 text-destructive hover:bg-destructive/10 text-xs font-bold"
+                    >
+                      {lang === "fr" ? "Réessayer" : lang === "ar" ? "إعادة المحاولة" : "Retry"}
+                    </Button>
+                    <a
+                      href={"https://wa.me/212661915644?text=" + encodeURIComponent(
+                        "Salam Said! I would like to book: " + (name.trim() || "Guest") + ", Date: " + (date || "N/A") + ", Guests: " + guests + ", Phone: " + (phone.trim() || "N/A")
+                      )}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="shrink-0 h-9 px-4 inline-flex items-center justify-center rounded-md bg-[#25D366] text-white hover:bg-[#20ba5a] text-xs font-bold transition shadow-sm"
+                    >
+                      {lang === "fr" ? "Contacter sur WhatsApp" : lang === "ar" ? "التواصل عبر واتساب" : "Contact on WhatsApp"}
+                    </a>
+                  </div>
                 </div>
               )}
 

@@ -12,7 +12,6 @@ import {
 import { getPublicContactLinks } from "@/lib/public-contact.functions";
 import { getHomepageContent } from "@/lib/homepage.functions";
 import { getPublicGuestPhotos, selectHeroAndGalleryPhotos } from "@/lib/guest-photos.functions";
-import { GuestPhotoGallery } from "@/components/site/GuestPhotoGallery";
 import { ConceptSection, MenuSection } from "@/components/site/ConceptAndMenu";
 import { GuestReviewsSection } from "@/components/site/GuestReviewsSection";
 import {
@@ -222,12 +221,6 @@ export function HomePage({ data: propData }: { data?: Awaited<ReturnType<typeof 
       }
     : undefined;
 
-  const photosTitle = {
-    en: "Moments from our table",
-    fr: "Moments autour de notre table",
-    ar: "لحظات من مائدتنا",
-  };
-
   const howTitle = {
     en: "How it works",
     fr: "Comment ça marche",
@@ -264,28 +257,9 @@ export function HomePage({ data: propData }: { data?: Awaited<ReturnType<typeof 
     ar: "احجز الغداء أو العشاء",
   };
 
-  const assignedFiles = new Set([
-    "14.png",
-    "7.jpeg",
-    "8.jpeg",
-    "2.jpeg",
-    "10.png",
-    "4.png",
-    "11.png",
-    "5.png",
-    "10.jpeg",
-    "4.jpeg",
-    "11.jpeg",
-    "5.jpeg",
-  ]);
-  const remainingApprovedPhotos = data.photos.photos.filter(
-    (p) => !assignedFiles.has(p.source_file ?? "") && p.guest_consent_confirmed,
-  );
-
-  // Manage gallery visibility: show if 1 or more approved photos exist
   useEffect(() => {
-    setHasGallery(remainingApprovedPhotos.length >= 1);
-  }, [remainingApprovedPhotos.length, setHasGallery]);
+    setHasGallery(false);
+  }, [setHasGallery]);
 
   const howItWorksTrackedLabel = {
     en: "HOW IT WORKS",
@@ -669,25 +643,6 @@ export function HomePage({ data: propData }: { data?: Awaited<ReturnType<typeof 
                 </div>
               ))}
             </div>
-          </div>
-        </section>
-      )}
-
-      {/* ═══════════════════════════════════════════════════════════
-          4. PHOTOS (displayed when 1 or more approved photos exist)
-      ═══════════════════════════════════════════════════════════ */}
-      {remainingApprovedPhotos.length >= 1 && (
-        <section id="photos" className="scroll-mt-20 bg-cream section-pad">
-          <div className="ms-container">
-            <div className="text-center mb-12 sm:mb-16">
-              <span className="tracked-label block mb-2 text-gold">
-                {lang === "fr" ? "GALERIE PHOTOS" : lang === "ar" ? "صور الضيوف" : "PHOTOS"}
-              </span>
-              <h2 className="text-center text-oxblood font-display font-semibold leading-[1.0] text-3xl sm:text-4xl lg:text-[44px] tracking-tight">
-                {photosTitle[lang]}
-              </h2>
-            </div>
-            <GuestPhotoGallery photos={remainingApprovedPhotos} />
           </div>
         </section>
       )}

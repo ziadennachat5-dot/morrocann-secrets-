@@ -82,14 +82,11 @@ export function LangSwitch({ light = false }: { light?: boolean }) {
   );
 }
 
-export function getNavLinks(hasGallery: boolean, lang: Lang = "en") {
+export function getNavLinks(_hasGallery: boolean = false, lang: Lang = "en") {
   const prefix = lang === "en" ? "" : `/${lang}`;
   return [
     { href: `${prefix}/#experience`, label: { en: "Experience", fr: "L'expérience", ar: "التجربة" } },
     { href: `${prefix}/#menu`, label: { en: "The menu", fr: "Le menu", ar: "قائمة الطعام" } },
-    ...(hasGallery
-      ? [{ href: `${prefix}/#photos`, label: { en: "Photos", fr: "Photos", ar: "الصور" } }]
-      : []),
     { href: `${prefix}/#reviews`, label: { en: "Reviews", fr: "Avis", ar: "التقييمات" } },
     { href: `${prefix}/#booking`, label: { en: "Book", fr: "Réserver", ar: "احجز" } },
   ];
@@ -121,7 +118,7 @@ export function Header() {
   };
 
   useEffect(() => {
-    const sectionIds = ["experience", "menu", "photos", "how", "reviews", "booking"];
+    const sectionIds = ["experience", "menu", "how", "reviews", "booking"];
     const handleScroll = () => {
       setScrolled(window.scrollY > 80);
 
