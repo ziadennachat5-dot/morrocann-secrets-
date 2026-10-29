@@ -282,9 +282,9 @@ export function HomePage({ data: propData }: { data?: Awaited<ReturnType<typeof 
     (p) => !assignedFiles.has(p.source_file ?? "") && p.guest_consent_confirmed,
   );
 
-  // Manage gallery visibility: only show if 3 or more approved photos remain besides the assigned ones
+  // Manage gallery visibility: show if 1 or more approved photos exist
   useEffect(() => {
-    setHasGallery(remainingApprovedPhotos.length >= 3);
+    setHasGallery(remainingApprovedPhotos.length >= 1);
   }, [remainingApprovedPhotos.length, setHasGallery]);
 
   const howItWorksTrackedLabel = {
@@ -674,9 +674,9 @@ export function HomePage({ data: propData }: { data?: Awaited<ReturnType<typeof 
       )}
 
       {/* ═══════════════════════════════════════════════════════════
-          4. PHOTOS (only when 3 or more approved photos remain)
+          4. PHOTOS (displayed when 1 or more approved photos exist)
       ═══════════════════════════════════════════════════════════ */}
-      {remainingApprovedPhotos.length >= 3 && (
+      {remainingApprovedPhotos.length >= 1 && (
         <section id="photos" className="scroll-mt-20 bg-cream section-pad">
           <div className="ms-container">
             <div className="text-center mb-12 sm:mb-16">
